@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+  odoodb:
+    image: postgres:10
+    environment:
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
+      - POSTGRES_DB=postgres
+    networks:
+      - odoonet
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    stdin_open: true
+    tty: true
+
+  odoo:
+    build: .
+    image: odoo:11.0
+    ports:
+      - 8069:8069
+    volumes:
+      - ./extra_addons:/mnt/extra-addons
+      - ./config:/etc/odoo
+      - ./data_dir:/var/lib/odoo
+    depends_on:
+      - odoodb
+    stdin_open: true
+    tty: true
+    environment:
+      - HOST=odoodb
+    networks:
+      - odoonet
+
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   ports:
+  #     - 8090:80
+  #   environment:
+  #     - PGADMIN_DEFAULT_EMAIL=kevin@katana.do
+  #     - PGADMIN_DEFAULT_PASSWORD=admin
+  #   stdin_open: true
+  #   tty: true
+  #   networks:
+  #     - odoonet
+
+networks:
+  odoonet:
+
+volumes:
+  db_data:
