@@ -17,7 +17,7 @@ ENV ODOO_RC             "/etc/odoo"
 ENV ODOO_CMD             "${ODOO_BASEPATH}/odoo-bin"
 ENV ODOO_FRM             "${ODOO_BASEPATH}/odoo"
 ENV ODOO_ADDONS_BASEPATH "${ODOO_BASEPATH}/addons"
-ENV ODOO_PRST_DIR        "/var/lib/odoo-persist"
+ENV ODOO_PRST_DIR        "/var/lib/odoo"
 ENV APP_UID              "9001"
 ENV APP_GID              "9001"
 
@@ -135,8 +135,8 @@ RUN adduser --system --uid $APP_GID --ingroup odoo --home /opt/odoo --disabled-l
 RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
 
 # Copy from build env
-COPY ./entrypoint.sh /
-COPY ./odoo.conf ${ODOO_RC}/odoo.conf
+COPY entrypoint.sh /
+COPY odoo.conf ${ODOO_RC}/odoo.conf
 RUN chown odoo ${ODOO_RC}
 # COPY entrypoint.d /entrypoint.d
 # COPY entrypoint.db.d /entrypoint.db.d
