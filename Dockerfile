@@ -1,7 +1,6 @@
-FROM debian:stretch AS base-build
+FROM debian:stretch
 
 USER root
-
 
 # Library versions
 ENV ODOO_VERSION         11.0
@@ -13,7 +12,7 @@ ENV BOOTSTRAP_VERSION    3.3.7
 
 # Build-time env
 ENV ODOO_BASEPATH        "/opt/odoo"
-ENV ODOO_RC             "/etc/odoo"
+ENV ODOO_RC              "/etc/odoo/odoo.conf"
 ENV ODOO_CMD             "${ODOO_BASEPATH}/odoo-bin"
 ENV ODOO_FRM             "${ODOO_BASEPATH}/odoo"
 ENV ODOO_ADDONS_BASEPATH "${ODOO_BASEPATH}/addons"
@@ -21,8 +20,22 @@ ENV ODOO_PRST_DIR        "/var/lib/odoo"
 ENV APP_UID              "9001"
 ENV APP_GID              "9001"
 
+# Fix locale                 //-- for some tests that depend on locale (babel python-lib)
+RUN set -x; \
+    apt update \
+    && apt -yq install locales
+
+RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+    dpkg-reconfigure --frontend=noninteractive locales && \
+    update-locale LANG=en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+
 # Grab build deps
-RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends \
+RUN set -x; \
+    apt-get -qq update && apt-get -qq install -y --no-install-recommends \
     build-essential \
     bzip2 \
     curl \
@@ -55,7 +68,8 @@ RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends \
     > /dev/null
 
 # Grab run deps
-RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends \
+RUN set -x; \
+    apt-get -qq update && apt-get -qq install -y --no-install-recommends \
     python3 \
     apt-transport-https \
     ca-certificates \
@@ -136,7 +150,7 @@ RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${OD
 
 # Copy from build env
 COPY entrypoint.sh /
-COPY odoo.conf ${ODOO_RC}/odoo.conf
+COPY config/odoo.conf ${ODOO_RC}
 RUN chown odoo ${ODOO_RC}
 # COPY entrypoint.d /entrypoint.d
 # COPY entrypoint.db.d /entrypoint.db.d
@@ -152,14 +166,6 @@ RUN mkdir -p /mnt/extra-addons \
 ENTRYPOINT ["/entrypoint.sh"]
 VOLUME ["${ODOO_PRST_DIR}"]
 
-# Fix locale                 //-- for some tests that depend on locale (babel python-lib)
-RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
-    dpkg-reconfigure --frontend=noninteractive locales && \
-    update-locale LANG=en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
-
 # RUN /bin/bash -c 'shopt -s dotglob \
 #  && chmod +x /entrypoint.sh \
 #  && chmod +x /usr/local/bin/* \
@@ -173,4 +179,4 @@ USER odoo
 # Grab newer werkzeug        //-- for right IP in logs https://git.io/fNu6v
 RUN pip --quiet --quiet install --user Werkzeug==0.14.1
 
-CMD ["${ODOO_CMD}"]
+CMD ["/opt/odoo/odoo-bin"]
