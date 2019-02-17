@@ -24,16 +24,16 @@ check_config "db_user" "$USER"
 check_config "db_password" "$PASSWORD"
 
 case "$1" in
-    -- | odoo | /opt/odoo/odoo-bin)
+    -- | odoo | ${ODOO_CMD})
         shift
         if [[ "$1" == "scaffold" ]] ; then
-            exec /opt/odoo/odoo-bin "$@"
+            exec odoo "$@"
         else
-            exec /opt/odoo/odoo-bin "$@" "${DB_ARGS[@]}"
+            exec odoo "$@" "${DB_ARGS[@]}"
         fi
         ;;
     -*)
-        exec /opt/odoo/odoo-bin "$@" "${DB_ARGS[@]}"
+        exec odoo "$@" "${DB_ARGS[@]}"
         ;;
     *)
         exec "$@"

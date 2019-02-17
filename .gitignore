@@ -3,7 +3,7 @@ _testlogs/
 
 .cfg-custom.ini
 
-extra_addons/
+extra_addons/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

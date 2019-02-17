@@ -22,8 +22,7 @@ ENV APP_GID              "9001"
 
 # Fix locale                 //-- for some tests that depend on locale (babel python-lib)
 RUN set -x; \
-    apt update \
-    && apt -yq install locales
+    apt-get -qq update && apt-get -qq install -y locales
 
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     dpkg-reconfigure --frontend=noninteractive locales && \
@@ -37,6 +36,7 @@ ENV LC_ALL en_US.UTF-8
 RUN set -x; \
     apt-get -qq update && apt-get -qq install -y --no-install-recommends \
     build-essential \
+    nano \
     bzip2 \
     curl \
     fonts-noto-cjk \
@@ -106,8 +106,7 @@ RUN curl --silent --show-error --location https://www.postgresql.org/media/keys/
 RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends postgresql-client-${PSQL_VERSION} > /dev/null
 
 # Grab pip dependencies
-COPY requirements.txt /requirements.txt
-RUN pip --quiet --quiet install --no-cache-dir --requirement /requirements.txt
+RUN pip --quiet --quiet install --no-cache-dir --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt
 RUN pip --quiet --quiet install --no-cache-dir phonenumbers
 
 # Grab wkhtmltopdf
@@ -147,6 +146,7 @@ RUN adduser --system --uid $APP_GID --ingroup odoo --home /opt/odoo --disabled-l
 
 # Install Odoo from Source code
 RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
+RUN pip install -e ./${ODOO_BASEPATH}
 
 # Copy from build env
 COPY entrypoint.sh /
@@ -179,4 +179,4 @@ USER odoo
 # Grab newer werkzeug        //-- for right IP in logs https://git.io/fNu6v
 RUN pip --quiet --quiet install --user Werkzeug==0.14.1
 
-CMD ["/opt/odoo/odoo-bin"]
+CMD ["odoo"]
