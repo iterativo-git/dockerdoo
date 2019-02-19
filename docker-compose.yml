@@ -45,6 +45,7 @@ services:
     volumes:
       - psql:/var/lib/postgresql/data
     environment:
+        # TODO: this variables shouldn't be hardcoded
       - POSTGRES_PASSWORD=odoo
       - POSTGRES_USER=odoo
     networks:
@@ -57,6 +58,7 @@ services:
   odoo:
     << : *default-odoo
     entrypoint: ['/entrypoint.sh']
+    # TODO: add a variable to allow a dynamic ADDONS_PATH
     command: ['odoo']
     depends_on: ['postgres']
 
@@ -74,7 +76,7 @@ services:
     << : *default-odoo
     depends_on: ['postgres', 'wdb']
     entrypoint: ['/entrypoint.sh']
-    # TODO: logfile is not working, and it shouldn't be hardcoded
+    # TODO: logfile shouldn't be hardcoded
     command: ['odoo', '--dev', 'wdb,qweb,werkzeug,xml', '--test-enable', '--stop-after-init', '--logfile', '/var/log/odoo/odoo-server.log']
 
 # ------------------------
