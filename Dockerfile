@@ -107,7 +107,7 @@ RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends postgre
 
 # Grab pip dependencies
 RUN pip --quiet --quiet install --no-cache-dir --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt
-RUN pip --quiet --quiet install --no-cache-dir phonenumbers
+RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog
 
 # Grab wkhtmltopdf
 RUN curl --silent --show-error --location --output wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb
