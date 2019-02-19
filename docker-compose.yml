@@ -9,7 +9,7 @@ x-odoo:
   volumes:
     # Named volumes
     - odoo-data:/var/lib/odoo
-    - odoo-testlogs:/var/lib/odoo-testlogs
+    - odoo-testlogs:/var/log/odoo
     # Odoo source Host path
     - ./extra_addons:/mnt/extra-addons:ro
     # Odoo configuration Host path
@@ -57,15 +57,15 @@ services:
   odoo:
     << : *default-odoo
     entrypoint: ['/entrypoint.sh']
-    command: []
+    command: ['odoo']
     depends_on: ['postgres']
 
 # ========================
 
   dev:
     << : *default-odoo
-    entrypoint: ['/entrypoint.sh', '--dev', 'wdb,reload,qweb,werkzeug,xml']
-    command: []
+    entrypoint: ['/entrypoint.sh']
+    command: ['odoo', '--dev', 'wdb,reload,qweb,werkzeug,xml']
     depends_on: ['postgres', 'wdb']
 
 # ------------------------
@@ -73,13 +73,14 @@ services:
   tests:
     << : *default-odoo
     depends_on: ['postgres', 'wdb']
-    entrypoint: ['/entrypoint.sh', '--dev', 'wdb,qweb,werkzeug,xml', '--test-enable', '--stop-after-init', '--logfile', '/testlogs/']
-    command: []
+    entrypoint: ['/entrypoint.sh']
+    # TODO: logfile is not working, and it shouldn't be hardcoded
+    command: ['odoo', '--dev', 'wdb,qweb,werkzeug,xml', '--test-enable', '--stop-after-init', '--logfile', '/var/log/odoo/odoo-server.log']
 
 # ------------------------
 
   shell:
     << : *default-odoo
     depends_on: ['postgres', 'wdb']
-    entrypoint: ['/entrypoint.sh', 'shell']
-    command: []
+    entrypoint: ['/entrypoint.sh']
+    command: ['odoo', 'shell']

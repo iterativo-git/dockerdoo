@@ -161,22 +161,14 @@ RUN mkdir -p "${ODOO_PRST_DIR}"
 RUN chown -R odoo:odoo "${ODOO_PRST_DIR}"
 
 RUN mkdir -p /mnt/extra-addons \
-        && chown -R odoo /mnt/extra-addons
+        && chown -R odoo /mnt/extra-addons \
+        mkdir -p /var/log/odoo \
+        && chown -R odoo /var/log/odoo
 
 ENTRYPOINT ["/entrypoint.sh"]
 VOLUME ["${ODOO_PRST_DIR}"]
-
-# RUN /bin/bash -c 'shopt -s dotglob \
-#  && chmod +x /entrypoint.sh \
-#  && chmod +x /usr/local/bin/* \
-#  && chmod +x /entrypoint.d/* \
-#  && chmod +x /entrypoint.db.d/* \
-#  && shopt -u dotglob'
-# # && chmod +x /patches \
 
 USER odoo
 
 # Grab newer werkzeug        //-- for right IP in logs https://git.io/fNu6v
 RUN pip --quiet --quiet install --user Werkzeug==0.14.1
-
-CMD ["odoo"]
