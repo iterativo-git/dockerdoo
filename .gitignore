@@ -1,7 +1,10 @@
 # Odoo testlogs & chrome test screencasts / screenshots
 _testlogs/
 
-.cfg-custom.ini
+extra_addons/*
+/vendor/**
+!/vendor/**/
+!/vendor/**/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
