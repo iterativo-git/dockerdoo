@@ -162,7 +162,7 @@ RUN chown -R odoo:odoo "${ODOO_PRST_DIR}"
 
 RUN mkdir -p /mnt/extra-addons \
         && chown -R odoo /mnt/extra-addons \
-        mkdir -p /var/log/odoo \
+        && mkdir -p /var/log/odoo \
         && chown -R odoo /var/log/odoo
 
 ENTRYPOINT ["/entrypoint.sh"]
