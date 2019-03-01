@@ -5,15 +5,19 @@ x-odoo:
   tty: true
   build: .
   image: odoo:${ODOO_VERSION}
-  ports: ['8069:8069', '8072:8072']
+  ports: ['8069:8069', '8072:8072', '3000:3000']
   volumes:
     # Named volumes
     - odoo-data:/var/lib/odoo
     - odoo-testlogs:/var/log/odoo
-    # Odoo source Host path
-    - ./extra_addons:/mnt/extra-addons:ro
-    # Odoo configuration Host path
+    # Host path (conf)
     - ./config:/etc/odoo:ro
+    # Host paths (source)
+    - ./vendor/odoo/ce:/opt/odoo
+    - ./vendor/odoo/ce/odoo:/opt/odoo/odoo:ro
+    - ./vendor/odoo/ce/addons:/opt/odoo/addons/000:ro
+    - ./vendor/odoo/ee:/opt/odoo/addons/001:ro
+    - ./extra_addons:/mnt/extra-addons:ro
   depends_on:
     - postgres
   networks:

@@ -107,7 +107,7 @@ RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends postgre
 
 # Grab pip dependencies
 RUN pip --quiet --quiet install --no-cache-dir --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt
-RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog
+RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog ptvsd
 
 # Grab wkhtmltopdf
 RUN curl --silent --show-error --location --output wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb
@@ -130,13 +130,6 @@ RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends \
     && rm -Rf ~/.gem /var/lib/gems/*/cache/ \
     && rm -Rf ~/.npm /tmp/*
 
-# Grab latest geoip DB       //-- to enable IP based geo-referncing
-RUN wget --quiet https://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz \
-    && tar zxf GeoLite2-City.tar.gz \
-    && mkdir -p /usr/share/GeoIP \
-    && mv GeoLite2-City_20190212/GeoLite2-City.mmdb /usr/share/GeoIP/ \
-    && pip --quiet --quiet install GeoIP
-
 # Grab latest json logger    //-- for easier parsing (Patch 0001)
 RUN pip --quiet --quiet install python-json-logger
 
@@ -144,9 +137,14 @@ RUN pip --quiet --quiet install python-json-logger
 RUN addgroup --system --gid $APP_UID odoo
 RUN adduser --system --uid $APP_GID --ingroup odoo --home /opt/odoo --disabled-login --shell /sbin/nologin odoo
 
-# Install Odoo from Source code
-RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
-RUN pip install -e ./${ODOO_BASEPATH}
+# Grab latest geoip DB       //-- to enable IP based geo-referencing
+
+RUN wget --quiet http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz -O /tmp/GeoLite2-City.tar.gz \
+    && mkdir -p /usr/share/GeoIP \
+    && chown -R odoo /usr/share/GeoIP \
+    && tar -xf /tmp/GeoLite2-City.tar.gz -C /tmp/ \
+    && find /tmp/GeoLite2-City_* | grep "GeoLite2-City.mmdb" | xargs -I{} mv {} /usr/share/GeoIP/GeoLite2-City.mmdb \
+    && pip install geoip2
 
 # Copy from build env
 COPY entrypoint.sh /

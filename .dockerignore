@@ -6,3 +6,4 @@ Changelog.md
 Makefile
 docker-compose.yml
 extra_addons/*
+vendor/*
