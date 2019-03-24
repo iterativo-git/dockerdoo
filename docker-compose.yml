@@ -3,27 +3,26 @@ version: '3.4'
 x-odoo:
   &default-odoo
   tty: true
+  image: odoo:${ODOO_VERSION}
   build:
     context: .
     args:
-      - ODOO_VERSION: 11.0
-      - PSQL_VERSION: 10
-      - WKHTMLTOX_VERSION: 0.12.5
-      - WKHTMLTOPDF_CHECKSUM: 1140b0ab02aa6e17346af2f14ed0de807376de475ba90e1db3975f112fbd20bb
-      - NODE_VERSION: 6
-      - BOOTSTRAP_VERSION: 3.3.7
-      - ODOO_USER: ${ODOO_USER}
-      - ODOO_HOME: ${ODOO_HOME}
-      - ODOO_BASEPATH: ${ODOO_BASEPATH}
-      - ODOO_RC: ${ODOO_RC}
-      - ODOO_CMD: ${ODOO_CMD}
-      - ODOO_FRM: ${ODOO_FRM}
-      - ODOO_ADDONS_BASEPATH: ${ODOO_ADDONS_BASEPATH}
-      - ODOO_DATA_DIR: ${ODOO_DATA_DIR}
-      - APP_UID: ${APP_UID}
-      - APP_GID: ${APP_GID}
-
-      image: odoo:${ODOO_VERSION}
+      ODOO_VERSION: ${ODOO_VERSION}
+      PSQL_VERSION: 10
+      WKHTMLTOX_VERSION: 0.12.5
+      WKHTMLTOPDF_CHECKSUM: 1140b0ab02aa6e17346af2f14ed0de807376de475ba90e1db3975f112fbd20bb
+      NODE_VERSION: 6
+      BOOTSTRAP_VERSION: 3.3.7
+      ODOO_USER: ${ODOO_USER}
+      ODOO_HOME: ${ODOO_HOME}
+      ODOO_BASEPATH: ${ODOO_BASEPATH}
+      ODOO_RC: ${ODOO_RC}
+      ODOO_CMD: ${ODOO_CMD}
+      ODOO_FRM: ${ODOO_FRM}
+      ODOO_ADDONS_BASEPATH: ${ODOO_ADDONS_BASEPATH}
+      ODOO_DATA_DIR: ${ODOO_DATA_DIR}
+      APP_UID: ${APP_UID}
+      APP_GID: ${APP_GID}
   ports: ['8069:8069', '8072:8072', '3000:3000']
   volumes:
     # Named volumes
