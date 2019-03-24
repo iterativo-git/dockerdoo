@@ -11,8 +11,10 @@ ENV NODE_VERSION         6
 ENV BOOTSTRAP_VERSION    3.3.7
 
 # Build-time env
-ENV ODOO_BASEPATH        "/opt/odoo"
-ENV ODOO_RC              "/etc/odoo/odoo.conf"
+ENV ODOO_USER            "odoo"
+ENV ODOO_HOME            "/${ODOO_USER}"
+ENV ODOO_BASEPATH        "${ODOO_HOME}/odoo-server"
+ENV ODOO_RC              "${ODOO_BASEPATH}/odoo.conf"
 ENV ODOO_CMD             "${ODOO_BASEPATH}/odoo-bin"
 ENV ODOO_FRM             "${ODOO_BASEPATH}/odoo"
 ENV ODOO_ADDONS_BASEPATH "${ODOO_BASEPATH}/addons"
@@ -134,29 +136,29 @@ RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends \
 RUN pip --quiet --quiet install python-json-logger
 
 # Create app user
-RUN addgroup --system --gid $APP_UID odoo
-RUN adduser --system --uid $APP_GID --ingroup odoo --home /opt/odoo --disabled-login --shell /sbin/nologin odoo
+RUN addgroup --system --gid $APP_UID ${ODOO_USER}
+RUN adduser --system --uid $APP_GID --ingroup ${ODOO_USER} --home ${ODOO_HOME} --disabled-login --shell /sbin/nologin ${ODOO_USER}
 
 # Grab latest geoip DB       //-- to enable IP based geo-referencing
 
 RUN wget --quiet http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz -O /tmp/GeoLite2-City.tar.gz \
     && mkdir -p /usr/share/GeoIP \
-    && chown -R odoo /usr/share/GeoIP \
+    && chown -R ${ODOO_USER} /usr/share/GeoIP \
     && tar -xf /tmp/GeoLite2-City.tar.gz -C /tmp/ \
     && find /tmp/GeoLite2-City_* | grep "GeoLite2-City.mmdb" | xargs -I{} mv {} /usr/share/GeoIP/GeoLite2-City.mmdb \
     && pip install geoip2
 
 # Copy from build env
-COPY entrypoint.sh /
-COPY config/odoo.conf ${ODOO_RC}
-RUN chown odoo ${ODOO_RC}
+COPY ./entrypoint.sh /
+COPY ./config/odoo.conf ${ODOO_RC}
+RUN chown ${ODOO_USER} ${ODOO_RC}
 # COPY entrypoint.d /entrypoint.d
 # COPY entrypoint.db.d /entrypoint.db.d
 # COPY patches /patches
 
 # Own folders                //-- where pure bind mounting during dev in docker-compose doesn't yield correct file permissions
 RUN mkdir -p "${ODOO_PRST_DIR}"
-RUN chown -R odoo:odoo "${ODOO_PRST_DIR}"
+RUN chown -R ${ODOO_USER}:${ODOO_USER} "${ODOO_PRST_DIR}"
 
 RUN mkdir -p /mnt/extra-addons \
         && chown -R odoo /mnt/extra-addons \
