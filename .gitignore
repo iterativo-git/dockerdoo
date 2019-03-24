@@ -5,6 +5,7 @@ extra_addons/*
 /vendor/**
 !/vendor/**/
 !/vendor/**/.gitkeep
+.gitmodules
 
 
 # Created by https://www.gitignore.io/api/test,macos,linux,python,windows,pycharm,virtualenv,sublimetext,visualstudiocode

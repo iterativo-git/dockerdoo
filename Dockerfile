@@ -3,24 +3,24 @@ FROM debian:stretch
 USER root
 
 # Library versions
-ENV ODOO_VERSION         11.0
-ENV PSQL_VERSION         10
-ENV WKHTMLTOX_VERSION    0.12.5
-ENV WKHTMLTOPDF_CHECKSUM 1140b0ab02aa6e17346af2f14ed0de807376de475ba90e1db3975f112fbd20bb
-ENV NODE_VERSION         6
-ENV BOOTSTRAP_VERSION    3.3.7
+ARG ODOO_VERSION
+ARG PSQL_VERSION
+ARG WKHTMLTOX_VERSION
+ARG WKHTMLTOPDF_CHECKSUM
+ARG NODE_VERSION
+ARG BOOTSTRAP_VERSION
 
 # Build-time env
-ENV ODOO_USER            "odoo"
-ENV ODOO_HOME            "/${ODOO_USER}"
-ENV ODOO_BASEPATH        "${ODOO_HOME}/odoo-server"
-ENV ODOO_RC              "${ODOO_BASEPATH}/odoo.conf"
-ENV ODOO_CMD             "${ODOO_BASEPATH}/odoo-bin"
-ENV ODOO_FRM             "${ODOO_BASEPATH}/odoo"
-ENV ODOO_ADDONS_BASEPATH "${ODOO_BASEPATH}/addons"
-ENV ODOO_DATA_DIR        "/var/lib/odoo"
-ENV APP_UID              "9001"
-ENV APP_GID              "9001"
+ARG ODOO_USER
+ARG ODOO_HOME
+ARG ODOO_BASEPATH
+ARG ODOO_RC
+ARG ODOO_CMD
+ARG ODOO_FRM
+ARG ODOO_ADDONS_BASEPATH
+ARG ODOO_DATA_DIR
+ARG APP_UID
+ARG APP_GID
 
 # Fix locale                 //-- for some tests that depend on locale (babel python-lib)
 RUN set -x; \
