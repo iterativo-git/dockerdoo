@@ -18,7 +18,7 @@ ENV ODOO_RC              "${ODOO_BASEPATH}/odoo.conf"
 ENV ODOO_CMD             "${ODOO_BASEPATH}/odoo-bin"
 ENV ODOO_FRM             "${ODOO_BASEPATH}/odoo"
 ENV ODOO_ADDONS_BASEPATH "${ODOO_BASEPATH}/addons"
-ENV ODOO_PRST_DIR        "/var/lib/odoo"
+ENV ODOO_DATA_DIR        "/var/lib/odoo"
 ENV APP_UID              "9001"
 ENV APP_GID              "9001"
 
@@ -157,8 +157,8 @@ RUN chown ${ODOO_USER} ${ODOO_RC}
 # COPY patches /patches
 
 # Own folders                //-- where pure bind mounting during dev in docker-compose doesn't yield correct file permissions
-RUN mkdir -p "${ODOO_PRST_DIR}"
-RUN chown -R ${ODOO_USER}:${ODOO_USER} "${ODOO_PRST_DIR}"
+RUN mkdir -p "${ODOO_DATA_DIR}"
+RUN chown -R ${ODOO_USER}:${ODOO_USER} "${ODOO_DATA_DIR}"
 
 RUN mkdir -p /mnt/extra-addons \
         && chown -R odoo /mnt/extra-addons \
@@ -166,7 +166,6 @@ RUN mkdir -p /mnt/extra-addons \
         && chown -R odoo /var/log/odoo
 
 ENTRYPOINT ["/entrypoint.sh"]
-VOLUME ["${ODOO_PRST_DIR}"]
 
 USER odoo
 
