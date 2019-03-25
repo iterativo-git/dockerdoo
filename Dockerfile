@@ -19,17 +19,7 @@ ARG WKHTMLTOPDF_CHECKSUM
 ARG NODE_VERSION
 ARG BOOTSTRAP_VERSION
 
-# Library versions
-# ENV ODOO_VERSION         11.0
-# ENV PSQL_VERSION         10
-# ENV WKHTMLTOX_VERSION    0.12.5
-# ENV WKHTMLTOPDF_CHECKSUM 1140b0ab02aa6e17346af2f14ed0de807376de475ba90e1db3975f112fbd20bb
-# ENV NODE_VERSION         6
-# ENV BOOTSTRAP_VERSION    3.3.7
-
-# ENV ODOO_CONF $ODOO_CONF
-
-# Fix locale                 //-- for some tests that depend on locale (babel python-lib)
+# Fix locale  //-- for some tests that depend on locale (babel python-lib)
 RUN set -x; \
     apt-get -qq update && apt-get -qq install -y locales
 
