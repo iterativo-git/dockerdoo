@@ -2,6 +2,15 @@ FROM debian:stretch
 
 USER root
 
+# Build-time arguments
+ARG ODOO_USER
+ARG ODOO_BASEPATH
+ARG ODOO_CONF
+ARG ODOO_CMD
+ARG ODOO_DATA_DIR
+ARG APP_UID
+ARG APP_GID
+
 # Library versions
 ARG ODOO_VERSION
 ARG PSQL_VERSION
@@ -10,17 +19,15 @@ ARG WKHTMLTOPDF_CHECKSUM
 ARG NODE_VERSION
 ARG BOOTSTRAP_VERSION
 
-# Build-time env
-ARG ODOO_USER
-ARG ODOO_HOME
-ARG ODOO_BASEPATH
-ARG ODOO_RC
-ARG ODOO_CMD
-ARG ODOO_FRM
-ARG ODOO_ADDONS_BASEPATH
-ARG ODOO_DATA_DIR
-ARG APP_UID
-ARG APP_GID
+# Library versions
+# ENV ODOO_VERSION         11.0
+# ENV PSQL_VERSION         10
+# ENV WKHTMLTOX_VERSION    0.12.5
+# ENV WKHTMLTOPDF_CHECKSUM 1140b0ab02aa6e17346af2f14ed0de807376de475ba90e1db3975f112fbd20bb
+# ENV NODE_VERSION         6
+# ENV BOOTSTRAP_VERSION    3.3.7
+
+# ENV ODOO_CONF $ODOO_CONF
 
 # Fix locale                 //-- for some tests that depend on locale (babel python-lib)
 RUN set -x; \
@@ -113,7 +120,8 @@ RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog ptvsd
 
 # Grab wkhtmltopdf
 RUN curl --silent --show-error --location --output wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb
-RUN echo "${WKHTMLTOPDF_CHECKSUM}  wkhtmltox.deb" | sha256sum -c -
+# Temporarily disable checksum, as variable expansion is not working 
+# RUN echo "${WKHTMLTOPDF_CHECKSUM}  wkhtmltox.deb" | sha256sum -c -
 RUN apt-get -qq update && apt-get -qq install -yqq --no-install-recommends libpng16-16 libssl1.1 xfonts-75dpi xfonts-base > /dev/null
 RUN dpkg -i ./wkhtmltox.deb && rm wkhtmltox.deb && wkhtmltopdf --version
 
@@ -136,8 +144,10 @@ RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends \
 RUN pip --quiet --quiet install python-json-logger
 
 # Create app user
-RUN addgroup --system --gid $APP_UID ${ODOO_USER}
-RUN adduser --system --uid $APP_GID --ingroup ${ODOO_USER} --home ${ODOO_HOME} --disabled-login --shell /sbin/nologin ${ODOO_USER}
+ENV APP_GID ${APP_GID}
+ENV APP_UID ${APP_UID}
+RUN addgroup --system --gid ${APP_UID} ${ODOO_USER}
+RUN adduser --system --uid ${APP_GID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER}
 
 # Grab latest geoip DB       //-- to enable IP based geo-referencing
 
@@ -150,11 +160,8 @@ RUN wget --quiet http://geolite.maxmind.com/download/geoip/database/GeoLite2-Cit
 
 # Copy from build env
 COPY ./entrypoint.sh /
-COPY ./config/odoo.conf ${ODOO_RC}
-RUN chown ${ODOO_USER} ${ODOO_RC}
-# COPY entrypoint.d /entrypoint.d
-# COPY entrypoint.db.d /entrypoint.db.d
-# COPY patches /patches
+COPY ./config/odoo.conf ${ODOO_CONF}
+RUN chown ${ODOO_USER} ${ODOO_CONF}
 
 # Own folders                //-- where pure bind mounting during dev in docker-compose doesn't yield correct file permissions
 RUN mkdir -p "${ODOO_DATA_DIR}"
