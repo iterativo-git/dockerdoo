@@ -4,7 +4,6 @@ x-odoo:
   &default-odoo
   tty: true
   image: odoo:${ODOO_VERSION}
-  # env_file: .env
   build:
     context: .
     # Variables  defined in the .env file, to be used at build time
@@ -14,18 +13,21 @@ x-odoo:
       ODOO_BASEPATH: ${ODOO_BASEPATH}
       ODOO_CONF: ${ODOO_CONF}
       ODOO_CMD: ${ODOO_CMD}
-      ODOO_DATA_DIR: ${ODOO_DATA_DIR}
       APP_UID: ${APP_UID}
       APP_GID: ${APP_GID}
       # Libraries version
       ODOO_VERSION: ${ODOO_VERSION}
       PSQL_VERSION: ${PSQL_VERSION}
       WKHTMLTOX_VERSION: ${WKHTMLTOX_VERSION}
+      WKHTMLTOPDF_CHECKSUM: ${WKHTMLTOPDF_CHECKSUM}
       NODE_VERSION: ${NODE_VERSION}
       BOOTSTRAP_VERSION: ${BOOTSTRAP_VERSION}
+
   environment:
     ODOO_CMD: ${ODOO_CMD}  # odoo-bin to be used in the entrypoint
+
   ports: ['8069:8069', '8072:8072', '3000:3000']
+
   volumes:
     # Named volumes
     - odoo-data:${ODOO_DATA_DIR}

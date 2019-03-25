@@ -7,7 +7,6 @@ ARG ODOO_USER
 ARG ODOO_BASEPATH
 ARG ODOO_CONF
 ARG ODOO_CMD
-ARG ODOO_DATA_DIR
 ARG APP_UID
 ARG APP_GID
 
@@ -152,15 +151,6 @@ RUN wget --quiet http://geolite.maxmind.com/download/geoip/database/GeoLite2-Cit
 COPY ./entrypoint.sh /
 COPY ./config/odoo.conf ${ODOO_CONF}
 RUN chown ${ODOO_USER} ${ODOO_CONF}
-
-# Own folders                //-- where pure bind mounting during dev in docker-compose doesn't yield correct file permissions
-RUN mkdir -p "${ODOO_DATA_DIR}"
-RUN chown -R ${ODOO_USER}:${ODOO_USER} "${ODOO_DATA_DIR}"
-
-RUN mkdir -p /mnt/extra-addons \
-        && chown -R odoo /mnt/extra-addons \
-        && mkdir -p /var/log/odoo \
-        && chown -R odoo /var/log/odoo
 
 ENTRYPOINT ["/entrypoint.sh"]
 
