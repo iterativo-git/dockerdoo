@@ -56,7 +56,17 @@ volumes:
 
 services:
 
-# ------------------------
+# ========================
+
+  filebrowser:
+    image: filebrowser/filebrowser
+    ports: ['8080:80']
+    command: ['--noauth']
+    volumes:
+      - odoo-data:/srv/data
+      - odoo-testlogs:/srv/testlogs
+
+# ========================
 
   wdb:
     image: xoes/wdb-server
