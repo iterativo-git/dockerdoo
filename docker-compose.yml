@@ -31,7 +31,7 @@ x-odoo:
   volumes:
     # Named volumes
     - odoo-data:${ODOO_DATA_DIR}
-    - odoo-testlogs:/var/log/odoo
+    - odoo-testlogs:${ODOO_LOGS_DIR}
     # Host path (conf)
     - ./config:/etc/odoo/:ro
     # Host paths (source)
