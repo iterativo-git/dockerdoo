@@ -10,6 +10,8 @@ ARG ODOO_CMD
 ARG APP_UID
 ARG APP_GID
 
+ARG ODOO_EXTRA_ADDONS
+
 # Library versions
 ARG ODOO_VERSION
 ARG PSQL_VERSION
@@ -17,6 +19,12 @@ ARG WKHTMLTOX_VERSION
 ARG WKHTMLTOPDF_CHECKSUM
 ARG NODE_VERSION
 ARG BOOTSTRAP_VERSION
+
+# Environment variables
+ENV ODOO_EXTRA_ADDONS=${ODOO_EXTRA_ADDONS}
+
+# Use noninteractive to get rid of apt-utils message
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Fix locale  //-- for some tests that depend on locale (babel python-lib)
 RUN set -x; \
@@ -148,7 +156,9 @@ RUN wget --quiet http://geolite.maxmind.com/download/geoip/database/GeoLite2-Cit
     && pip install geoip2
 
 # Copy from build env
-COPY ./entrypoint.sh /
+COPY ./resources/entrypoint.sh /
+COPY ./resources/getaddons.py /
+
 COPY ./config/odoo.conf ${ODOO_CONF}
 RUN chown ${ODOO_USER} ${ODOO_CONF}
 
