@@ -5,7 +5,7 @@ USER root
 # Build-time arguments
 ARG ODOO_USER
 ARG ODOO_BASEPATH
-ARG ODOO_CONF
+ARG ODOO_RC
 ARG ODOO_CMD
 ARG APP_UID
 ARG APP_GID
@@ -17,6 +17,9 @@ ARG WKHTMLTOX_VERSION
 ARG WKHTMLTOPDF_CHECKSUM
 ARG NODE_VERSION
 ARG BOOTSTRAP_VERSION
+
+# Use noninteractive to get rid of apt-utils message
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Fix locale  //-- for some tests that depend on locale (babel python-lib)
 RUN set -x; \
@@ -109,8 +112,7 @@ RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog ptvsd
 
 # Grab wkhtmltopdf
 RUN curl --silent --show-error --location --output wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb
-# Temporarily disable checksum, as variable expansion is not working 
-# RUN echo "${WKHTMLTOPDF_CHECKSUM}  wkhtmltox.deb" | sha256sum -c -
+RUN echo "${WKHTMLTOPDF_CHECKSUM}  wkhtmltox.deb" | sha256sum -c -
 RUN apt-get -qq update && apt-get -qq install -yqq --no-install-recommends libpng16-16 libssl1.1 xfonts-75dpi xfonts-base > /dev/null
 RUN dpkg -i ./wkhtmltox.deb && rm wkhtmltox.deb && wkhtmltopdf --version
 
@@ -148,9 +150,27 @@ RUN wget --quiet http://geolite.maxmind.com/download/geoip/database/GeoLite2-Cit
     && pip install geoip2
 
 # Copy from build env
-COPY ./entrypoint.sh /
-COPY ./config/odoo.conf ${ODOO_CONF}
-RUN chown ${ODOO_USER} ${ODOO_CONF}
+COPY ./resources/entrypoint.sh /
+COPY ./resources/getaddons.py /
+
+ENV ODOO_RC ${ODOO_RC}
+COPY ./config/odoo.conf ${ODOO_RC}
+RUN chown ${ODOO_USER} ${ODOO_RC}
+
+# Own folders                //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
+ARG ODOO_DATA_DIR
+ENV ODOO_DATA_DIR ${ODOO_DATA_DIR}
+ARG ODOO_LOGS_DIR
+ENV ODOO_LOGS_DIR ${ODOO_LOGS_DIR}
+
+RUN mkdir -p "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}"
+RUN chown -R ${ODOO_USER}:${ODOO_USER} "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}"
+
+ARG ODOO_ADDONS_BASEPATH
+ENV ODOO_ADDONS_BASEPATH ${ODOO_ADDONS_BASEPATH}
+ARG ODOO_EXTRA_ADDONS
+ENV ODOO_EXTRA_ADDONS=${ODOO_EXTRA_ADDONS}
+
 
 ENTRYPOINT ["/entrypoint.sh"]
 

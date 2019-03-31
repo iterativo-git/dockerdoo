@@ -9,6 +9,13 @@ set -e
 : ${USER:=${DB_ENV_POSTGRES_USER:=${POSTGRES_USER:='odoo'}}}
 : ${PASSWORD:=${DB_ENV_POSTGRES_PASSWORD:=${POSTGRES_PASSWORD:='odoo'}}}
 
+function getAddons() {
+    
+    ODOO_EXTRA_ADDONS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS:-'/mnt/extra-addons'} 2>&1)
+}
+
+getAddons
+
 DB_ARGS=()
 function check_config() {
     param="$1"
@@ -18,6 +25,7 @@ function check_config() {
         DB_ARGS+=("${value}")
    fi;
 }
+check_config "addons-path" "$ODOO_ADDONS_BASEPATH,$ODOO_EXTRA_ADDONS"
 check_config "db_host" "$HOST"
 check_config "db_port" "$PORT"
 check_config "db_user" "$USER"
