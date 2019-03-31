@@ -11,7 +11,7 @@ set -e
 
 function getAddons() {
     
-    CUSTOM_ADDONS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS:-'/mnt/extra-addons'} 2>&1)
+    ODOO_EXTRA_ADDONS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS:-'/mnt/extra-addons'} 2>&1)
 }
 
 getAddons
@@ -25,6 +25,7 @@ function check_config() {
         DB_ARGS+=("${value}")
    fi;
 }
+check_config "addons-path" "$ODOO_ADDONS_BASEPATH,$ODOO_EXTRA_ADDONS"
 check_config "db_host" "$HOST"
 check_config "db_port" "$PORT"
 check_config "db_user" "$USER"

@@ -10,8 +10,6 @@ ARG ODOO_CMD
 ARG APP_UID
 ARG APP_GID
 
-ARG ODOO_EXTRA_ADDONS
-
 # Library versions
 ARG ODOO_VERSION
 ARG PSQL_VERSION
@@ -19,9 +17,6 @@ ARG WKHTMLTOX_VERSION
 ARG WKHTMLTOPDF_CHECKSUM
 ARG NODE_VERSION
 ARG BOOTSTRAP_VERSION
-
-# Environment variables
-ENV ODOO_EXTRA_ADDONS=${ODOO_EXTRA_ADDONS}
 
 # Use noninteractive to get rid of apt-utils message
 ENV DEBIAN_FRONTEND=noninteractive
@@ -162,6 +157,21 @@ COPY ./resources/getaddons.py /
 ENV ODOO_RC ${ODOO_RC}
 COPY ./config/odoo.conf ${ODOO_RC}
 RUN chown ${ODOO_USER} ${ODOO_RC}
+
+# Own folders                //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
+ARG ODOO_DATA_DIR
+ENV ODOO_DATA_DIR ${ODOO_DATA_DIR}
+ARG ODOO_LOGS_DIR
+ENV ODOO_LOGS_DIR ${ODOO_LOGS_DIR}
+
+RUN mkdir -p "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}"
+RUN chown -R ${ODOO_USER}:${ODOO_USER} "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}"
+
+ARG ODOO_ADDONS_BASEPATH
+ENV ODOO_ADDONS_BASEPATH ${ODOO_ADDONS_BASEPATH}
+ARG ODOO_EXTRA_ADDONS
+ENV ODOO_EXTRA_ADDONS=${ODOO_EXTRA_ADDONS}
+
 
 ENTRYPOINT ["/entrypoint.sh"]
 

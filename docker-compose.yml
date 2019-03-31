@@ -11,7 +11,10 @@ x-odoo:
       # Odoo's default configurations
       ODOO_USER: ${ODOO_USER}
       ODOO_BASEPATH: ${ODOO_BASEPATH}
+      ODOO_ADDONS_BASEPATH: ${ODOO_ADDONS_BASEPATH}
       ODOO_EXTRA_ADDONS: ${ODOO_EXTRA_ADDONS}
+      ODOO_DATA_DIR: ${ODOO_DATA_DIR}
+      ODOO_LOGS_DIR: ${ODOO_LOGS_DIR}
       ODOO_RC: ${ODOO_RC}
       ODOO_CMD: ${ODOO_CMD}
       APP_UID: ${APP_UID}
@@ -40,7 +43,7 @@ x-odoo:
     - ./vendor/odoo/ce/odoo:${ODOO_FRM}:ro
     - ./vendor/odoo/ce/addons:${ODOO_ADDONS_BASEPATH}/000:ro
     - ./vendor/odoo/ee:${ODOO_ADDONS_BASEPATH}/001:ro
-    - ./extra_addons:${ODOO_EXTRA_ADDONS}:ro
+    - ./extra_addons:${ODOO_EXTRA_ADDONS}
   depends_on:
     - postgres
   networks:

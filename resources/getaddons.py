@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+
+# This file was customly adapted from OCA's maintainer tools
+
 """
 Usage: get-addons [-m] path1 [path2 ...]
 Given a list  of paths, finds and returns a list of valid addons paths.
