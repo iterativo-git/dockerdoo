@@ -10,8 +10,8 @@ set -e
 : ${PASSWORD:=${DB_ENV_POSTGRES_PASSWORD:=${POSTGRES_PASSWORD:='odoo'}}}
 
 function getAddons() {
-    python3 getaddons.py ${ODOO_EXTRA_ADDONS:-'/mnt/extra-addons'}
-    echo  ${ODOO_EXTRA_ADDONS}
+    
+    CUSTOM_ADDONS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS:-'/mnt/extra-addons'} 2>&1)
 }
 
 getAddons

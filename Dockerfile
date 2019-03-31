@@ -5,7 +5,7 @@ USER root
 # Build-time arguments
 ARG ODOO_USER
 ARG ODOO_BASEPATH
-ARG ODOO_CONF
+ARG ODOO_RC
 ARG ODOO_CMD
 ARG APP_UID
 ARG APP_GID
@@ -159,8 +159,9 @@ RUN wget --quiet http://geolite.maxmind.com/download/geoip/database/GeoLite2-Cit
 COPY ./resources/entrypoint.sh /
 COPY ./resources/getaddons.py /
 
-COPY ./config/odoo.conf ${ODOO_CONF}
-RUN chown ${ODOO_USER} ${ODOO_CONF}
+ENV ODOO_RC ${ODOO_RC}
+COPY ./config/odoo.conf ${ODOO_RC}
+RUN chown ${ODOO_USER} ${ODOO_RC}
 
 ENTRYPOINT ["/entrypoint.sh"]
 

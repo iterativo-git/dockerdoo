@@ -12,7 +12,7 @@ x-odoo:
       ODOO_USER: ${ODOO_USER}
       ODOO_BASEPATH: ${ODOO_BASEPATH}
       ODOO_EXTRA_ADDONS: ${ODOO_EXTRA_ADDONS}
-      ODOO_CONF: ${ODOO_CONF}
+      ODOO_RC: ${ODOO_RC}
       ODOO_CMD: ${ODOO_CMD}
       APP_UID: ${APP_UID}
       APP_GID: ${APP_GID}
@@ -93,7 +93,6 @@ services:
 
   odoo:
     << : *default-odoo
-    entrypoint: ['/entrypoint.sh']
     # TODO: add a variable to allow a dynamic ADDONS_PATH
     command: ['odoo']
     depends_on: ['postgres']
@@ -102,7 +101,6 @@ services:
 
   dev:
     << : *default-odoo
-    entrypoint: ['/entrypoint.sh']
     command: ['odoo', '--dev', 'wdb,reload,qweb,werkzeug,xml']
     depends_on: ['postgres', 'wdb']
 
@@ -111,7 +109,6 @@ services:
   tests:
     << : *default-odoo
     depends_on: ['postgres', 'wdb']
-    entrypoint: ['/entrypoint.sh']
     # TODO: logfile shouldn't be hardcoded
     command: ['odoo', '--dev', 'wdb,qweb,werkzeug,xml', '--test-enable', '--stop-after-init', '--logfile', '/var/log/odoo/odoo-server.log']
 
@@ -120,5 +117,4 @@ services:
   shell:
     << : *default-odoo
     depends_on: ['postgres', 'wdb']
-    entrypoint: ['/entrypoint.sh']
     command: ['odoo', 'shell']

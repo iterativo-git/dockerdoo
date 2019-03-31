@@ -167,7 +167,6 @@ def main(argv=None):
             localization = False
         elif param.startswith('-'):
             raise Exception('Unknown parameter: %s' % param)
-    print(params)
     if list_modules:
         modules = {}
         for path in params:
@@ -193,7 +192,6 @@ def main(argv=None):
     if exclude_modules:
         res = [x for x in res if x not in exclude_modules]
     print(','.join(res))
-    os.environ['ODOO_EXTRA_ADDONS'] = str(res)
 
 
 if __name__ == "__main__":
