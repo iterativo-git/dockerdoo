@@ -40,7 +40,6 @@ x-odoo:
     # Host path (conf)
     - ./config:/etc/odoo/:ro
     # Host paths (source)
-    - ./src/odoo/ce:${ODOO_BASEPATH}:ro
     - ./src/odoo/ee:${ODOO_ADDONS_BASEPATH}/001:ro
     - ./custom_addons:${ODOO_EXTRA_ADDONS}
   depends_on:
@@ -91,19 +90,14 @@ services:
         aliases:
           - db
 
-# ------------------------
-
-  odoo:
-    << : *default-odoo
-    command: ['odoo']
-    depends_on: ['postgres']
-
 # ========================
 
   dev:
     << : *default-odoo
     command: ['odoo', '--dev', 'wdb,reload,qweb,werkzeug,xml']
     depends_on: ['postgres', 'wdb']
+    volumes:
+      - ./src/odoo/ce:${ODOO_BASEPATH}:ro
 
 # ------------------------
 
@@ -111,6 +105,8 @@ services:
     << : *default-odoo
     depends_on: ['postgres', 'wdb']
     command: ['odoo', '--dev', 'wdb,qweb,werkzeug,xml', '--test-enable', '--stop-after-init', '--logfile', '${ODOO_LOGS_DIR}/odoo-server.log']
+    volumes:
+      - ./src/odoo/ce:${ODOO_BASEPATH}:ro
 
 # ------------------------
 
