@@ -174,7 +174,19 @@ ENV ODOO_ADDONS_BASEPATH ${ODOO_ADDONS_BASEPATH}
 ARG ODOO_EXTRA_ADDONS
 ENV ODOO_EXTRA_ADDONS=${ODOO_EXTRA_ADDONS}
 
+USER odoo
+
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["odoo"]
+
+FROM bridged as standalone
+
+USER root
+
+ARG ODOO_VERSION
+ARG ODOO_BASEPATH
+
+RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
+RUN pip install -e ./${ODOO_BASEPATH}
 
 USER odoo

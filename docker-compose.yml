@@ -102,7 +102,7 @@ services:
     command: ['odoo', '--dev', 'wdb,reload,qweb,werkzeug,xml']
     depends_on: ['postgres', 'wdb']
     volumes:
-      - ./src/odoo/ce:${ODOO_BASEPATH}:ro
+      - ./src/odoo/ce:${ODOO_BASEPATH}
 
 # ------------------------
 
@@ -111,7 +111,7 @@ services:
     depends_on: ['postgres', 'wdb']
     command: ['odoo', '--dev', 'wdb,qweb,werkzeug,xml', '--test-enable', '--stop-after-init', '--logfile', '${ODOO_LOGS_DIR}/odoo-server.log']
     volumes:
-      - ./src/odoo/ce:${ODOO_BASEPATH}:ro
+      - ./src/odoo/ce:${ODOO_BASEPATH}
 
 # ------------------------
 
