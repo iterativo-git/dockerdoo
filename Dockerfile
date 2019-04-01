@@ -152,9 +152,11 @@ RUN wget --quiet http://geolite.maxmind.com/download/geoip/database/GeoLite2-Cit
 # Grab newer werkzeug        //-- for right IP in logs https://git.io/fNu6v
 RUN pip --quiet --quiet install --user Werkzeug==0.14.1
 
+RUN git clone https://github.com/odoo/odoo.git --branch ${ODOO_VERSION} --depth 1 ${ODOO_BASEPATH}
+
 # Copy from build env
-COPY ./resources/entrypoint.sh /
 COPY ./resources/getaddons.py /
+COPY ./resources/entrypoint.sh /
 
 ENV ODOO_RC ${ODOO_RC}
 COPY ./config/odoo.conf ${ODOO_RC}
@@ -173,7 +175,6 @@ ARG ODOO_ADDONS_BASEPATH
 ENV ODOO_ADDONS_BASEPATH ${ODOO_ADDONS_BASEPATH}
 ARG ODOO_EXTRA_ADDONS
 ENV ODOO_EXTRA_ADDONS=${ODOO_EXTRA_ADDONS}
-
 
 ENTRYPOINT ["/entrypoint.sh"]
 
