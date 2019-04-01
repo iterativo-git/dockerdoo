@@ -94,7 +94,6 @@ services:
 
   odoo:
     << : *default-odoo
-    # TODO: add a variable to allow a dynamic ADDONS_PATH
     command: ['odoo']
     depends_on: ['postgres']
 
@@ -110,8 +109,7 @@ services:
   tests:
     << : *default-odoo
     depends_on: ['postgres', 'wdb']
-    # TODO: logfile shouldn't be hardcoded
-    command: ['odoo', '--dev', 'wdb,qweb,werkzeug,xml', '--test-enable', '--stop-after-init', '--logfile', '/var/log/odoo/odoo-server.log']
+    command: ['odoo', '--dev', 'wdb,qweb,werkzeug,xml', '--test-enable', '--stop-after-init', '--logfile', '${ODOO_LOGS_DIR}/odoo-server.log']
 
 # ------------------------
 
