@@ -149,6 +149,9 @@ RUN wget --quiet http://geolite.maxmind.com/download/geoip/database/GeoLite2-Cit
     && find /tmp/GeoLite2-City_* | grep "GeoLite2-City.mmdb" | xargs -I{} mv {} /usr/share/GeoIP/GeoLite2-City.mmdb \
     && pip install geoip2
 
+# Grab newer werkzeug        //-- for right IP in logs https://git.io/fNu6v
+RUN pip --quiet --quiet install --user Werkzeug==0.14.1
+
 # Copy from build env
 COPY ./resources/entrypoint.sh /
 COPY ./resources/getaddons.py /
@@ -175,6 +178,3 @@ ENV ODOO_EXTRA_ADDONS=${ODOO_EXTRA_ADDONS}
 ENTRYPOINT ["/entrypoint.sh"]
 
 USER odoo
-
-# Grab newer werkzeug        //-- for right IP in logs https://git.io/fNu6v
-RUN pip --quiet --quiet install --user Werkzeug==0.14.1
