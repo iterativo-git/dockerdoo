@@ -1,5 +1,10 @@
 # Dockerized Odoo for Odoo 11.0 & 12.0 (BETA)
 
+### Quick usage
+
+* `git clone git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo`
+* `docker-compose up odoo`
+
 ## Another dockerized Odoo (?)
 
 Kind of, but this is a more flexible and **streamlined** version of most docker projects that you'll find. And more importanly, with a single docker-compose you have the two main mplementation methods:
@@ -11,9 +16,8 @@ Kind of, but this is a more flexible and **streamlined** version of most docker 
 
 To use this docker compose file you should comply with this requirements:
 
-* install pip `sudo apt-get install python-pip`
-* Install ![docker engine](https://docs.docker.com/install/)
-* Install ![docker-compose](https://docs.docker.com/compose/install/)
+* Install [Docker Desktop](https://www.docker.com/products/docker-desktop) for Windows/Mac or [Docker Engine](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce) for Linux  
+* Install [docker-compose](https://docs.docker.com/compose/install/) (This is instaled by default on Windows and Mac with Docker instalation)
 * clone this repository `git@github.com:iterativo-git/dockerdoo.git`
 
 ## Running options
