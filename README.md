@@ -28,11 +28,11 @@ Both options will raise a **postgres** container to be used by an **Odoo** conta
 
 ### Standalone Odoo
 
-This is the most straightforward option, as it will install **odoo** ![source code](https://github.com/odoo/odoo) inside the *odoo container*, this gives flexibility to the image as it allows you to move it from host to host, and it's more stable-safe for a **production environment**
+This is the most straightforward option, as it will install **odoo** [source code](https://github.com/odoo/odoo) inside the *odoo container*, this gives flexibility to the image as it allows you to move it from host to host, and it's more stable-safe for a **production environment**
 
 ### Bridged Odoo
 
-This approach is more effective if you'd like have full control over the ![source code](https://github.com/odoo/odoo) on the *odoo container*, as it will be using the source one on your host, which **must** be localed (in your host) in `./src/odoo/ce`, and additionally, if using enterprise, in `./src/odoo/ee`
+This approach is more effective if you'd like have full control over the [source code](https://github.com/odoo/odoo) on the *odoo container*, as it will be using the source one on your host, which **must** be localed (in your host) in `./src/odoo/ce`, and additionally, if using enterprise, in `./src/odoo/ee`
 
 Using a bridged Odoo allows easier **debugging**, **testing** and **shell**; use cases that are also easy to deploy using the docker-compose.
 
