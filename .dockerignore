@@ -5,5 +5,5 @@ README.md
 Changelog.md
 Makefile
 docker-compose.yml
-extra_addons/*
-vendor/*
+custom_addons/*
+src/*
