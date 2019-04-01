@@ -119,3 +119,5 @@ services:
     << : *default-odoo
     depends_on: ['postgres', 'wdb']
     command: ['odoo', 'shell']
+    volumes:
+      - ./src/odoo/ce:${ODOO_BASEPATH}
