@@ -39,6 +39,7 @@ x-odoo:
     # Host path (conf)
     - ./config:/etc/odoo/:ro
     # Host paths (source)
+    - ./src/odoo/ce:${ODOO_BASEPATH}
     - ./src/odoo/ce/odoo:${ODOO_FRM}:ro
     - ./src/odoo/ce/addons:${ODOO_ADDONS_BASEPATH}/000:ro
     - ./src/odoo/ee:${ODOO_ADDONS_BASEPATH}/001:ro
