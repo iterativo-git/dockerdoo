@@ -1,4 +1,4 @@
-FROM debian:stretch
+FROM debian:stretch as bridged
 
 USER root
 
