@@ -7,6 +7,18 @@ This is a flexible and **streamlined** version of most Odoo docker projects that
 
 ## Quick usage
 
+### Hosted
+
+```shell
+git clone git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+git clone --depth=10 -b 12.0 git@github.com:odoo/odoo.git src/odoo/ce
+docker-compose up odoo
+```
+
+#### Standalone
+
+In the **.env** file set `INSTALL_TYPE=standalone`
+
 ```shell
 git clone git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
 docker-compose up odoo
