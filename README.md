@@ -34,7 +34,7 @@ To use this docker compose file you should comply with this requirements:
 
 ## Running options
 
-There's mainly two ways to deploy with this compose, both available to be configured on the .env file using the `$INSTALL_TYPE` variable, choosing between `standalone` or `bridged` as options.
+There's mainly two ways to deploy with this compose, both available to be configured on the .env file using the `$INSTALL_TYPE` variable, choosing between `standalone` or `hosted` as options.
 
 Both options will raise a **postgres** container to be used by an **Odoo** container in v11 or v12, depending on the version that has been set in the `.env` file for `$ODOO_VERSION`
 
@@ -42,15 +42,15 @@ Both options will raise a **postgres** container to be used by an **Odoo** conta
 
 This is the most straightforward option, as it will install **odoo** [source code](https://github.com/odoo/odoo) inside the *odoo container*, this gives flexibility to the image as it allows you to move it from host to host, and it's more stable-safe for a **production environment**
 
-### Bridged Odoo
+### Hosted Odoo
 
 This approach is more effective if you'd like have full control over the [source code](https://github.com/odoo/odoo) on the *odoo container*, as it will be using the source one on your host, which **must** be located (in your host) in `./src/odoo/ce`, and additionally, if using enterprise, in `./src/odoo/ee`
 
-Using a bridged Odoo allows easier **debugging**, **testing** and **shell**; use cases that are also easy to deploy using the docker-compose.
+Using a hosted Odoo allows easier **debugging**, **testing** and **shell**; use cases that are also easy to deploy using the docker-compose.
 
 ## Basic Usage
 
-Before running the compose you should evaluate the `.env` file, which sets most variables used in this project. The **most** important variable to set is **`INSTALL_TYPE`** which decides if your installation will be **bridged** or **standalone**. bridged is selected by default in the compose-file if no selection is made; which assumes you already have Odoo's source in your host.
+Before running the compose you should evaluate the `.env` file, which sets most variables used in this project. The **most** important variable to set is **`INSTALL_TYPE`** which decides if your installation will be **hosted** or **standalone**. hosted is selected by default in the compose-file if no selection is made; which assumes you already have Odoo's source in your host.
 
 ### Available `docker-compose up` arguments
 

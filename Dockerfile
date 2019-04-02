@@ -1,4 +1,4 @@
-FROM debian:stretch as bridged
+FROM debian:stretch as hosted
 
 USER root
 
@@ -179,7 +179,7 @@ USER odoo
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["odoo"]
 
-FROM bridged as standalone
+FROM hosted as standalone
 
 USER root
 

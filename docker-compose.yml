@@ -6,7 +6,7 @@ x-odoo:
   image: odoo:${ODOO_VERSION}
   build:
     context: .
-    target: ${INSTALL_TYPE:-bridged}
+    target: ${INSTALL_TYPE:-hosted}
     # Variables  defined in the .env file, to be used at build time
     args:
       # Odoo's default configurations
