@@ -2,8 +2,8 @@
 
 This is a flexible and **streamlined** version of most Odoo docker projects that you'll find. And one that allows you to deploy with two different methods using the same docker-compose:
 
-* **Standalone**: As most people use their implementation. Each container with an Odoo instance inside
-* **Hosted**: A more practical implementation and **cheaper** on resources, as the HOST (where docker is installed) has the application (Odoo), and each container uses this single source. **This is the default**.
+* **Standalone**: As most people use their implementation. Each container with the the Odoo source code inside. **This is the default**
+* **Hosted**: A more practical implementation and **cheaper** on resources, as the HOST (where docker is installed) has the source code, and each container uses this single source.
 
 ## Quick usage
 
