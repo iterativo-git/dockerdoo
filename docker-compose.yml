@@ -41,7 +41,7 @@ x-odoo:
     - ./config:/etc/odoo/:ro
     # Host paths (source)
     - ./src/odoo/ee:${ODOO_ADDONS_BASEPATH}/001:ro
-    - ./custom_addons:${ODOO_EXTRA_ADDONS}
+    - ./custom:${ODOO_EXTRA_ADDONS}
   depends_on:
     - postgres
   networks:

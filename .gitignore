@@ -1,7 +1,7 @@
 # Odoo testlogs & chrome test screencasts / screenshots
 _testlogs/
 
-custom_addons/*
+custom/*
 /src/**
 !/src/**/
 !/src/**/.gitkeep

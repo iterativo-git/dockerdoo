@@ -102,7 +102,7 @@ your-project/
 
 ### Extra addons
 
-You can put all your **custom addons** in the folder `./custom_addons/`, those will be automatically added to your `addons_path` thanks to the script in `./resources/getaddons.py`
+You can put all your **custom addons** in the folder `./custom/`, those will be automatically added to your `addons_path` thanks to the script in `./resources/getaddons.py`
 
 ## Credits
 
