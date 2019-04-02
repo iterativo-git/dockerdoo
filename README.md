@@ -7,20 +7,18 @@ This is a flexible and **streamlined** version of most Odoo docker projects that
 
 ## Quick usage
 
+### Standalone
+
+```shell
+git clone git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+docker-compose up odoo
+```
+
 ### Hosted
 
 ```shell
 git clone git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
 git clone --depth=10 -b 12.0 git@github.com:odoo/odoo.git src/odoo/ce
-docker-compose up odoo
-```
-
-#### Standalone
-
-In the **.env** file set `INSTALL_TYPE=standalone`
-
-```shell
-git clone git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
 docker-compose up odoo
 ```
 
@@ -77,6 +75,7 @@ The available arguments to run with `docker-compose up` are:
     ```docker
     docker-compose up -d tests
     ```
+
 As shown, all this services are recommended to be run on **detached mode**: `-d`, as this is the most common use case.
 
 ### Project Structure
