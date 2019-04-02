@@ -4,19 +4,53 @@ USER root
 
 # Build-time arguments
 ARG ODOO_USER
+ENV ODOO_USER ${ODOO_USER:-odoo}
+
 ARG ODOO_BASEPATH
+ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
+
 ARG ODOO_RC
+ENV ODOO_RC ${ODOO_RC:-/etc/odoo/odoo.conf}
+
 ARG ODOO_CMD
+ENV ODOO_CMD ${ODOO_CMD:-/opt/odoo/odoo-bin}
+
+ARG ODOO_ADDONS_BASEPATH
+ENV ODOO_ADDONS_BASEPATH ${ODOO_ADDONS_BASEPATH:-/opt/odoo/addons}
+
+ARG ODOO_EXTRA_ADDONS
+ENV ODOO_EXTRA_ADDONS ${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
+
+ARG ODOO_DATA_DIR
+ENV ODOO_DATA_DIR ${ODOO_DATA_DIR:-/var/lib/odoo/data}
+
+ARG ODOO_LOGS_DIR
+ENV ODOO_LOGS_DIR ${ODOO_LOGS_DIR:-/var/lib/odoo/logs}
+
 ARG APP_UID
+ENV APP_UID ${APP_UID:-9001}  
+
 ARG APP_GID
+ENV APP_GID ${APP_GID:-9001}
 
 # Library versions
 ARG ODOO_VERSION
+ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
+
 ARG PSQL_VERSION
+ENV PSQL_VERSION ${PSQL_VERSION:-latest}
+
 ARG WKHTMLTOX_VERSION
+ENV WKHTMLTOX_VERSION ${WKHTMLTOX_VERSION:-0.12.5}
+
 ARG WKHTMLTOPDF_CHECKSUM
+ENV WKHTMLTOPDF_CHECKSUM ${WKHTMLTOPDF_CHECKSUM:-1140b0ab02aa6e17346af2f14ed0de807376de475ba90e1db3975f112fbd20bb}
+
 ARG NODE_VERSION
+ENV NODE_VERSION ${NODE_VERSION:-8}
+
 ARG BOOTSTRAP_VERSION
+ENV BOOTSTRAP_VERSION ${BOOTSTRAP_VERSION:-3.3.7}
 
 # Use noninteractive to get rid of apt-utils message
 ENV DEBIAN_FRONTEND=noninteractive
@@ -112,7 +146,7 @@ RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog ptvsd
 
 # Grab wkhtmltopdf
 RUN curl --silent --show-error --location --output wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb
-RUN echo "${WKHTMLTOPDF_CHECKSUM}  wkhtmltox.deb" | sha256sum -c -
+RUN echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha256sum -c -
 RUN apt-get -qq update && apt-get -qq install -yqq --no-install-recommends libpng16-16 libssl1.1 xfonts-75dpi xfonts-base > /dev/null
 RUN dpkg -i ./wkhtmltox.deb && rm wkhtmltox.deb && wkhtmltopdf --version
 
@@ -135,8 +169,6 @@ RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends \
 RUN pip --quiet --quiet install python-json-logger
 
 # Create app user
-ENV APP_GID ${APP_GID}
-ENV APP_UID ${APP_UID}
 RUN addgroup --system --gid ${APP_UID} ${ODOO_USER}
 RUN adduser --system --uid ${APP_GID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER}
 
@@ -156,23 +188,12 @@ RUN pip --quiet --quiet install --user Werkzeug==0.14.1
 COPY ./resources/entrypoint.sh /
 COPY ./resources/getaddons.py /
 
-ENV ODOO_RC ${ODOO_RC}
 COPY ./config/odoo.conf ${ODOO_RC}
 RUN chown ${ODOO_USER} ${ODOO_RC}
 
 # Own folders                //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
-ARG ODOO_DATA_DIR
-ENV ODOO_DATA_DIR ${ODOO_DATA_DIR}
-ARG ODOO_LOGS_DIR
-ENV ODOO_LOGS_DIR ${ODOO_LOGS_DIR}
-
 RUN mkdir -p "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}"
 RUN chown -R ${ODOO_USER}:${ODOO_USER} "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}"
-
-ARG ODOO_ADDONS_BASEPATH
-ENV ODOO_ADDONS_BASEPATH ${ODOO_ADDONS_BASEPATH}
-ARG ODOO_EXTRA_ADDONS
-ENV ODOO_EXTRA_ADDONS=${ODOO_EXTRA_ADDONS}
 
 USER odoo
 
@@ -182,9 +203,6 @@ CMD ["odoo"]
 FROM hosted as standalone
 
 USER root
-
-ARG ODOO_VERSION
-ARG ODOO_BASEPATH
 
 RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
 RUN pip install -e ./${ODOO_BASEPATH}
