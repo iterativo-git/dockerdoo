@@ -25,7 +25,15 @@ function check_config() {
         DB_ARGS+=("${value}")
    fi;
 }
-check_config "addons-path" "$ODOO_ADDONS_BASEPATH,$ODOO_EXTRA_ADDONS"
+
+if [ -z "$ODOO_EXTRA_ADDONS" ]
+then
+      echo "The variable \$var is empty, using default addons_path"
+      check_config "addons-path" "$ODOO_ADDONS_BASEPATH"
+else
+      check_config "addons-path" "$ODOO_ADDONS_BASEPATH,$ODOO_EXTRA_ADDONS"
+fi
+
 check_config "db_host" "$HOST"
 check_config "db_port" "$PORT"
 check_config "db_user" "$USER"

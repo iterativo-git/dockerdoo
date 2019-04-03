@@ -3,23 +3,24 @@ version: '3.4'
 x-odoo:
   &default-odoo
   tty: true
-  image: odoo:${ODOO_VERSION}
+  image: odoo:${ODOO_VERSION:-11.0}
   build:
     context: .
     target: ${INSTALL_TYPE:-standalone}
-    # Variables  defined in the .env file, to be used at build time
+    # Variables defined in the .env file, to be used at build time
     args:
       # Odoo's default configurations
       ODOO_USER: ${ODOO_USER}
       ODOO_BASEPATH: ${ODOO_BASEPATH}
+      ODOO_RC: ${ODOO_RC}
+      ODOO_CMD: ${ODOO_CMD}
       ODOO_ADDONS_BASEPATH: ${ODOO_ADDONS_BASEPATH}
       ODOO_EXTRA_ADDONS: ${ODOO_EXTRA_ADDONS}
       ODOO_DATA_DIR: ${ODOO_DATA_DIR}
       ODOO_LOGS_DIR: ${ODOO_LOGS_DIR}
-      ODOO_RC: ${ODOO_RC}
-      ODOO_CMD: ${ODOO_CMD}
       APP_UID: ${APP_UID}
       APP_GID: ${APP_GID}
+
       # Libraries version
       ODOO_VERSION: ${ODOO_VERSION}
       PSQL_VERSION: ${PSQL_VERSION}
@@ -28,20 +29,18 @@ x-odoo:
       NODE_VERSION: ${NODE_VERSION}
       BOOTSTRAP_VERSION: ${BOOTSTRAP_VERSION}
 
-  environment:
-    ODOO_CMD: ${ODOO_CMD}  # odoo-bin to be used in the entrypoint
-
   ports: ['8069:8069', '8072:8072', '3000:3000']
 
   volumes:
-    # Named volumes
-    - odoo-data:${ODOO_DATA_DIR}
-    - odoo-testlogs:${ODOO_LOGS_DIR}
+    # Host paths (source)
+    - ./src/odoo/ee:${ODOO_ADDONS_BASEPATH:-/opt/odoo/addons}/001:ro
+    - ./custom:${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
     # Host path (conf)
     - ./config:/etc/odoo/:ro
-    # Host paths (source)
-    - ./src/odoo/ee:${ODOO_ADDONS_BASEPATH}/001:ro
-    - ./custom:${ODOO_EXTRA_ADDONS}
+    # Named volumes
+    - odoo-data:${ODOO_DATA_DIR:-/var/lib/odoo/data}
+    - odoo-testlogs:${ODOO_LOGS_DIR:-/var/lib/odoo/logs}
+
   depends_on:
     - postgres
   networks:
@@ -51,22 +50,12 @@ networks:
   odoonet:
 
 volumes:
-  db_data: {driver: local}
-  odoo-data: {driver: local}
-  odoo-testlogs: {driver: local}
-  psql: {driver: local}
+  db_data:
+  odoo-data:
+  odoo-testlogs:
+  psql:
 
 services:
-
-# ========================
-
-  filebrowser:
-    image: filebrowser/filebrowser
-    ports: ['8080:80']
-    command: ['--noauth']
-    volumes:
-      - odoo-data:/srv/data
-      - odoo-testlogs:/srv/testlogs
 
 # ========================
 
@@ -79,12 +68,12 @@ services:
 # ------------------------
 
   postgres:
-    image: postgres:${PSQL_VERSION}
+    image: postgres:${PSQL_VERSION:-11}
     volumes:
       - psql:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo}
+      - POSTGRES_USER=${POSTGRES_USER:-odoo}
     networks:
       odoonet:
         aliases:
