@@ -6,10 +6,9 @@ x-odoo:
   image: odoo:${ODOO_VERSION:-11.0}
   build:
     context: .
-    target: ${INSTALL_TYPE:-standalone}
-    # Variables defined in the .env file, to be used at build time
+    target: ${INSTALL_TYPE:-hosted}
     args:
-      # Odoo's default configurations
+      # Variables defined in the .env file, to be used at build time
       ODOO_USER: ${ODOO_USER}
       ODOO_BASEPATH: ${ODOO_BASEPATH}
       ODOO_RC: ${ODOO_RC}
@@ -33,10 +32,10 @@ x-odoo:
 
   volumes:
     # Host paths (source)
+    - ./src/odoo/ce:/.${INSTALL_TYPE:-/opt/odoo} # Needed Hack for a conditional volume 
     - ./src/odoo/ee:${ODOO_ADDONS_BASEPATH:-/opt/odoo/addons}/001:ro
     - ./custom:${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
-    # Host path (conf)
-    - ./config:/etc/odoo/:ro
+    - ./config:/etc/odoo:ro
     # Named volumes
     - odoo-data:${ODOO_DATA_DIR:-/var/lib/odoo/data}
     - odoo-testlogs:${ODOO_LOGS_DIR:-/var/lib/odoo/logs}
@@ -90,23 +89,15 @@ services:
     << : *default-odoo
     command: ['odoo', '--dev', 'wdb,reload,qweb,werkzeug,xml']
     depends_on: ['postgres', 'wdb']
-    volumes:
-      - ./src/odoo/ce:${ODOO_BASEPATH}
-
 # ------------------------
 
   tests:
     << : *default-odoo
     depends_on: ['postgres', 'wdb']
     command: ['odoo', '--dev', 'wdb,qweb,werkzeug,xml', '--test-enable', '--stop-after-init', '--logfile', '${ODOO_LOGS_DIR}/odoo-server.log']
-    volumes:
-      - ./src/odoo/ce:${ODOO_BASEPATH}
-
 # ------------------------
 
   shell:
     << : *default-odoo
     depends_on: ['postgres', 'wdb']
     command: ['odoo', 'shell']
-    volumes:
-      - ./src/odoo/ce:${ODOO_BASEPATH}
