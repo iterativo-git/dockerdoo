@@ -68,7 +68,7 @@ services:
 # ------------------------
 
   postgres:
-    image: postgres:${PSQL_VERSION-:11}
+    image: postgres:${PSQL_VERSION:-11}
     volumes:
       - psql:/var/lib/postgresql/data
     environment:
