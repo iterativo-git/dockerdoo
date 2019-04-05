@@ -193,7 +193,7 @@ RUN chown ${ODOO_USER} ${ODOO_RC}
 
 # Own folders                //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
 RUN mkdir -p "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}"
-RUN chown -R ${ODOO_USER}:${ODOO_USER} "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}"
+RUN chown -R ${ODOO_USER}:${ODOO_USER} "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}" "/resources"
 
 USER odoo
 
