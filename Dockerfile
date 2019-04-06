@@ -196,7 +196,7 @@ RUN mkdir -p "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}"
 RUN chown -R ${ODOO_USER}:${ODOO_USER} "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}" /entrypoint.sh /getaddons.py
 RUN chmod u+x /entrypoint.sh /getaddons.py
 
-USER odoo
+USER ${ODOO_USER}
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["odoo"]
@@ -208,4 +208,4 @@ USER root
 RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
 RUN pip install -e ./${ODOO_BASEPATH}
 
-USER odoo
+USER ${ODOO_USER}
