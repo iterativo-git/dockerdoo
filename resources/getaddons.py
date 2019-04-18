@@ -72,7 +72,7 @@ def is_addons(path):
 
 def get_addons(path, depth=1):
     """Return repositories in path. Can search in inner folders as depth."""
-    if not os.path.exists(path) or depth < 0:
+    if not os.path.exists(path) or depth < -1:
         return []
     res = []
     if is_addons(path):
