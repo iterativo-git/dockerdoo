@@ -2,44 +2,7 @@ FROM debian:stretch as hosted
 
 USER root
 
-# Build-time arguments
-ARG ODOO_USER
-ENV ODOO_USER ${ODOO_USER:-odoo}
-
-ARG ODOO_BASEPATH
-ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
-
-ARG ODOO_RC
-ENV ODOO_RC ${ODOO_RC:-/etc/odoo/odoo.conf}
-
-ARG ODOO_CMD
-ENV ODOO_CMD ${ODOO_CMD:-/opt/odoo/odoo-bin}
-
-ARG ODOO_ADDONS_BASEPATH
-ENV ODOO_ADDONS_BASEPATH ${ODOO_ADDONS_BASEPATH:-/opt/odoo/addons}
-
-ARG ODOO_EXTRA_ADDONS
-ENV ODOO_EXTRA_ADDONS ${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
-
-ARG ODOO_DATA_DIR
-ENV ODOO_DATA_DIR ${ODOO_DATA_DIR:-/var/lib/odoo/data}
-
-ARG ODOO_LOGS_DIR
-ENV ODOO_LOGS_DIR ${ODOO_LOGS_DIR:-/var/lib/odoo/logs}
-
-ARG APP_UID
-ENV APP_UID ${APP_UID:-9001}  
-
-ARG APP_GID
-ENV APP_GID ${APP_GID:-9001}
-
 # Library versions
-ARG ODOO_VERSION
-ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
-
-ARG PSQL_VERSION
-ENV PSQL_VERSION ${PSQL_VERSION:-11}
-
 ARG WKHTMLTOX_VERSION
 ENV WKHTMLTOX_VERSION ${WKHTMLTOX_VERSION:-0.12.5}
 
@@ -138,11 +101,11 @@ RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends git-cor
 # Grab postgres
 RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main' >> /etc/apt/sources.list.d/postgresql.list
 RUN curl --silent --show-error --location https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends postgresql-client-${PSQL_VERSION} > /dev/null
+RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends postgresql-client > /dev/null
 
 # Grab pip dependencies
 RUN pip --quiet --quiet install --no-cache-dir --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt
-RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog ptvsd
+RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog
 
 # Grab wkhtmltopdf
 RUN curl --silent --show-error --location --output wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb
@@ -169,6 +132,15 @@ RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends \
 RUN pip --quiet --quiet install python-json-logger
 
 # Create app user
+ENV ODOO_USER odoo
+ENV ODOO_BASEPATH /opt/odoo
+
+ARG APP_UID
+ENV APP_UID ${APP_UID:-9001}
+
+ARG APP_GID
+ENV APP_GID ${APP_GID:-9001}
+
 RUN addgroup --system --gid ${APP_UID} ${ODOO_USER}
 RUN adduser --system --uid ${APP_GID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER}
 
@@ -188,24 +160,30 @@ RUN pip --quiet --quiet install --user Werkzeug==0.14.1
 COPY ./resources/entrypoint.sh /
 COPY ./resources/getaddons.py /
 
+ENV ODOO_RC /etc/odoo/odoo.conf
 COPY ./config/odoo.conf ${ODOO_RC}
 RUN chown ${ODOO_USER} ${ODOO_RC}
 
 # Own folders                //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
+ENV ODOO_DATA_DIR /var/lib/odoo/data
+ENV ODOO_LOGS_DIR /var/lib/odoo/logs
+
 RUN mkdir -p "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}"
 RUN chown -R ${ODOO_USER}:${ODOO_USER} "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}" /entrypoint.sh /getaddons.py
 RUN chmod u+x /entrypoint.sh /getaddons.py
+
+ENV ODOO_ADDONS_BASEPATH ${ODOO_BASEPATH}/addons
+ENV ODOO_CMD ${ODOO_BASEPATH}/odoo-bin
+
+ENV ODOO_EXTRA_ADDONS /mnt/extra-addons
+
+USER root
+
+ENV ODOO_VERSION 11.0
+RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
+RUN pip install -e ./${ODOO_BASEPATH}
 
 USER ${ODOO_USER}
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["odoo"]
-
-FROM hosted as standalone
-
-USER root
-
-RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
-RUN pip install -e ./${ODOO_BASEPATH}
-
-USER ${ODOO_USER}

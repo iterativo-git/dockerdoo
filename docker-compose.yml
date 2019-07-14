@@ -1,50 +1,5 @@
 version: '3.4'
 
-x-odoo:
-  &default-odoo
-  tty: true
-  image: odoo:${ODOO_VERSION:-11.0}
-  build:
-    context: .
-    target: ${INSTALL_TYPE:-hosted}
-    args:
-      # Variables defined in the .env file, to be used at build time
-      ODOO_USER: ${ODOO_USER}
-      ODOO_BASEPATH: ${ODOO_BASEPATH}
-      ODOO_RC: ${ODOO_RC}
-      ODOO_CMD: ${ODOO_CMD}
-      ODOO_ADDONS_BASEPATH: ${ODOO_ADDONS_BASEPATH}
-      ODOO_EXTRA_ADDONS: ${ODOO_EXTRA_ADDONS}
-      ODOO_DATA_DIR: ${ODOO_DATA_DIR}
-      ODOO_LOGS_DIR: ${ODOO_LOGS_DIR}
-      APP_UID: ${APP_UID}
-      APP_GID: ${APP_GID}
-
-      # Libraries version
-      ODOO_VERSION: ${ODOO_VERSION}
-      PSQL_VERSION: ${PSQL_VERSION}
-      WKHTMLTOX_VERSION: ${WKHTMLTOX_VERSION}
-      WKHTMLTOPDF_CHECKSUM: ${WKHTMLTOPDF_CHECKSUM}
-      NODE_VERSION: ${NODE_VERSION}
-      BOOTSTRAP_VERSION: ${BOOTSTRAP_VERSION}
-
-  ports: ['8069:8069', '8072:8072', '3000:3000']
-
-  volumes:
-    # Host paths (source)
-    - ./src/odoo/ce:/.${INSTALL_TYPE:-/opt/odoo} # Needed Hack for a conditional volume 
-    - ./src/odoo/ee:${ODOO_ADDONS_BASEPATH:-/opt/odoo/addons}/001:ro
-    - ./custom:${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
-    - ./config:/etc/odoo:ro
-    # Named volumes
-    - odoo-data:${ODOO_DATA_DIR:-/var/lib/odoo/data}
-    - odoo-testlogs:${ODOO_LOGS_DIR:-/var/lib/odoo/logs}
-
-  depends_on:
-    - postgres
-  networks:
-    - odoonet
-
 networks:
   odoonet:
 
@@ -55,16 +10,6 @@ volumes:
   psql:
 
 services:
-
-# ========================
-
-  wdb:
-    image: xoes/wdb-server
-    ports: ['1984:1984']
-    networks:
-      - odoonet
-
-# ------------------------
 
   postgres:
     image: postgres:${PSQL_VERSION:-11}
@@ -81,27 +26,27 @@ services:
 # ------------------------
 
   odoo:
-    << : *default-odoo
+  tty: true
+  image: iterativodo/dockerdoo:latest
+  environment:
+    # Libraries version
+    WKHTMLTOX_VERSION: ${WKHTMLTOX_VERSION}
+    WKHTMLTOPDF_CHECKSUM: ${WKHTMLTOPDF_CHECKSUM}
+    NODE_VERSION: ${NODE_VERSION}
+    BOOTSTRAP_VERSION: ${BOOTSTRAP_VERSION}
 
-# ========================
+  ports: ['8069:8069', '8072:8072']
 
-  dev:
-    << : *default-odoo
-    environment:
-      - WDB_SOCKET_SERVER=wdb
-      - WDB_NO_BROWSER_AUTO_OPEN=True
-      - WDB_WEB_PORT=1984
-    command: ['odoo', '--dev', 'wdb,reload,qweb,werkzeug,xml']
-    depends_on: ['postgres', 'wdb']
-# ------------------------
+  volumes:
+    # Host paths (addons & conf)
+    - ./src/odoo/ee:/opt/odoo/addons:ro
+    - ./custom:/mnt/extra-addons
+    - ./config:/etc/odoo:ro
+    # Named volumes
+    - odoo-data:/var/lib/odoo/data
+    - odoo-testlogs:/var/lib/odoo/logs
 
-  tests:
-    << : *default-odoo
-    depends_on: ['postgres', 'wdb']
-    command: ['odoo', '--dev', 'wdb,qweb,werkzeug,xml', '--test-enable', '--stop-after-init', '--logfile', '${ODOO_LOGS_DIR}/odoo-server.log']
-# ------------------------
-
-  shell:
-    << : *default-odoo
-    depends_on: ['postgres', 'wdb']
-    command: ['odoo', 'shell']
+  depends_on:
+    - postgres
+  networks:
+    - odoonet
