@@ -104,6 +104,7 @@ RUN curl --silent --show-error --location https://www.postgresql.org/media/keys/
 RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends postgresql-client > /dev/null
 
 # Grab pip dependencies
+ENV ODOO_VERSION 11.0
 RUN pip --quiet --quiet install --no-cache-dir --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt
 RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog
 
@@ -179,7 +180,6 @@ ENV ODOO_EXTRA_ADDONS /mnt/extra-addons
 
 USER root
 
-ENV ODOO_VERSION 11.0
 RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
 RUN pip install -e ./${ODOO_BASEPATH}
 
