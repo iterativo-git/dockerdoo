@@ -1,6 +1,8 @@
 steps:
 - name: gcr.io/cloud-builders/docker
   args: ['run', '-d', '--name=postgres', '--network=cloudbuild', 'postgres']
+- name: jwilder/dockerize:0.6.1
+  args: ['dockerize', '-timeout=60s', '-wait=tcp://postgres:5432']
 - name: 'postgres'
   env:
     - POSTGRES_PASSWORD=odoo
