@@ -38,6 +38,11 @@ services:
     depends_on:
       - db
 
+    networks:
+      odoonet:
+      cloudbuild:
+
+
   db:
     image: postgres:${PSQL_VERSION:-11}
     volumes:
@@ -45,5 +50,9 @@ services:
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo}
       - POSTGRES_USER=${POSTGRES_USER:-odoo}
+
+    networks:
+      odoonet:
+      cloudbuild:
 
 # ------------------------

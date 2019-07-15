@@ -1,7 +1,13 @@
 steps:
-- name: 'docker/compose:1.24.0'
-  args: ['up']
+- name: 'postgres:11'
+  env:
+    - POSTGRES_PASSWORD=odoo
+    - POSTGRES_USER=odoo
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['tag', 'dockerdoo:latest', 'gcr.io/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA']
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA', '.']
+- name: 'docker/compose:1.24.0'
+  args: ['up', '-d']
+  env:
+  - 'PROJECT_ID=$PROJECT_ID'
 images: ['gcr.io/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA']
 timeout: '900s'
