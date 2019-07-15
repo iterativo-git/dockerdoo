@@ -4,7 +4,6 @@ networks:
   default:
     external:
       name: cloudbuild
-  odoonet:
 
 volumes:
   db_data:
@@ -21,11 +20,6 @@ services:
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo}
       - POSTGRES_USER=${POSTGRES_USER:-odoo}
-    networks:
-      odoonet:
-        aliases:
-          - db
-      default:
 
 # ------------------------
 
@@ -52,6 +46,3 @@ services:
 
     depends_on:
       - postgres
-    networks:
-      - default
-      - odoonet
