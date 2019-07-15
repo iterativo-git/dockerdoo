@@ -1,4 +1,4 @@
-FROM debian:stretch as hosted
+FROM debian:buster as hosted
 
 USER root
 
