@@ -45,4 +45,4 @@ services:
       - odoo-testlogs:/var/lib/odoo/logs
 
     depends_on:
-      - postgres
+      - db
