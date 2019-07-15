@@ -39,7 +39,7 @@ services:
 
     volumes:
       # Host paths (addons & conf)
-      - ./src/odoo/ee:/opt/odoo/addons:ro
+      - ./src/odoo/ee:/opt/odoo/addons/ee:ro
       - ./custom:/mnt/extra-addons
       - ./config:/etc/odoo:ro
       # Named volumes
