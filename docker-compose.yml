@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.5'
 
 networks:
   default:
@@ -6,25 +6,13 @@ networks:
       name: cloudbuild
 
 volumes:
-  db_data:
   odoo-data:
   odoo-testlogs:
   psql:
 
 services:
 
-  db:
-    image: postgres:${PSQL_VERSION:-11}
-    volumes:
-      - psql:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo}
-      - POSTGRES_USER=${POSTGRES_USER:-odoo}
-
-# ------------------------
-
   odoo:
-    tty: true
     image: iterativodo/dockerdoo:latest
     environment:
       # Libraries version
@@ -46,3 +34,13 @@ services:
 
     depends_on:
       - db
+
+  db:
+    image: postgres:${PSQL_VERSION:-11}
+    volumes:
+      - psql:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo}
+      - POSTGRES_USER=${POSTGRES_USER:-odoo}
+
+# ------------------------
