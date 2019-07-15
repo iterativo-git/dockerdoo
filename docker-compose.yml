@@ -25,7 +25,7 @@ services:
       odoonet:
         aliases:
           - db
-      - default
+      default:
 
 # ------------------------
 
