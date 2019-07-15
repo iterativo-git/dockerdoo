@@ -1,6 +1,9 @@
 version: '3.4'
 
 networks:
+  default:
+    external:
+      name: cloudbuild
   odoonet:
 
 volumes:
@@ -22,6 +25,7 @@ services:
       odoonet:
         aliases:
           - db
+      - default
 
 # ------------------------
 
@@ -49,4 +53,5 @@ services:
     depends_on:
       - postgres
     networks:
+      - default
       - odoonet
