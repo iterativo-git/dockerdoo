@@ -39,6 +39,8 @@ check_config "db_port" "$PORT"
 check_config "db_user" "$USER"
 check_config "db_password" "$PASSWORD"
 
+./wait_postgres.sh
+
 case "$1" in
     -- | odoo | ${ODOO_CMD})
         shift
