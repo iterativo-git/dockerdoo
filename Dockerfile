@@ -1,4 +1,4 @@
-FROM debian:buster as hosted
+FROM debian:buster as base
 
 USER root
 
@@ -63,6 +63,9 @@ RUN set -x; \
     # python-ldap
     libldap2-dev \
     libsasl2-dev \
+    # postgres
+    libpq-dev \
+    lsb-release \
     > /dev/null
 
 # Grab run deps
@@ -99,7 +102,7 @@ RUN curl --silent --show-error --location https://bootstrap.pypa.io/get-pip.py |
 RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends git-core > /dev/null
 
 # Grab postgres
-RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main' >> /etc/apt/sources.list.d/postgresql.list
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 RUN curl --silent --show-error --location https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends postgresql-client > /dev/null
 
@@ -115,19 +118,17 @@ RUN apt-get -qq update && apt-get -qq install -yqq --no-install-recommends libpn
 RUN dpkg -i ./wkhtmltox.deb && rm wkhtmltox.deb && wkhtmltopdf --version
 
 # Grab web stack
-RUN echo "deb https://deb.nodesource.com/node_${NODE_VERSION}.x stretch main" > /etc/apt/sources.list.d/nodesource.list
-RUN echo "deb-src https://deb.nodesource.com/node_${NODE_VERSION}.x stretch main" >> /etc/apt/sources.list.d/nodesource.list
-RUN curl --silent --show-error --location https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
-RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends \
-    gem \
-    nodejs \
-    ruby-compass \
-    > /dev/null \
-    && ln -s /usr/bin/nodejs /usr/local/bin/node \
-    && npm install --quiet --global less \
-    && gem install --no-rdoc --no-ri --no-update-sources bootstrap-sass --version "${BOOTSTRAP_VERSION}" \
-    && rm -Rf ~/.gem /var/lib/gems/*/cache/ \
-    && rm -Rf ~/.npm /tmp/*
+RUN set -x;\
+    echo "deb http://deb.nodesource.com/node_${NODE_VERSION}.x $(lsb_release -cs) main" > /etc/apt/sources.list.d/nodesource.list \
+    && export GNUPGHOME="$(mktemp -d)" \
+    && repokey='9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280' \
+    && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "${repokey}" \
+    && gpg --armor --export "${repokey}" | apt-key add - \
+    && gpgconf --kill all \
+    && rm -rf "$GNUPGHOME" \
+    && apt-get -qq update \
+    && apt-get -qq install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
 # Grab latest json logger    //-- for easier parsing (Patch 0001)
 RUN pip --quiet --quiet install python-json-logger
