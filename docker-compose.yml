@@ -4,6 +4,7 @@ networks:
   default:
     external:
       name: cloudbuild
+  odoonet:
 
 volumes:
   odoo-data:
