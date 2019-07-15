@@ -12,7 +12,5 @@ steps:
   args: ['up', '-d']
   env:
   - 'PROJECT_ID=$PROJECT_ID'
-  waitFor:
-  - db
 images: ['gcr.io/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA']
 timeout: '900s'
