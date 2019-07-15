@@ -39,15 +39,6 @@ check_config "db_port" "$PORT"
 check_config "db_user" "$USER"
 check_config "db_password" "$PASSWORD"
 
-until PGPASSWORD=$POSTGRES_PASSWORD psql -h "$HOST" -U "$USER" -c '\q'; do
-  >&2 echo "Postgres is unavailable - sleeping"
-  sleep 1
-done
-
->&2 echo "Postgres is up - executing command"
-exec $cmd
-
-
 case "$1" in
     -- | odoo | ${ODOO_CMD})
         shift

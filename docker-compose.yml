@@ -13,7 +13,7 @@ volumes:
 
 services:
 
-  postgres:
+  db:
     image: postgres:${PSQL_VERSION:-11}
     volumes:
       - psql:/var/lib/postgresql/data
