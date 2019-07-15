@@ -184,6 +184,9 @@ USER root
 RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
 RUN pip install -e ./${ODOO_BASEPATH}
 
+# Docker healthcheck command
+HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
+
 USER ${ODOO_USER}
 
 ENTRYPOINT ["/entrypoint.sh"]
