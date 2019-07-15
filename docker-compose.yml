@@ -40,7 +40,6 @@ services:
 
     networks:
       odoonet:
-      cloudbuild:
 
 
   db:
@@ -53,6 +52,5 @@ services:
 
     networks:
       odoonet:
-      cloudbuild:
 
 # ------------------------
