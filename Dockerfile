@@ -1,4 +1,4 @@
-FROM debian:buster as base
+FROM debian:buster
 
 USER root
 
