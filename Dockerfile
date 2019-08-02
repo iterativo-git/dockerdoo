@@ -42,6 +42,7 @@ RUN set -x; \
     libgeoip-dev \
     libmaxminddb-dev \
     python3-dev \
+    node-less \
     python3-renderpm \
     python3-watchdog \
     wget \
