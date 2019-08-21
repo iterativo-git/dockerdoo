@@ -1,4 +1,4 @@
-# Dockerized Odoo for Odoo 11.0 & 12.0 (BETA)
+# Dockerized Odoo for Odoo 11.0 (BETA)
 
 This is a flexible and **streamlined** version of most Odoo docker projects that you'll find. And one that allows you to deploy with two different methods using the same docker-compose:
 
@@ -18,7 +18,7 @@ docker-compose up odoo
 
 ```shell
 git clone git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
-git clone --depth=10 -b 12.0 git@github.com:odoo/odoo.git src/odoo/ce
+git clone --depth=10 -b 11.0 git@github.com:odoo/odoo.git src/odoo/ce
 docker-compose up odoo
 ```
 
