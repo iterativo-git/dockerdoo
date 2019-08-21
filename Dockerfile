@@ -12,9 +12,6 @@ ENV WKHTMLTOPDF_CHECKSUM ${WKHTMLTOPDF_CHECKSUM:-1140b0ab02aa6e17346af2f14ed0de8
 ARG NODE_VERSION
 ENV NODE_VERSION ${NODE_VERSION:-8}
 
-ARG BOOTSTRAP_VERSION
-ENV BOOTSTRAP_VERSION ${BOOTSTRAP_VERSION:-3.3.7}
-
 # Use noninteractive to get rid of apt-utils message
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -28,7 +25,6 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
-
 
 # Grab build deps
 RUN set -x; \
@@ -94,7 +90,6 @@ RUN set -x; \
     zlib1g \
     zlibc \
     > /dev/null
-
 
 # Grab latest pip
 RUN curl --silent --show-error --location https://bootstrap.pypa.io/get-pip.py | python3 /dev/stdin --no-cache-dir
