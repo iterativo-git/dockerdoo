@@ -9,6 +9,45 @@ set -e
 : ${USER:=${DB_ENV_POSTGRES_USER:=${POSTGRES_USER:='odoo'}}}
 : ${PASSWORD:=${DB_ENV_POSTGRES_PASSWORD:=${POSTGRES_PASSWORD:='odoo'}}}
 
+# set all variables
+
+echo "
+[options]
+data_dir = ${DATA_DIR}
+db_host = ${DB_PORT_5432_TCP_ADDR}
+db_maxconn = ${DB_MAXCONN}
+db_password = ${DB_ENV_POSTGRES_PASSWORD}
+db_port = ${DB_PORT_5432_TCP_PORT}
+db_sslmode = ${DB_SSLMODE}
+db_template = ${DB_TEMPLATE}
+db_user = ${DB_ENV_POSTGRES_USER}
+dbfilter = ${DBFILTER}
+http_interface = ${HTTP_INTERFACE}
+http_port = ${HTTP_PORT}
+limit_memory_hard = ${LIMIT_MEMORY_HARD}
+limit_memory_soft = ${LIMIT_MEMORY_SOFT}
+limit_time_cpu = ${LIMIT_TIME_CPU}
+limit_time_real = ${LIMIT_TIME_REAL}
+limit_time_real_cron = ${LIMIT_TIME_REAL_CRON}
+list_db = ${LIST_DB}
+log_db = ${LOG_DB}
+log_db_level = ${LOG_DB_LEVEL}
+log_handler = ${LOG_HANDLER}
+log_level = ${LOG_LEVEL}
+max_cron_threads = ${MAX_CRON_THREADS}
+proxy_mode = ${PROXY_MODE}
+server_wide_modules = ${SERVER_WIDE_MODULES}
+smtp_password = ${SMTP_PASSWORD}
+smtp_port = ${SMTP_PORT}
+smtp_server = ${SMTP_SERVER}
+smtp_ssl = ${SMTP_SSL}
+smtp_user = ${SMTP_USER}
+test_enable = ${TEST_ENABLE}
+unaccent = ${UNACCENT}
+without_demo = ${WITHOUT_DEMO}
+workers = ${WORKERS}
+" > $ODOO_RC
+
 function getAddons() {
     
     ODOO_EXTRA_ADDONS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS:-'/mnt/extra-addons'} 2>&1)
