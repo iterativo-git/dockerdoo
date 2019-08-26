@@ -1,4 +1,4 @@
-version: '3.7'
+version: "3.7"
 
 networks:
   default:
@@ -12,7 +12,6 @@ volumes:
   psql:
 
 services:
-
   odoo:
     build:
       context: .
@@ -24,7 +23,7 @@ services:
       NODE_VERSION: ${NODE_VERSION}
       BOOTSTRAP_VERSION: ${BOOTSTRAP_VERSION}
 
-    ports: ['8069:8069', '8072:8072']
+    ports: ["8069:8069", "8072:8072"]
 
     volumes:
       # Host paths (addons & conf)
@@ -41,7 +40,6 @@ services:
     networks:
       odoonet:
 
-
   db:
     image: postgres:${PSQL_VERSION:-11}
     volumes:
@@ -52,5 +50,4 @@ services:
 
     networks:
       odoonet:
-
 # ------------------------
