@@ -55,6 +55,14 @@ function getAddons() {
 
 getAddons
 
+if [ -z "$ODOO_EXTRA_ADDONS" ]
+then
+      echo "The variable \$ODOO_EXTRA_ADDONS is empty, using default addons_path"
+      echo "addons_path = $ODOO_ADDONS_BASEPATH" >> $ODOO_RC 
+else
+      echo "addons_path = $ODOO_ADDONS_BASEPATH,$ODOO_EXTRA_ADDONS"
+fi
+
 DB_ARGS=()
 function check_config() {
     param="$1"
@@ -64,14 +72,6 @@ function check_config() {
         DB_ARGS+=("${value}")
    fi;
 }
-
-if [ -z "$ODOO_EXTRA_ADDONS" ]
-then
-      echo "The variable \$var is empty, using default addons_path"
-      check_config "addons-path" "$ODOO_ADDONS_BASEPATH"
-else
-      check_config "addons-path" "$ODOO_ADDONS_BASEPATH,$ODOO_EXTRA_ADDONS"
-fi
 
 check_config "db_host" "$HOST"
 check_config "db_port" "$PORT"
