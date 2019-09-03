@@ -60,7 +60,7 @@ then
       echo "The variable \$ODOO_EXTRA_ADDONS is empty, using default addons_path"
       echo "addons_path = $ODOO_ADDONS_BASEPATH" >> $ODOO_RC 
 else
-      echo "addons_path = $ODOO_ADDONS_BASEPATH,$ODOO_EXTRA_ADDONS"
+      echo "addons_path = $ODOO_ADDONS_BASEPATH,$ODOO_EXTRA_ADDONS" >> $ODOO_RC
 fi
 
 DB_ARGS=()
