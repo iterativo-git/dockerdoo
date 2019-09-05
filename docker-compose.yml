@@ -8,6 +8,7 @@ networks:
 
 volumes:
   odoo-data:
+  odoo-config:
   odoo-testlogs:
   psql:
 
@@ -29,8 +30,8 @@ services:
       # Host paths (addons & conf)
       - ./src/odoo/ee:/opt/odoo/addons/ee:ro
       - ./custom:/mnt/extra-addons
-      - ./config:/etc/odoo:ro
       # Named volumes
+      - odoo-config:/etc/odoo
       - odoo-data:/var/lib/odoo/data
       - odoo-testlogs:/var/lib/odoo/logs
 
@@ -39,7 +40,7 @@ services:
 
     networks:
       odoonet:
-
+# ------------------------
   db:
     image: postgres:${PSQL_VERSION:-11}
     volumes:
@@ -50,4 +51,3 @@ services:
 
     networks:
       odoonet:
-# ------------------------
