@@ -1,6 +1,6 @@
-#!/bin/bash -x
+#!/bin/bash
 
-set -e
+set -xe
 
 # set the postgres database host, port, user and password according to the environment
 # and pass them as arguments to the odoo process if not present in the config file
