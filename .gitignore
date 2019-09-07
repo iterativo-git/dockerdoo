@@ -2,7 +2,6 @@
 _testlogs/
 
 /custom/**
-!/custom/**/
 !/custom/**/.gitkeep
 /src/**
 !/src/**/
