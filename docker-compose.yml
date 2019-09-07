@@ -40,14 +40,16 @@ services:
 
     networks:
       odoonet:
-# ------------------------
+  # ------------------------
   db:
     image: postgres:${PSQL_VERSION:-11}
     volumes:
-      - psql:/var/lib/postgresql/data
+      - psql:/var/lib/postgresql/data/pgdata
     environment:
+      - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-odoo}
       - POSTGRES_USER=${POSTGRES_USER:-odoo}
+      - PGDATA=/var/lib/postgresql/data/pgdata
 
     networks:
       odoonet:

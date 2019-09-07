@@ -3,5 +3,5 @@ version: '3.7'
 services:
 
   odoo:
-    depends_on: ['postgres']
+    depends_on: ['db']
     command: ['odoo', '--test-enable', '--stop-after-init', '--logfile', '${ODOO_LOGS_DIR}/odoo-server.log']
