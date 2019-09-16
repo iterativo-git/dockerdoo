@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM python:3.7-buster
 
 USER root
 
@@ -73,7 +73,6 @@ RUN set -x; \
     gnupg \
     libgeoip-dev \
     libmaxminddb-dev \
-    python3-dev \
     node-less \
     python3-renderpm \
     python3-watchdog \
@@ -93,7 +92,6 @@ RUN set -x; \
     tcl-dev \
     # psutil
     linux-headers-amd64 \
-    # python-ldap
     libldap2-dev \
     libsasl2-dev \
     # postgres
@@ -104,7 +102,6 @@ RUN set -x; \
 # Grab run deps
 RUN set -x; \
     apt-get -qq update && apt-get -qq install -y --no-install-recommends \
-    python3 \
     apt-transport-https \
     ca-certificates \
     gnupg2 \
