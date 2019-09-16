@@ -16,7 +16,7 @@ services:
   odoo:
     build:
       context: .
-    image: iterativodo/dockerdoo:11.0
+    image: iterativodo/dockerdoo:12.0
     environment:
       # Libraries version
       WKHTMLTOX_VERSION: ${WKHTMLTOX_VERSION}
