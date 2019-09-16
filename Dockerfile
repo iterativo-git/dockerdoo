@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM python:2.7-buster
 
 USER root
 
@@ -73,10 +73,9 @@ RUN set -x; \
     gnupg \
     libgeoip-dev \
     libmaxminddb-dev \
-    python3-dev \
     node-less \
-    python3-renderpm \
-    python3-watchdog \
+    python-renderpm \
+    python-watchdog \
     wget \
     xz-utils \
     libevent-dev \
@@ -93,7 +92,6 @@ RUN set -x; \
     tcl-dev \
     # psutil
     linux-headers-amd64 \
-    # python-ldap
     libldap2-dev \
     libsasl2-dev \
     # postgres
@@ -104,7 +102,6 @@ RUN set -x; \
 # Grab run deps
 RUN set -x; \
     apt-get -qq update && apt-get -qq install -y --no-install-recommends \
-    python3 \
     apt-transport-https \
     ca-certificates \
     gnupg2 \
@@ -128,7 +125,7 @@ RUN set -x; \
     > /dev/null
 
 # Grab latest pip
-RUN curl --silent --show-error --location https://bootstrap.pypa.io/get-pip.py | python3 /dev/stdin --no-cache-dir
+RUN curl --silent --show-error --location https://bootstrap.pypa.io/get-pip.py | python /dev/stdin --no-cache-dir
 
 # Grab latest git            //-- to `pip install` customized python packages & apply patches
 RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends git-core > /dev/null
@@ -139,7 +136,7 @@ RUN curl --silent --show-error --location https://www.postgresql.org/media/keys/
 RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends postgresql-client > /dev/null
 
 # Grab pip dependencies
-ENV ODOO_VERSION 11.0
+ENV ODOO_VERSION 10.0
 RUN pip --quiet --quiet install --no-cache-dir --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt
 RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog psycogreen
 
