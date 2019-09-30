@@ -1,0 +1,101 @@
+// If you want to run as a non-root user in the container, see .devcontainer/docker-compose.yml.
+{
+	"name": "Python 3 & PostgreSQL",
+	"dockerComposeFile": [
+		"../docker-compose.yml",
+		"../dev-env.yml"
+	],
+	"service": "odoo",
+	"workspaceFolder": "/mnt/extra-addons",
+	// Keep the containers running after VS Code shuts down.
+	"shutdownAction": "none",
+	"postCreateCommand": "sudo pip install --upgrade git+https://github.com/oca/pylint-odoo.git yapf flake8",
+	// Use 'settings' to set *default* container specific settings.json values on container create. 
+	// You can edit these settings after create using File > Preferences > Settings > Remote.
+	"settings": {
+		// Terminal to be used
+		"terminal.integrated.shell.linux": "/bin/bash",
+		// Python terminal variables
+		"python.pythonPath": "/usr/local/bin/python",
+		"python.autoComplete.extraPaths": [
+			"/opt/odoo/addons",
+			"/opt/odoo",
+			"/opt/odoo/odoo/addons",
+			"/opt/enterprise"
+		],
+		"python.autoComplete.addBrackets": true,
+		"python.linting.enabled": true,
+		"python.linting.pylintEnabled": true,
+		"python.linting.pylintPath": "/usr/local/bin/pylint",
+		"python.linting.ignorePatterns": [
+			"/opt/odoo"
+		],
+		"python.linting.flake8Enabled": true,
+		"python.linting.flake8Args": [
+			"--config=/etc/.vscode/travis_run_flake8.cfg"
+		],
+		"python.formatting.provider": "yapf",
+		"python.formatting.yapfArgs": [
+			"--style=/etc/.vscode/.style.yapf"
+		],
+		// General Configuration
+		"files.autoSave": "afterDelay",
+		"files.autoSaveDelay": 500,
+		"window.zoomLevel": -2,
+		"editor.fontSize": 16,
+		"editor.formatOnSave": true,
+		"files.exclude": {
+			"**/*.cache": true,
+			"**/*.idea": true,
+			"**/*.pyc": true,
+			"**/*__pycache__": true,
+			"**/.DS_Store": true,
+			"**/.git": true,
+			"**/.hg": true,
+			"**/.svn": true,
+			"**/CVS": true
+		},
+		"workbench.colorTheme": "Monokai Dark Soda",
+		"workbench.iconTheme": "vscode-great-icons",
+		"workbench.colorCustomizations": {
+			"activityBarBadge.background": "#388E3C",
+			"editorSuggestWidget.highlightForeground": "#388E3C",
+			"list.activeSelectionForeground": "#388E3C",
+			"list.highlightForeground": "#388E3C",
+			"list.inactiveSelectionForeground": "#388E3C",
+			"pickerGroup.foreground": "#388E3C",
+			"progressBar.background": "#388E3C",
+			"scrollbarSlider.activeBackground": "#388E3C50",
+			"tab.activeBorder": "#388E3C",
+			"textLink.foreground": "#388E3C"
+		},
+		"xmlTools.enforcePrettySelfClosingTagOnFormat": true,
+		"xmlTools.enableXmlTreeViewCursorSync": true,
+		"git.autofetch": true
+	},
+	// Uncomment the next line if you want start specific services in your Docker Compose config.
+	// "runServices": [],
+	// Uncomment the next line if you want to keep your containers running after VS Code shuts down.
+	// "shutdownAction": "none",
+	// Uncomment the next line to run commands after the container is created.
+	// "postCreateCommand": "pip install -r requirements.txt",
+	// Add the IDs of extensions you want installed when the container is created in the array below.
+	"extensions": [
+		"aaron-bond.better-comments",
+		"AdamCaviness.theme-monokai-dark-soda",
+		"DavidAnson.vscode-markdownlint",
+		"dbaeumer.vscode-eslint",
+		"DotJoshJohnson.xml",
+		"eamodio.gitlens",
+		"emmanuelbeziat.vscode-great-icons",
+		"IBM.output-colorizer",
+		"jaydenlin.ctags-support",
+		"lextudio.restructuredtext",
+		"mechatroner.rainbow-csv",
+		"mikestead.dotenv",
+		"mrorz.language-gettext",
+		"ms-azuretools.vscode-docker",
+		"ms-python.python",
+		"mstuttgart.odoo-snippets"
+	]
+}

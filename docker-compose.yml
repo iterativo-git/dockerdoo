@@ -14,8 +14,6 @@ volumes:
 
 services:
   odoo:
-    build:
-      context: .
     image: iterativodo/dockerdoo:12.0
     environment:
       # Libraries version
@@ -43,6 +41,7 @@ services:
   # ------------------------
   db:
     image: postgres:${PSQL_VERSION:-11}
+    restart: unless-stopped
     volumes:
       - psql:/var/lib/postgresql/data/pgdata
     environment:
