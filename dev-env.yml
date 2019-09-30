@@ -3,10 +3,11 @@ version: '3.7'
 services:
 
   wdb:
-    image: xoes/wdb-server
+    image: kozea/wdb:3.3.0
     ports: ['1984:1984']
     networks:
       - odoonet
+    depends_on: ['db']
 
 # ------------------------
 
