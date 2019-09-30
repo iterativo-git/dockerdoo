@@ -9,7 +9,7 @@
 	"workspaceFolder": "/mnt/extra-addons",
 	// Keep the containers running after VS Code shuts down.
 	"shutdownAction": "none",
-	"postCreateCommand": "sudo pip install --upgrade git+https://github.com/oca/pylint-odoo.git yapf flake8",
+	"postCreateCommand": "sudo pip install --no-cache-dir --upgrade git+https://github.com/oca/pylint-odoo.git yapf flake8 unicodecsv 'urllib3==1.24.3' GeoIP html5lib passlib pysftp num2words simplejson xlsxwriter ofxparse 'zeep>=3.2.0' openpyxl PyPDF2 pyopenssl phonenumbers numpy oca-decorators validate_email 'git+https://github.com/arthurdejong/python-stdnum.git@8cb71f2cd791fb87908c55009fd964d542acde44' cerberus pyquerystring parse-accept-language jsondiff 'cachetools>=2.0.1' email_validator",
 	// Use 'settings' to set *default* container specific settings.json values on container create. 
 	// You can edit these settings after create using File > Preferences > Settings > Remote.
 	"settings": {
