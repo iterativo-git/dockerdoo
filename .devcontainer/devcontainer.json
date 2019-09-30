@@ -9,7 +9,7 @@
 	"workspaceFolder": "/mnt/extra-addons",
 	// Keep the containers running after VS Code shuts down.
 	"shutdownAction": "none",
-	"postCreateCommand": "pip install --upgrade git+https://github.com/oca/pylint-odoo.git yapf flake8",
+	"postCreateCommand": "sudo pip install --upgrade git+https://github.com/oca/pylint-odoo.git yapf flake8",
 	// Use 'settings' to set *default* container specific settings.json values on container create. 
 	// You can edit these settings after create using File > Preferences > Settings > Remote.
 	"settings": {
@@ -32,11 +32,11 @@
 		],
 		"python.linting.flake8Enabled": true,
 		"python.linting.flake8Args": [
-			"--config=${workspaceFolder}/.vscode/travis_run_flake8.cfg"
+			"--config=/etc/.vscode/travis_run_flake8.cfg"
 		],
 		"python.formatting.provider": "yapf",
 		"python.formatting.yapfArgs": [
-			"--style=${workspaceFolder}/.vscode/.style.yapf"
+			"--style=/etc/.vscode/.style.yapf"
 		],
 		// General Configuration
 		"files.autoSave": "afterDelay",

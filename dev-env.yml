@@ -15,6 +15,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    volumes:
+      # Host paths (addons & conf)
+      - ./.devcontainer/.vscode:/etc/.vscode
     environment:
       - WDB_SOCKET_SERVER=wdb
       - WDB_NO_BROWSER_AUTO_OPEN=True
