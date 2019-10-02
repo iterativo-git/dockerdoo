@@ -13,7 +13,7 @@ set -xe
 
 echo "
 [options]
-data_dir = ${DATA_DIR}
+data_dir = ${ODOO_DATA_DIR}
 db_host = ${DB_PORT_5432_TCP_ADDR}
 db_maxconn = ${DB_MAXCONN}
 db_password = ${DB_ENV_POSTGRES_PASSWORD}
@@ -48,8 +48,8 @@ without_demo = ${WITHOUT_DEMO}
 workers = ${WORKERS}" > $ODOO_RC
 
 function getAddons() {
-    
-    ODOO_EXTRA_ADDONS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS:-'/mnt/extra-addons'} 2>&1)
+
+    ODOO_EXTRA_ADDONS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS} 2>&1)
 }
 
 getAddons
@@ -57,7 +57,7 @@ getAddons
 if [ -z "$ODOO_EXTRA_ADDONS" ]
 then
       echo "The variable \$ODOO_EXTRA_ADDONS is empty, using default addons_path"
-      echo "addons_path = $ODOO_ADDONS_BASEPATH" >> $ODOO_RC 
+      echo "addons_path = $ODOO_ADDONS_BASEPATH" >> $ODOO_RC
 else
       echo "addons_path = $ODOO_ADDONS_BASEPATH,$ODOO_EXTRA_ADDONS" >> $ODOO_RC
 fi
