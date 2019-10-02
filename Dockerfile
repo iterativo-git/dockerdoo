@@ -14,7 +14,7 @@ ENV NODE_VERSION ${NODE_VERSION:-8}
 
 # Odoo Configuration file defaults
 ENV \
-    DATA_DIR=${DATA_DIR:-/var/lib/odoo/data} \
+    ODOO_DATA_DIR=${ODOO_DATA_DIR:-/var/lib/odoo/data} \
     DB_PORT_5432_TCP_ADDR=${DB_PORT_5432_TCP_ADDR:-db} \
     DB_MAXCONN=${DB_MAXCONN:-64} \
     DB_ENV_POSTGRES_PASSWORD=${DB_ENV_POSTGRES_PASSWORD:-odoo} \
@@ -165,7 +165,7 @@ RUN pip --quiet --quiet install python-json-logger
 
 # Create app user
 ENV ODOO_USER odoo
-ENV ODOO_BASEPATH /opt/odoo
+ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
 
 ARG APP_UID
 ENV APP_UID ${APP_UID:-1000}
@@ -202,13 +202,13 @@ RUN pip --quiet --quiet install --user Werkzeug==0.14.1
 COPY ./resources/entrypoint.sh /
 COPY ./resources/getaddons.py /
 
-ENV ODOO_RC /etc/odoo/odoo.conf
+ENV ODOO_RC ${ODOO_RC:-/etc/odoo/odoo.conf}
 COPY ./config/odoo.conf ${ODOO_RC}
 RUN chown ${ODOO_USER} ${ODOO_RC}
 
 # Own folders                //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
-ENV ODOO_DATA_DIR /var/lib/odoo/data
-ENV ODOO_LOGS_DIR /var/lib/odoo/logs
+ENV ODOO_DATA_DIR ${ODOO_DATA_DIR:-/var/lib/odoo/data}
+ENV ODOO_LOGS_DIR ${ODOO_LOGS_DIR:-/var/lib/odoo/logs}
 
 RUN mkdir -p "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}"
 RUN chown -R ${ODOO_USER}:${ODOO_USER} "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}" /entrypoint.sh /getaddons.py
@@ -219,7 +219,7 @@ VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}"]
 ENV ODOO_ADDONS_BASEPATH ${ODOO_BASEPATH}/addons
 ENV ODOO_CMD ${ODOO_BASEPATH}/odoo-bin
 
-ENV ODOO_EXTRA_ADDONS /mnt/extra-addons
+ENV ODOO_EXTRA_ADDONS ${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
 
 RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
 RUN pip install -e ./${ODOO_BASEPATH}
