@@ -13,6 +13,7 @@ set -xe
 
 echo "
 [options]
+admin_passwd=${ADMIN_PASSWORD}
 data_dir = ${ODOO_DATA_DIR}
 db_host = ${DB_PORT_5432_TCP_ADDR}
 db_maxconn = ${DB_MAXCONN}
