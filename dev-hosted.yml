@@ -11,12 +11,15 @@ services:
   # ------------------------
 
   odoo:
-    # user: odoo
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # Uncomment the next lines to build the image. This is mainly useful
+    # when you need to add additional requirements on the building phase
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     volumes:
-      # Host paths (addons & conf)
+      # Host paths (odoo src code & .vscode conf)
+      - ./src/odoo:/${ODOO_BASEPATH}
+      - ./config:/etc/odoo:ro
       - ./.devcontainer/.vscode:/etc/.vscode
     environment:
       - WDB_SOCKET_SERVER=wdb
