@@ -203,6 +203,10 @@ RUN pip --quiet --quiet install --user Werkzeug==0.14.1
 COPY ./resources/entrypoint.sh /
 COPY ./resources/getaddons.py /
 
+# Install Odoo source code and install it as a package inside the container
+RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
+RUN pip install -e ./${ODOO_BASEPATH}
+
 ENV ODOO_RC ${ODOO_RC:-/etc/odoo/odoo.conf}
 COPY ./config/odoo.conf ${ODOO_RC}
 RUN chown ${ODOO_USER} ${ODOO_RC}
@@ -211,8 +215,8 @@ RUN chown ${ODOO_USER} ${ODOO_RC}
 ENV ODOO_DATA_DIR ${ODOO_DATA_DIR:-/var/lib/odoo/data}
 ENV ODOO_LOGS_DIR ${ODOO_LOGS_DIR:-/var/lib/odoo/logs}
 
-RUN mkdir -p "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}"
-RUN chown -R ${ODOO_USER}:${ODOO_USER} "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}" /entrypoint.sh /getaddons.py
+RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR}
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} /entrypoint.sh /getaddons.py
 RUN chmod u+x /entrypoint.sh /getaddons.py
 
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}"]
@@ -221,10 +225,6 @@ ENV ODOO_ADDONS_BASEPATH ${ODOO_BASEPATH}/addons
 ENV ODOO_CMD ${ODOO_BASEPATH}/odoo-bin
 
 ENV ODOO_EXTRA_ADDONS ${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
-
-RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
-RUN pip install -e ./${ODOO_BASEPATH}
-
 
 # Very opionated python packages mostly used in OCA (this covers a 90% of use cases when an external module is needed)
 RUN pip install --no-cache-dir --upgrade git+https://github.com/oca/pylint-odoo.git unicodecsv 'urllib3==1.24.3' \
