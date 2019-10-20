@@ -167,10 +167,10 @@ ENV ODOO_USER odoo
 ENV ODOO_BASEPATH /opt/odoo
 
 ARG APP_UID
-ENV APP_UID ${APP_UID:-9001}
+ENV APP_UID ${APP_UID:-1000}
 
 ARG APP_GID
-ENV APP_GID ${APP_GID:-9001}
+ENV APP_GID ${APP_GID:-1000}
 
 RUN addgroup --system --gid ${APP_UID} ${ODOO_USER}
 RUN adduser --system --uid ${APP_GID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER}
