@@ -19,7 +19,7 @@ services:
     volumes:
       # Host paths (odoo src code & .vscode conf)
       - ./src/odoo:/${ODOO_BASEPATH}
-      - ./config:/etc/odoo:ro
+      - ./config:/etc/odoo
       - ./.devcontainer/.vscode:/etc/.vscode
     environment:
       - LOG_LEVEL=debug
