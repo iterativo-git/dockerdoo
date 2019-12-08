@@ -226,12 +226,6 @@ ENV ODOO_CMD ${ODOO_BASEPATH}/odoo-bin
 
 ENV ODOO_EXTRA_ADDONS ${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
 
-# Very opionated python packages mostly used in OCA (this covers a 90% of use cases when an external module is needed)
-RUN pip install --no-cache-dir --upgrade git+https://github.com/oca/pylint-odoo.git unicodecsv 'urllib3==1.24.3' \
-    html5lib passlib pysftp num2words simplejson xlsxwriter ofxparse 'zeep>=3.2.0' openpyxl PyPDF2 pyopenssl phonenumbers numpy \
-    oca-decorators validate_email 'git+https://github.com/arthurdejong/python-stdnum.git@8cb71f2cd791fb87908c55009fd964d542acde44' \
-    cerberus pyquerystring parse-accept-language jsondiff 'cachetools>=2.0.1' email_validator unidecode
-
 # Docker healthcheck command
 HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
 
