@@ -61,6 +61,7 @@ then
       echo "addons_path = $ODOO_ADDONS_BASEPATH" >> $ODOO_RC
 else
       echo "addons_path = $ODOO_ADDONS_BASEPATH,$ODOO_EXTRA_ADDONS" >> $ODOO_RC
+      find . -name 'requirements.txt' -exec pip3 install -r {} \;
 fi
 
 DB_ARGS=()
