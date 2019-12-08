@@ -18,6 +18,8 @@ services:
     
     restart: unless-stopped
 
+    restart: unless-stopped
+
     ports: ["8069:8069", "8072:8072"]
 
     volumes:

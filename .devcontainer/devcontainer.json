@@ -1,4 +1,3 @@
-// If you want to run as a non-root user in the container, see .devcontainer/docker-compose.yml.
 {
 	"name": "Python 3 & PostgreSQL",
 	"dockerComposeFile": [
@@ -7,15 +6,13 @@
 	],
 	"service": "odoo",
 	"workspaceFolder": "/mnt/extra-addons",
-	// Keep the containers running after VS Code shuts down.
-	"shutdownAction": "none",
-	"postCreateCommand": "sudo pip install --no-cache-dir --upgrade git+https://github.com/oca/pylint-odoo.git yapf flake8 unicodecsv 'urllib3==1.24.3' GeoIP html5lib passlib pysftp num2words simplejson xlsxwriter ofxparse 'zeep>=3.2.0' openpyxl PyPDF2 pyopenssl phonenumbers numpy oca-decorators validate_email 'git+https://github.com/arthurdejong/python-stdnum.git@8cb71f2cd791fb87908c55009fd964d542acde44' cerberus pyquerystring parse-accept-language jsondiff 'cachetools>=2.0.1' email_validator",
-	// Use 'settings' to set *default* container specific settings.json values on container create. 
-	// You can edit these settings after create using File > Preferences > Settings > Remote.
+
+	"shutdownAction": "stopCompose",
+	"postCreateCommand": "sudo pip install --no-cache-dir --upgrade git+https://github.com/oca/pylint-odoo.git yapf flake8 inotify",
+
 	"settings": {
-		// Terminal to be used
 		"terminal.integrated.shell.linux": "/bin/bash",
-		// Python terminal variables
+
 		"python.pythonPath": "/usr/local/bin/python",
 		"python.autoComplete.addBrackets": true,
 		"python.autoComplete.extraPaths": [
@@ -41,12 +38,10 @@
 		"python.formatting.yapfArgs": [
 			"--style=/etc/.vscode/.style.yapf"
 		],
-		// General Configuration
-		"files.autoSave": "afterDelay",
-		"files.autoSaveDelay": 500,
-		"window.zoomLevel": -2,
+
+		"window.zoomLevel": -0.5,
 		"editor.fontSize": 16,
-		"editor.formatOnSave": true,
+		"editor.formatOnType": true,
 		"files.exclude": {
 			"**/*.cache": true,
 			"**/*.idea": true,
@@ -84,22 +79,14 @@
 		"xmlTools.enableXmlTreeViewCursorSync": true,
 		"git.autofetch": true
 	},
-	// Add the IDs of extensions you want installed when the container is created in the array below.
+
 	"extensions": [
 		"aaron-bond.better-comments",
 		"AdamCaviness.theme-monokai-dark-soda",
-		"DavidAnson.vscode-markdownlint",
 		"dbaeumer.vscode-eslint",
 		"DotJoshJohnson.xml",
 		"eamodio.gitlens",
 		"emmanuelbeziat.vscode-great-icons",
-		"IBM.output-colorizer",
-		"jaydenlin.ctags-support",
-		"lextudio.restructuredtext",
-		"mechatroner.rainbow-csv",
-		"mikestead.dotenv",
-		"mrorz.language-gettext",
-		"ms-azuretools.vscode-docker",
 		"ms-python.python",
 		"mstuttgart.odoo-snippets"
 	]

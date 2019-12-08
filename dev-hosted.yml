@@ -4,6 +4,7 @@ services:
   wdb:
     image: kozea/wdb:3.3.0
     ports: ["1984:1984"]
+    restart: unless-stopped
     networks:
       - odoonet
     depends_on: ["db"]
