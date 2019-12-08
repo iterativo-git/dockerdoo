@@ -1,15 +1,6 @@
 version: "3.7"
 
 services:
-  wdb:
-    image: kozea/wdb:3.3.0
-    ports: ["1984:1984"]
-    networks:
-      - odoonet
-    depends_on: ["db"]
-
-  # ------------------------
-
   odoo:
     # Uncomment the next lines to build the image. This is mainly useful
     # when you need to add additional requirements on the building phase
@@ -19,9 +10,3 @@ services:
     volumes:
       # Host paths (odoo src code & .vscode conf)
       - ./src/odoo:/${ODOO_BASEPATH}
-      - ./config:/etc/odoo:ro
-    environment:
-      - WDB_SOCKET_SERVER=wdb
-      - WDB_NO_BROWSER_AUTO_OPEN=True
-      - WDB_WEB_PORT=1984
-    depends_on: ["db", "wdb"]

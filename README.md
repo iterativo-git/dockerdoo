@@ -21,7 +21,7 @@ docker-compose up
 ```shell
 git clone -b 13.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
 git clone --depth=1 -b 13.0 git@github.com:odoo/odoo.git src/odoo
-docker-compose -f docker-compose.yml -f docker-compose.yaml
+docker-compose -f docker-compose.yml -f hosted.yml
 ```
 
 ### Development
@@ -30,7 +30,7 @@ docker-compose -f docker-compose.yml -f docker-compose.yaml
 
 ```shell
 git clone -b 13.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
-docker-compose -f docker-compose.yml -f dev-standalone.yaml up
+docker-compose -f docker-compose.yml -f dev-standalone.yml up
 ```
 
 #### Hosted development
@@ -38,7 +38,7 @@ docker-compose -f docker-compose.yml -f dev-standalone.yaml up
 ```shell
 git clone -b 13.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
 git clone --depth=1 -b 13.0 git@github.com:odoo/odoo.git src/odoo
-docker-compose -f docker-compose.yml -f dev-hosted.yaml up
+docker-compose -f docker-compose.yml -f dev-hosted.yml up
 ```
 
 ## Requirements
@@ -79,22 +79,22 @@ The available overrides to run with `docker-compose` are:
     docker-compose up -d
     ```
 
-* `-f docker-compose.yaml -f hosted.yml up`: This will raise an streamlined Odoo service, with no additional arguments that the ones stated above, but hosted in your PC/SERVER outside the container.
+* `-f docker-compose.yml -f hosted.yml up`: This will raise an streamlined Odoo service, with no additional arguments that the ones stated above, but hosted in your PC/SERVER outside the container.
 
     ```docker
-    docker-compose -f docker-compose.yaml -f hosted.yml up -d
+    docker-compose -f docker-compose.yml -f hosted.yml up -d
     ```
 
-* `-f docker-compose.yaml -f dev-standalone.yml up`: This will raise an Odoo service with `--dev wdb,reload,qweb,werkzeug,xml`. Additionally it will raise a **WDB** service.
+* `-f docker-compose.yml -f dev-standalone.yml up`: This will raise an Odoo service with `--dev wdb,reload,qweb,werkzeug,xml`. Additionally it will raise a **WDB** service.
 
     ```docker
     docker-compose -f docker-compose.yml -f dev-standalone.yml up
     ```
 
-* `-f docker-compose.yaml -f test-env.yml up`: This will raise an Odoo service with `--dev wdb,qweb,werkzeug,xml`, `--test-enable`, `--stop-after-init`, `--logfile ${ODOO_LOGS_DIR}/odoo-server.log`.
+* `-f docker-compose.yml -f test-env.yml up`: This will raise an Odoo service with `--dev wdb,qweb,werkzeug,xml`, `--test-enable`, `--stop-after-init`, `--logfile ${ODOO_LOGS_DIR}/odoo-server.log`.
 
     ```docker
-    docker-compose -f docker-compose.yaml -f test-env.yml up -d
+    docker-compose -f docker-compose.yml -f test-env.yml up -d
     ```
 
 As shown above, all this services are recommended to be run on **detached mode**: `-d`, as this is the most common use case.
