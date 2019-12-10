@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -xe
-
 # set the postgres database host, port, user and password according to the environment
 # and pass them as arguments to the odoo process if not present in the config file
 : ${HOST:=${DB_PORT_5432_TCP_ADDR:='db'}}
