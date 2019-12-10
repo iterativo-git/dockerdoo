@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -xe
-
 # set the postgres database host, port, user and password according to the environment
 # and pass them as arguments to the odoo process if not present in the config file
 : ${HOST:=${DB_PORT_5432_TCP_ADDR:='db'}}
@@ -61,6 +59,7 @@ then
       echo "addons_path = $ODOO_ADDONS_BASEPATH" >> $ODOO_RC
 else
       echo "addons_path = $ODOO_ADDONS_BASEPATH,$ODOO_EXTRA_ADDONS" >> $ODOO_RC
+      find $ODOO_EXTRA_ADDONS -name 'requirements.txt' -exec pip3 install -r {} \; 2>/dev/null
 fi
 
 DB_ARGS=()
