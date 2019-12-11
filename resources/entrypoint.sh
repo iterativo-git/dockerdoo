@@ -48,17 +48,17 @@ workers = ${WORKERS}" > $ODOO_RC
 
 function getAddons() {
 
-    ODOO_EXTRA_ADDONS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS} 2>&1)
+    EXTRA_ADDONS_PATHS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS} 2>&1)
 }
 
 getAddons
 
-if [ -z "$ODOO_EXTRA_ADDONS" ]
+if [ -z "$EXTRA_ADDONS_PATHS" ]
 then
-      echo "The variable \$ODOO_EXTRA_ADDONS is empty, using default addons_path"
-      echo "addons_path = $ODOO_ADDONS_BASEPATH" >> $ODOO_RC
+      echo "The variable \$EXTRA_ADDONS_PATHS is empty, using default addons_path"
+      echo "addons_path = $EXTRA_ADDONS_PATHS" >> $ODOO_RC
 else
-      echo "addons_path = $ODOO_ADDONS_BASEPATH,$ODOO_EXTRA_ADDONS" >> $ODOO_RC
+      echo "addons_path = $ODOO_ADDONS_BASEPATH,$EXTRA_ADDONS_PATH" >> $ODOO_RC
       find $ODOO_EXTRA_ADDONS -name 'requirements.txt' -exec pip3 install -r {} \; 2>/dev/null
 fi
 
