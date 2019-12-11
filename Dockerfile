@@ -209,7 +209,7 @@ RUN pip install -e ./${ODOO_BASEPATH}
 
 ENV ODOO_RC ${ODOO_RC:-/etc/odoo/odoo.conf}
 COPY ./config/odoo.conf ${ODOO_RC}
-RUN chown ${ODOO_USER} ${ODOO_RC}
+RUN chown ${ODOO_USER}:${ODOO_USER} ${ODOO_RC}
 
 # Own folders                //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
 ENV ODOO_DATA_DIR ${ODOO_DATA_DIR:-/var/lib/odoo/data}
@@ -230,6 +230,9 @@ ENV ODOO_EXTRA_ADDONS ${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
 HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
+
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_RC}
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_EXTRA_ADDONS}
 
 USER ${ODOO_USER}
 
