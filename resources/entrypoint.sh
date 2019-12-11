@@ -57,9 +57,13 @@ if [ -z "$EXTRA_ADDONS_PATHS" ]
 then
       echo "The variable \$EXTRA_ADDONS_PATHS is empty, using default addons_path"
       echo "addons_path = $EXTRA_ADDONS_PATHS" >> $ODOO_RC
+      chown ${ODOO_USER}:${ODOO_USER} $ODOO_RC
 else
       echo "addons_path = $ODOO_ADDONS_BASEPATH,$EXTRA_ADDONS_PATH" >> $ODOO_RC
-      find $ODOO_EXTRA_ADDONS -name 'requirements.txt' -exec pip3 install -r {} \; 2>/dev/null
+      chown ${ODOO_USER}:${ODOO_USER} $ODOO_RC
+      chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_EXTRA_ADDONS}
+
+      find $ODOO_EXTRA_ADDONS -name 'requirements.txt' -exec pip3 install -r {} \;
 fi
 
 DB_ARGS=()

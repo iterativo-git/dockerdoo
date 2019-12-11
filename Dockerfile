@@ -229,7 +229,8 @@ ENV ODOO_EXTRA_ADDONS ${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
 # Docker healthcheck command
 HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
 
+ENTRYPOINT ["/entrypoint.sh"]
+
 USER ${ODOO_USER}
 
-ENTRYPOINT ["/entrypoint.sh"]
 CMD ["odoo"]
