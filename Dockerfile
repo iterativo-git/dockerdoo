@@ -224,6 +224,7 @@ VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
 
 ENV ODOO_ADDONS_BASEPATH ${ODOO_BASEPATH}/addons
 ENV ODOO_CMD ${ODOO_BASEPATH}/odoo-bin
+ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
 
 # Docker healthcheck command
 HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
