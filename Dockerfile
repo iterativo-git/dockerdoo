@@ -231,10 +231,6 @@ HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.
 
 ENTRYPOINT ["/entrypoint.sh"]
 
-# If the ownership changed during the entrypoint execution, return it back to the {ODOO_USER}
-RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_RC}
-RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_EXTRA_ADDONS}
-
 USER ${ODOO_USER}
 
 CMD ["odoo"]
