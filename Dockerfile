@@ -207,29 +207,34 @@ COPY ./resources/getaddons.py /
 RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
 RUN pip install -e ./${ODOO_BASEPATH}
 
-ENV ODOO_RC ${ODOO_RC:-/etc/odoo/odoo.conf}
-COPY ./config/odoo.conf ${ODOO_RC}
-RUN chown ${ODOO_USER} ${ODOO_RC}
 
 # Own folders                //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
+ENV ODOO_RC ${ODOO_RC:-/etc/odoo/odoo.conf}
 ENV ODOO_DATA_DIR ${ODOO_DATA_DIR:-/var/lib/odoo/data}
 ENV ODOO_LOGS_DIR ${ODOO_LOGS_DIR:-/var/lib/odoo/logs}
+ENV ODOO_EXTRA_ADDONS ${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
 
-RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR}
-RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} /entrypoint.sh /getaddons.py
+COPY ./config/odoo.conf ${ODOO_RC}
+
+RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} /etc/odoo/
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} /etc/odoo/ /entrypoint.sh /getaddons.py
 RUN chmod u+x /entrypoint.sh /getaddons.py
 
-VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}"]
+VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
 
 ENV ODOO_ADDONS_BASEPATH ${ODOO_BASEPATH}/addons
 ENV ODOO_CMD ${ODOO_BASEPATH}/odoo-bin
-
-ENV ODOO_EXTRA_ADDONS ${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
+ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
 
 # Docker healthcheck command
 HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
 
+ENTRYPOINT ["/entrypoint.sh"]
+
+# If the ownership changed during the entrypoint execution, return it back to the {ODOO_USER}
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_RC}
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_EXTRA_ADDONS}
+
 USER ${ODOO_USER}
 
-ENTRYPOINT ["/entrypoint.sh"]
 CMD ["odoo"]
