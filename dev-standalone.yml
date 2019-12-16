@@ -19,6 +19,7 @@ services:
     volumes:
       # Host paths (.vscode configuration)
       - ./.devcontainer/.vscode:/etc/.vscode
+      - ./config/odoo.conf:/etc/odoo/odoo.conf
     environment:
       - LOG_LEVEL=debug
       - WITHOUT_DEMO=False
