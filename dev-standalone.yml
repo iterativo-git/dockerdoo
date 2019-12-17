@@ -20,6 +20,7 @@ services:
       # Host paths (.vscode configuration)
       - ./.devcontainer/.vscode:/etc/.vscode
       - ./config/odoo.conf:/etc/odoo/odoo.conf
+      - ~/.ssh/:/opt/odoo/.ssh/
     environment:
       - LOG_LEVEL=debug
       - WITHOUT_DEMO=False
