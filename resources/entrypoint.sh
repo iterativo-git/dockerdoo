@@ -61,7 +61,7 @@ getAddons
 
 if [ -z "$EXTRA_ADDONS_PATHS" ]; then
     echo "The variable \$EXTRA_ADDONS_PATHS is empty, using default addons_path"
-    echo "addons_path = $EXTRA_ADDONS_PATHS" >> $ODOO_RC
+    echo "addons_path = $ODOO_ADDONS_BASEPATH" >> $ODOO_RC
 else
     echo "addons_path = $ODOO_ADDONS_BASEPATH,$EXTRA_ADDONS_PATHS" >> $ODOO_RC
 
