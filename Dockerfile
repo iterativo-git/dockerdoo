@@ -215,8 +215,6 @@ ENV ODOO_DATA_DIR ${ODOO_DATA_DIR:-/var/lib/odoo/data}
 ENV ODOO_LOGS_DIR ${ODOO_LOGS_DIR:-/var/lib/odoo/logs}
 ENV ODOO_EXTRA_ADDONS ${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
 
-COPY ./config/odoo.conf ${ODOO_RC}
-
 RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} /etc/odoo/
 RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} /etc/odoo/ /entrypoint.sh /getaddons.py
 RUN chmod u+x /entrypoint.sh /getaddons.py
