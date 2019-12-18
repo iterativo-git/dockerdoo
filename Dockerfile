@@ -12,6 +12,9 @@ ENV WKHTMLTOPDF_CHECKSUM ${WKHTMLTOPDF_CHECKSUM:-1140b0ab02aa6e17346af2f14ed0de8
 ARG NODE_VERSION
 ENV NODE_VERSION ${NODE_VERSION:-8}
 
+# PIP auto-install requirements.txt (change value to "1" to auto-install)
+ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
+
 # Odoo Configuration file defaults
 ENV \
     ADMIN_PASSWORD=${ADMIN_PASSWORD:-my-weak-password} \
