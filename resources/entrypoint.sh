@@ -11,9 +11,10 @@ set -x
 
 # set all variables
 
-echo "
+if [ ! -f ${ODOO_RC} ]; then
+    echo "
 [options]
-admin_passwd=${ADMIN_PASSWORD}
+admin_passwd = ${ADMIN_PASSWORD}
 data_dir = ${ODOO_DATA_DIR}
 db_host = ${DB_PORT_5432_TCP_ADDR}
 db_maxconn = ${DB_MAXCONN}
@@ -33,6 +34,7 @@ limit_time_real_cron = ${LIMIT_TIME_REAL_CRON}
 list_db = ${LIST_DB}
 log_db = ${LOG_DB}
 log_db_level = ${LOG_DB_LEVEL}
+logfile = ${logfile}
 log_handler = ${LOG_HANDLER}
 log_level = ${LOG_LEVEL}
 max_cron_threads = ${MAX_CRON_THREADS}
@@ -46,7 +48,9 @@ smtp_user = ${SMTP_USER}
 test_enable = ${TEST_ENABLE}
 unaccent = ${UNACCENT}
 without_demo = ${WITHOUT_DEMO}
-workers = ${WORKERS}" > $ODOO_RC
+workers = ${WORKERS}
+    " > $ODOO_RC
+fi
 
 function getAddons() {
 
@@ -59,7 +63,6 @@ if [ -z "$EXTRA_ADDONS_PATHS" ]
 then
       echo "The variable \$EXTRA_ADDONS_PATHS is empty, using default addons_path"
       echo "addons_path = $EXTRA_ADDONS_PATHS" >> $ODOO_RC
-      chown ${ODOO_USER}:${ODOO_USER} $ODOO_RC
 else
       echo "addons_path = $ODOO_ADDONS_BASEPATH,$EXTRA_ADDONS_PATHS" >> $ODOO_RC
 
