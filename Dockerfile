@@ -212,26 +212,36 @@ RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${OD
 RUN pip install -e ./${ODOO_BASEPATH}
 
 
-# Own folders                //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
+# Define all needed directories
 ENV ODOO_RC ${ODOO_RC:-/etc/odoo/odoo.conf}
 ENV ODOO_DATA_DIR ${ODOO_DATA_DIR:-/var/lib/odoo/data}
 ENV ODOO_LOGS_DIR ${ODOO_LOGS_DIR:-/var/lib/odoo/logs}
 ENV ODOO_EXTRA_ADDONS ${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
+ENV ODOO_ADDONS_BASEPATH ${ODOO_BASEPATH}/addons
+ENV ODOO_CMD ${ODOO_BASEPATH}/odoo-bin
+
+# This is needed to fully build with modules and python requirements
+ENV HOST_CUSTOM_ADDONS ${HOST_CUSTOM_ADDONS:-/custom}
 
 RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} /etc/odoo/
-RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} /etc/odoo/ /entrypoint.sh /getaddons.py
+
+# Copy custom modules from the custom folder, if any.
+COPY ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
+
+# Own folders    //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} ${ODOO_EXTRA_ADDONS} /etc/odoo/ /entrypoint.sh /getaddons.py
 RUN chmod u+x /entrypoint.sh /getaddons.py
 
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
 
-ENV ODOO_ADDONS_BASEPATH ${ODOO_BASEPATH}/addons
-ENV ODOO_CMD ${ODOO_BASEPATH}/odoo-bin
 ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
 
 # Docker healthcheck command
 HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
+
+RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip3 --no-cache-dir install -r {} \;
 
 USER ${ODOO_USER}
 
