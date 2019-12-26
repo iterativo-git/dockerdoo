@@ -15,6 +15,9 @@ ENV NODE_VERSION ${NODE_VERSION:-8}
 # PIP auto-install requirements.txt (change value to "1" to auto-install)
 ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
 
+# Run tests for all the modules in the custom addons
+ENV RUN_TESTS=${RUN_TESTS:-"0"}
+
 # Odoo Configuration file defaults
 ENV \
     ADMIN_PASSWORD=${ADMIN_PASSWORD:-my-weak-password} \
