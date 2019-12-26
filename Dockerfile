@@ -234,12 +234,13 @@ RUN chmod u+x /entrypoint.sh /getaddons.py
 
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
 
-ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
-
 # Docker healthcheck command
 HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
+
+ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
+ENV EXTRA_MODULES ${EXTRA_MODULES}
 
 RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip3 --no-cache-dir install -r {} \;
 
