@@ -15,6 +15,9 @@ ENV NODE_VERSION ${NODE_VERSION:-8}
 # PIP auto-install requirements.txt (change value to "1" to auto-install)
 ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
 
+# Run tests for all the modules in the custom addons
+ENV RUN_TESTS=${RUN_TESTS:-"0"}
+
 # Odoo Configuration file defaults
 ENV \
     ADMIN_PASSWORD=${ADMIN_PASSWORD:-my-weak-password} \
@@ -234,12 +237,13 @@ RUN chmod u+x /entrypoint.sh /getaddons.py
 
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
 
-ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
-
 # Docker healthcheck command
 HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
+
+ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
+ENV EXTRA_MODULES ${EXTRA_MODULES}
 
 RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip3 --no-cache-dir install -r {} \;
 

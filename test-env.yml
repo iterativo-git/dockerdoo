@@ -2,19 +2,16 @@ version: "3.7"
 
 services:
   odoo:
+    restart: "no"
     environment:
       - TEST_ENABLE=True
       - LOG_LEVEL=debug
       - WITHOUT_DEMO=False
+      - RUN_TESTS=1
+      - PIP_AUTO_INSTALL=1
     depends_on: ["db"]
     command:
       [
         "odoo",
-        "--dev",
-        "wdb,qweb,werkzeug,xml",
-        "--test-enable",
-        "--without-demo=False",
-        "--stop-after-init",
-        "--logfile",
-        "${ODOO_LOGS_DIR}/odoo-server.log",
+        # "-d <database>",
       ]
