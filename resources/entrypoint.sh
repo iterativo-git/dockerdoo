@@ -92,6 +92,8 @@ case "$1" in
         shift
         if [[ "$1" == "scaffold" ]] ; then
             exec ${ODOO_CMD} "$@"
+        elif [ "$RUN_TESTS" -eq "1" ] ; then
+            exec ${ODOO_CMD} "$@" "${DB_ARGS[@]} -i ${EXTRA_MODULES}"
         else
             exec ${ODOO_CMD} "$@" "${DB_ARGS[@]}"
         fi
