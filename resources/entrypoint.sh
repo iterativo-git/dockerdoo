@@ -55,6 +55,8 @@ fi
 function getAddons() {
 
     EXTRA_ADDONS_PATHS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS} 2>&1)
+    EXTRA_MODULES=$(python -c "from getaddons import get_modules; print(','.join(get_modules(${ODOO_EXTRA_ADDONS}, depth=3)))")
+    echo $EXTRA_MODULES
 }
 
 getAddons
