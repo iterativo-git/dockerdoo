@@ -93,7 +93,7 @@ case "$1" in
         if [[ "$1" == "scaffold" ]] ; then
             exec ${ODOO_CMD} "$@"
         elif [ "$RUN_TESTS" -eq "1" ] ; then
-            exec ${ODOO_CMD} "$@" "${DB_ARGS[@]} -i ${EXTRA_MODULES}"
+            exec ${ODOO_CMD} "$@" "${DB_ARGS[@]} -i ${EXTRA_MODULES} --stop-after-init --test-enable"
         else
             exec ${ODOO_CMD} "$@" "${DB_ARGS[@]}"
         fi
