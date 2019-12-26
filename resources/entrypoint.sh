@@ -66,7 +66,7 @@ else
     echo "addons_path = $ODOO_ADDONS_BASEPATH,$EXTRA_ADDONS_PATHS" >> $ODOO_RC
 
     if [ "$PIP_AUTO_INSTALL" -eq "1" ]; then
-        find $ODOO_EXTRA_ADDONS -name 'requirements.txt' -exec pip3 --no-cache-dir install --user -r {} \;
+        find $EXTRA_ADDONS_PATHS -name 'requirements.txt' -exec pip3 install --no-binary -r {} \;
     fi
 
 fi
@@ -93,7 +93,7 @@ case "$1" in
             exec ${ODOO_CMD} "$@"
         elif [[ "$RUN_TESTS" -eq "1" ]] ; then
             EXTRA_MODULES=$(python3 -c "from getaddons import get_modules; print(','.join(get_modules('${ODOO_EXTRA_ADDONS}', depth=3)))")
-            exec ${ODOO_CMD} "$@" "--test-enable", "--stop-after-init" "-i ${EXTRA_MODULES}" "${DB_ARGS[@]}"
+            exec ${ODOO_CMD} "$@" "--test-enable" "--stop-after-init" "-i ${EXTRA_MODULES}" "${DB_ARGS[@]}"
         else
             exec ${ODOO_CMD} "$@" "${DB_ARGS[@]}"
         fi
