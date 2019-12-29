@@ -1,4 +1,11 @@
 steps:
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    docker pull gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME} || exit 0
+
 # Build the image with the mounted volume
 - name: 'gcr.io/cloud-builders/docker'
   args: 
