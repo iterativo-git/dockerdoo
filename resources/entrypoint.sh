@@ -66,7 +66,7 @@ else
     echo "addons_path = $ODOO_ADDONS_BASEPATH,$EXTRA_ADDONS_PATHS" >> $ODOO_RC
 
     if [ "$PIP_AUTO_INSTALL" -eq "1" ]; then
-        find $EXTRA_ADDONS_PATHS -name 'requirements.txt' -exec pip3 install --no-binary -r {} \;
+        find $ODOO_EXTRA_ADDONS -name 'requirements.txt' -exec pip3 install --no-binary -r {} \;
     fi
 
 fi
