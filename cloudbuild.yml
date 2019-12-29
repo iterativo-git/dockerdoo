@@ -1,4 +1,5 @@
 steps:
+# Pull a previous image, if exists to use cache for faster builds
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
   args:
@@ -6,20 +7,20 @@ steps:
   - |
     docker pull gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME} || exit 0
 
-# Build the image with the mounted volume
+# Build the new image
 - name: 'gcr.io/cloud-builders/docker'
   args: 
     [
       'build',
-      '-t', 'gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME}-${SHORT_SHA}',
+      '-t', 'gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME}',
       '--cache-from', 'gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME}',
       '.'
     ]
 
-# Push the image to gcr.io
-images: 
-- 'gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME}-${SHORT_SHA}'
-- 'gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME}'
+# Push the image to Google Cloud Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME}']
 
-# Global build timeout
-timeout: "900s"
+# Tag the image for GCR and Cloud Build
+images: 
+- 'gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME}'
