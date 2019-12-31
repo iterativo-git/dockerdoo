@@ -92,7 +92,8 @@ case "$1" in
         if [[ "$1" == "scaffold" ]] ; then
             exec ${ODOO_CMD} "$@"
         elif [[ "$RUN_TESTS" -eq "1" ]] ; then
-            EXTRA_MODULES=$(python3 -c "from getaddons import get_modules; print(','.join(get_modules('${ODOO_EXTRA_ADDONS}', depth=3)))")
+            if [ -z "$EXTRA_MODULES" ]; then
+                EXTRA_MODULES=$(python3 -c "from getaddons import get_modules; print(','.join(get_modules('${ODOO_EXTRA_ADDONS}', depth=3)))")
             exec ${ODOO_CMD} "$@" "--test-enable" "--stop-after-init" "-i ${EXTRA_MODULES}" "${DB_ARGS[@]}"
         else
             exec ${ODOO_CMD} "$@" "${DB_ARGS[@]}"
