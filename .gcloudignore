@@ -1,0 +1,5 @@
+.git
+dist
+node_modules
+vendor
+*.jar
