@@ -194,18 +194,6 @@ RUN apt-get update \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Grab latest geoip DB       //-- to enable IP based geo-referencing
-
-RUN wget --quiet http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz -O /tmp/GeoLite2-City.tar.gz \
-    && mkdir -p /usr/share/GeoIP \
-    && chown -R ${ODOO_USER} /usr/share/GeoIP \
-    && tar -xf /tmp/GeoLite2-City.tar.gz -C /tmp/ \
-    && find /tmp/GeoLite2-City_* | grep "GeoLite2-City.mmdb" | xargs -I{} mv {} /usr/share/GeoIP/GeoLite2-City.mmdb \
-    && pip install geoip2
-
-# Grab newer werkzeug        //-- for right IP in logs https://git.io/fNu6v
-RUN pip --quiet --quiet install --user Werkzeug==0.14.1
-
 # Copy from build env
 COPY ./resources/entrypoint.sh /
 COPY ./resources/getaddons.py /
