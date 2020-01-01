@@ -67,6 +67,7 @@ else
 
     if [ "$PIP_AUTO_INSTALL" -eq "1" ]; then
         find $ODOO_EXTRA_ADDONS -name 'requirements.txt' -exec pip3 install --user --no-binary :all: -r {} \;
+
     fi
 
 fi
