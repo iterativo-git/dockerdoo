@@ -105,6 +105,10 @@ RUN set -x; \
     # postgres
     libpq-dev \
     lsb-release \
+    # Odoo browser tests
+    chromium \
+    ffmpeg \
+    fonts-liberation2 \
     > /dev/null
 
 # Grab run deps
@@ -147,7 +151,10 @@ RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends postgre
 # Grab pip dependencies
 ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
 RUN pip --quiet --quiet install --no-cache-dir --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt
-RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog psycogreen
+RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog psycogreen python-magic astor xlrd python-stdnum
+
+# Grab newer werkzeug        //-- for right IP in logs https://git.io/fNu6v
+RUN pip --quiet --quiet install --no-cache-dir --user Werkzeug==0.15.6
 
 # Grab wkhtmltopdf
 RUN curl --silent --show-error --location --output wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb
