@@ -12,9 +12,16 @@ ENV WKHTMLTOPDF_CHECKSUM ${WKHTMLTOPDF_CHECKSUM:-1140b0ab02aa6e17346af2f14ed0de8
 ARG NODE_VERSION
 ENV NODE_VERSION ${NODE_VERSION:-8}
 
+# PIP auto-install requirements.txt (change value to "1" to auto-install)
+ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
+
+# Run tests for all the modules in the custom addons
+ENV RUN_TESTS=${RUN_TESTS:-"0"}
+
 # Odoo Configuration file defaults
 ENV \
-    DATA_DIR=${DATA_DIR:-/var/lib/odoo/data} \
+    ADMIN_PASSWORD=${ADMIN_PASSWORD:-my-weak-password} \
+    ODOO_DATA_DIR=${ODOO_DATA_DIR:-/var/lib/odoo/data} \
     DB_PORT_5432_TCP_ADDR=${DB_PORT_5432_TCP_ADDR:-db} \
     DB_MAXCONN=${DB_MAXCONN:-64} \
     DB_ENV_POSTGRES_PASSWORD=${DB_ENV_POSTGRES_PASSWORD:-odoo} \
@@ -27,12 +34,13 @@ ENV \
     HTTP_PORT=${PORT:-8069} \
     LIMIT_MEMORY_HARD=${LIMIT_MEMORY_HARD:-2684354560} \
     LIMIT_MEMORY_SOFT=${LIMIT_MEMORY_SOFT:-2147483648} \
-    LIMIT_TIME_CPU=${LIMIT_TIME_CPU:-600} \
-    LIMIT_TIME_REAL=${LIMIT_TIME_REAL:-1200} \
-    LIMIT_TIME_REAL_CRON=${LIMIT_TIME_REAL_CRON:-300} \
+    LIMIT_TIME_CPU=${LIMIT_TIME_CPU:-60} \
+    LIMIT_TIME_REAL=${LIMIT_TIME_REAL:-120} \
+    LIMIT_TIME_REAL_CRON=${LIMIT_TIME_REAL_CRON:-0} \
     LIST_DB=${LIST_DB:-True} \
     LOG_DB=${LOG_DB:-False} \
     LOG_DB_LEVEL=${LOG_DB_LEVEL:-warning} \
+    LOGFILE=${LOGFILE:-None} \
     LOG_HANDLER=${LOG_HANDLER:-:INFO} \
     LOG_LEVEL=${LOG_LEVEL:-info} \
     MAX_CRON_THREADS=${MAX_CRON_THREADS:-2} \
@@ -97,11 +105,16 @@ RUN set -x; \
     # postgres
     libpq-dev \
     lsb-release \
+    # Odoo browser tests
+    chromium \
+    ffmpeg \
+    fonts-liberation2 \
     > /dev/null
 
 # Grab run deps
 RUN set -x; \
     apt-get -qq update && apt-get -qq install -y --no-install-recommends \
+    apt-utils dialog \
     apt-transport-https \
     ca-certificates \
     gnupg2 \
@@ -136,9 +149,12 @@ RUN curl --silent --show-error --location https://www.postgresql.org/media/keys/
 RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends postgresql-client > /dev/null
 
 # Grab pip dependencies
-ENV ODOO_VERSION 10.0
+ENV ODOO_VERSION ${ODOO_VERSION:-10.0}
 RUN pip --quiet --quiet install --no-cache-dir --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt
-RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog psycogreen
+RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog psycogreen python-magic astor xlrd python-stdnum
+
+# Grab newer werkzeug        //-- for right IP in logs https://git.io/fNu6v
+RUN pip --quiet --quiet install --no-cache-dir --user Werkzeug==0.15.6
 
 # Grab wkhtmltopdf
 RUN curl --silent --show-error --location --output wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb
@@ -164,59 +180,68 @@ RUN pip --quiet --quiet install python-json-logger
 
 # Create app user
 ENV ODOO_USER odoo
-ENV ODOO_BASEPATH /opt/odoo
+ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
 
 ARG APP_UID
 ENV APP_UID ${APP_UID:-1000}
 
 ARG APP_GID
-ENV APP_GID ${APP_GID:-1000}
+ENV APP_GID ${APP_UID:-1000}
 
-RUN addgroup --system --gid ${APP_UID} ${ODOO_USER}
-RUN adduser --system --uid ${APP_GID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER}
-
-# Grab latest geoip DB       //-- to enable IP based geo-referencing
-
-RUN wget --quiet http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.tar.gz -O /tmp/GeoLite2-City.tar.gz \
-    && mkdir -p /usr/share/GeoIP \
-    && chown -R ${ODOO_USER} /usr/share/GeoIP \
-    && tar -xf /tmp/GeoLite2-City.tar.gz -C /tmp/ \
-    && find /tmp/GeoLite2-City_* | grep "GeoLite2-City.mmdb" | xargs -I{} mv {} /usr/share/GeoIP/GeoLite2-City.mmdb \
-    && pip install geoip2
-
-# Grab newer werkzeug        //-- for right IP in logs https://git.io/fNu6v
-RUN pip --quiet --quiet install --user Werkzeug==0.14.1
+RUN apt-get update \
+    && addgroup --system --gid ${APP_GID} ${ODOO_USER} \
+    && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
+    # [Optional] Add sudo support for the non-root user
+    && apt-get install -y sudo \
+    && echo ${ODOO_USER} ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/${ODOO_USER}\
+    && chmod 0440 /etc/sudoers.d/${ODOO_USER} \
+    #
+    # Clean up
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy from build env
 COPY ./resources/entrypoint.sh /
 COPY ./resources/getaddons.py /
 
-ENV ODOO_RC /etc/odoo/odoo.conf
-COPY ./config/odoo.conf ${ODOO_RC}
-RUN chown ${ODOO_USER} ${ODOO_RC}
+# Install Odoo source code and install it as a package inside the container
+RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
+RUN pip install -e ./${ODOO_BASEPATH}
 
-# Own folders                //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
-ENV ODOO_DATA_DIR /var/lib/odoo/data
-ENV ODOO_LOGS_DIR /var/lib/odoo/logs
 
-RUN mkdir -p "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}"
-RUN chown -R ${ODOO_USER}:${ODOO_USER} "${ODOO_DATA_DIR}" "${ODOO_LOGS_DIR}" /entrypoint.sh /getaddons.py
-RUN chmod u+x /entrypoint.sh /getaddons.py
-
-VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}"]
-
+# Define all needed directories
+ENV ODOO_RC ${ODOO_RC:-/etc/odoo/odoo.conf}
+ENV ODOO_DATA_DIR ${ODOO_DATA_DIR:-/var/lib/odoo/data}
+ENV ODOO_LOGS_DIR ${ODOO_LOGS_DIR:-/var/lib/odoo/logs}
+ENV ODOO_EXTRA_ADDONS ${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
 ENV ODOO_ADDONS_BASEPATH ${ODOO_BASEPATH}/addons
 ENV ODOO_CMD ${ODOO_BASEPATH}/odoo-bin
 
-ENV ODOO_EXTRA_ADDONS /mnt/extra-addons
+# This is needed to fully build with modules and python requirements
+ENV HOST_CUSTOM_ADDONS ${HOST_CUSTOM_ADDONS:-/custom}
 
-RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
-RUN pip install -e ./${ODOO_BASEPATH}
+RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} /etc/odoo/
+
+# Copy custom modules from the custom folder, if any.
+COPY ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
+
+# Own folders    //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} ${ODOO_EXTRA_ADDONS} /etc/odoo/ /entrypoint.sh /getaddons.py
+RUN chmod u+x /entrypoint.sh /getaddons.py
+
+VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
 
 # Docker healthcheck command
 HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
 
+ENTRYPOINT ["/entrypoint.sh"]
+
+ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
+ENV EXTRA_MODULES ${EXTRA_MODULES}
+
+RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip --no-cache-dir install -r {} \;
+
 USER ${ODOO_USER}
 
-ENTRYPOINT ["/entrypoint.sh"]
 CMD ["odoo"]

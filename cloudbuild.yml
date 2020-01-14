@@ -1,11 +1,26 @@
 steps:
-- name: gcr.io/cloud-builders/docker
-  args: ['run', '-d', '--name=postgres', '--network=cloudbuild', 'postgres']
+# Pull a previous image, if exists to use cache for faster builds
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/$PROJECT_ID/$REPO_NAME:$BRANCH_NAME', '.']
-- name: 'docker/compose:1.24.0'
-  args: ['up', '-d']
-  env:
-  - 'PROJECT_ID=$PROJECT_ID'
-images: ['gcr.io/$PROJECT_ID/$REPO_NAME:$BRANCH_NAME']
-timeout: "900s"
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    docker pull gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME} || exit 0
+
+# Build the new image
+- name: 'gcr.io/cloud-builders/docker'
+  args: 
+    [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME}',
+      '--cache-from', 'gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME}',
+      '.'
+    ]
+
+# Push the image to Google Cloud Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME}']
+
+# Tag the image for GCR and Cloud Build
+images: 
+- 'gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME}'

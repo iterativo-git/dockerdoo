@@ -7,7 +7,7 @@ _testlogs/
 !/src/**/
 !/src/**/.gitkeep
 .gitmodules
-
+*.sh
 
 # Created by https://www.gitignore.io/api/test,macos,linux,python,windows,pycharm,virtualenv,sublimetext,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=test,macos,linux,python,windows,pycharm,virtualenv,sublimetext,visualstudiocode

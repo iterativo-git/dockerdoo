@@ -1,25 +1,44 @@
-# Dockerized Odoo for Odoo 10.0 (BETA)
+# Dockerized Odoo 10.0
 
-This is a flexible and **streamlined** version of most Odoo docker projects that you'll find. And one that allows you to deploy with two different methods using the same docker-compose:
+This is a flexible and **streamlined** version of most Odoo docker projects that you'll find. And one that allows you to deploy with two different methods using the same Dockerfile:
 
-* **Standalone**: As most people use their implementation. Each container with the the Odoo source code inside. **This is the default**
-* **Hosted**: A more practical implementation and **cheaper** on resources, as the HOST (where docker is installed) has the source code, and each container uses this single source.
+* **Standalone**: As most people use their implementation. With Odoo's source code inside the container. **This is the default**
+* **Hosted**: A more practical deployment for **development**, as the HOST (where docker is installed) has the source code, and each container uses this single source.
 
 ## Quick usage
+
+To use the **hosted** approach, the Odoo code must be in the `./src` directory, if you also use Enterprise you can add it to the `custom` directory, which is automagically added to your addons_path.
 
 ### Standalone
 
 ```shell
-git clone git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
-docker-compose up odoo
+git clone -b 10.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+docker-compose up
 ```
 
 ### Hosted
 
 ```shell
-git clone git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
-git clone --depth=10 -b 10.0 git@github.com:odoo/odoo.git src/odoo/ce
-docker-compose up odoo
+git clone -b 10.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+git clone --depth=1 -b 10.0 git@github.com:odoo/odoo.git src/odoo
+docker-compose -f docker-compose.yml -f hosted.yml
+```
+
+### Development
+
+#### Standalone development
+
+```shell
+git clone -b 10.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+docker-compose -f docker-compose.yml -f dev-standalone.yml up
+```
+
+#### Hosted development
+
+```shell
+git clone -b 10.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+git clone --depth=1 -b 10.0 git@github.com:odoo/odoo.git src/odoo
+docker-compose -f docker-compose.yml -f dev-hosted.yml up
 ```
 
 ## Requirements
@@ -32,9 +51,9 @@ To use this docker compose file you should comply with this requirements:
 
 ## Running options
 
-There's mainly two ways to deploy with this compose, both available to be configured on the .env file using the `$INSTALL_TYPE` variable, choosing between `standalone` or `hosted` as options.
+There's a bunch of configurations that can be changed in the .env file, allowing you to adapt your installation.
 
-Both options will raise a **postgres** container to be used by an **Odoo** container in v11 or v12, depending on the version that has been set in the `.env` file for `$ODOO_VERSION`
+All compose files will raise a **postgres** container to be used by the **Odoo** container, depending on the version that has been set in the `.env` file for `$ODOO_VERSION`
 
 ### Standalone Odoo
 
@@ -42,41 +61,43 @@ This is the most straightforward option, as it will install **odoo** [source cod
 
 ### Hosted Odoo
 
-This approach is more effective if you'd like have full control over the [source code](https://github.com/odoo/odoo) on the *odoo container*, as it will be using the source one on your host, which **must** be located (in your host) in `./src/odoo/ce`, and additionally, if using enterprise, in `./src/odoo/ee`
-
-Using a hosted Odoo allows easier **debugging**, **testing** and **shell**; use cases that are also easy to deploy using the docker-compose.
+This approach is more effective if you'd like have full control over the [source code](https://github.com/odoo/odoo) of the *odoo container*, as it will use the source one on your host, which **must** be located in `./src`, and additionally, if using enterprise, in `./custom/odoo`. Using a hosted Odoo source code allows for easier **debugging**
 
 ## Basic Usage
 
-Before running the compose you should evaluate the `.env` file, which sets most variables used in this project. The **most** important variable to set is **`INSTALL_TYPE`** which decides if your installation will be **hosted** or **standalone**. hosted is selected by default in the compose-file if no selection is made; which assumes you already have Odoo's source in your host.
+Before running the compose you should evaluate the `.env` file, which sets most variables used in this project.
 
 ### Available `docker-compose up` arguments
 
-This compose file must always be run with an *argument*, running it without one will try to run all available services in it, which will collides as the compose is using `YAML` inheritance from the main service, including the ports that will collide.
+The Odoo service will use the ***arguments*** defined in the `.env` file, the settings in the ***configuration file*** at `./config/odoo.conf` (if hosted) and the predefined commands from the `docker-compose.yml`
 
-All services will go up using the ***database arguments*** defined in the `.env` file, the settings in the ***configuration file*** at `./config/odoo.conf` and the predefined commands from the `docker-compose.yml`
+The available overrides to run with `docker-compose` are:
 
-The available arguments to run with `docker-compose up` are:
-
-* `odoo`: This will raise an streamlined Odoo service, with no additional arguments that the ones stated above.
+* `up`: This will raise an streamlined Odoo service, with no additional arguments that the ones stated above.
 
     ```docker
-    docker-compose up -d odoo
+    docker-compose up -d
     ```
 
-* `dev`: This will raise an Odoo service with `--dev wdb,reload,qweb,werkzeug,xml`. Additionally it will raise a **WDB** service.
+* `-f docker-compose.yml -f hosted.yml up`: This will raise an streamlined Odoo service, with no additional arguments that the ones stated above, but hosted in your PC/SERVER outside the container.
 
     ```docker
-    docker-compose up -d dev
+    docker-compose -f docker-compose.yml -f hosted.yml up -d
     ```
 
-* `tests`: This will raise an Odoo service with `--dev wdb,qweb,werkzeug,xml`, `--test-enable`, `--stop-after-init`, `--logfile ${ODOO_LOGS_DIR}/odoo-server.log`. Additionally it will raise a **WDB** service.
+* `-f docker-compose.yml -f dev-standalone.yml up`: This will raise an Odoo service with `--dev wdb,reload,qweb,werkzeug,xml`. Additionally it will raise a **WDB** service.
 
     ```docker
-    docker-compose up -d tests
+    docker-compose -f docker-compose.yml -f dev-standalone.yml up
     ```
 
-As shown, all this services are recommended to be run on **detached mode**: `-d`, as this is the most common use case.
+* `-f docker-compose.yml -f test-env.yml up`: This will raise an Odoo service with `--dev wdb,qweb,werkzeug,xml`, `--test-enable`, `--stop-after-init`, `--logfile ${ODOO_LOGS_DIR}/odoo-server.log`.
+
+    ```docker
+    docker-compose -f docker-compose.yml -f test-env.yml up -d
+    ```
+
+As shown above, all this services are recommended to be run on **detached mode**: `-d`, as this is the most common use case.
 
 ### Project Structure
 
@@ -84,14 +105,15 @@ As shown, all this services are recommended to be run on **detached mode**: `-d`
 your-project/
  ├── resources/         # Scripts for service automation
  ├── src/
- │   ├── odoo/
- │   │   ├── ce/        # Source from git@github.com:odoo/odoo.git
- │   │   └── ee/        # Source from git@github.com:odoo/enterprise.git
- │   └── .../           # Optionally, other sources like OCA
+ │   └── odoo/          # Just required if using hosted source code
  │
- ├── custom/            # *Your* custom modules goes here.
- │   ├── module_1/
- │   └── .../
+ ├── config/
+ │   └── odoo.conf      # Hosted configuration file for hosted environment
+ ├── custom/            # Custom modules goes here, same level hierarchy **REQUIRED**
+ │   ├── iterativo/
+ │   ├── OCA/
+ │   ├── enterprise/
+ │   └── /
  ├── ...                # Common files (.gitignore, etc.)
  ├── .env               # Single source of environment definition
  ├── Dockerfile         # Single source of image definition
@@ -117,6 +139,4 @@ Bunch of ideas taken from:
 
 ## WIP
 
-* More customizable odoo.conf
-* Swarm considerations (secrets, etc.)
-* Optimized images based on multi-stage (OS, python, dependencies, odoo, custom)
+* Swarm / Kubernetes considerations (secrets, etc.)

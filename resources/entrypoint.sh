@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -xe
+set -x
 
 # set the postgres database host, port, user and password according to the environment
 # and pass them as arguments to the odoo process if not present in the config file
@@ -11,9 +11,11 @@ set -xe
 
 # set all variables
 
-echo "
+if [ ! -f ${ODOO_RC} ]; then
+    echo "
 [options]
-data_dir = ${DATA_DIR}
+admin_passwd = ${ADMIN_PASSWORD}
+data_dir = ${ODOO_DATA_DIR}
 db_host = ${DB_PORT_5432_TCP_ADDR}
 db_maxconn = ${DB_MAXCONN}
 db_password = ${DB_ENV_POSTGRES_PASSWORD}
@@ -32,6 +34,7 @@ limit_time_real_cron = ${LIMIT_TIME_REAL_CRON}
 list_db = ${LIST_DB}
 log_db = ${LOG_DB}
 log_db_level = ${LOG_DB_LEVEL}
+logfile = ${logfile}
 log_handler = ${LOG_HANDLER}
 log_level = ${LOG_LEVEL}
 max_cron_threads = ${MAX_CRON_THREADS}
@@ -45,21 +48,27 @@ smtp_user = ${SMTP_USER}
 test_enable = ${TEST_ENABLE}
 unaccent = ${UNACCENT}
 without_demo = ${WITHOUT_DEMO}
-workers = ${WORKERS}" > $ODOO_RC
+workers = ${WORKERS}
+    " > $ODOO_RC
+fi
 
 function getAddons() {
-    
-    ODOO_EXTRA_ADDONS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS:-'/mnt/extra-addons'} 2>&1)
+
+    EXTRA_ADDONS_PATHS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS} 2>&1)
 }
 
 getAddons
 
-if [ -z "$ODOO_EXTRA_ADDONS" ]
-then
-      echo "The variable \$ODOO_EXTRA_ADDONS is empty, using default addons_path"
-      echo "addons_path = $ODOO_ADDONS_BASEPATH" >> $ODOO_RC 
+if [ -z "$EXTRA_ADDONS_PATHS" ]; then
+    echo "The variable \$EXTRA_ADDONS_PATHS is empty, using default addons_path"
+    echo "addons_path = $ODOO_ADDONS_BASEPATH" >> $ODOO_RC
 else
-      echo "addons_path = $ODOO_ADDONS_BASEPATH,$ODOO_EXTRA_ADDONS" >> $ODOO_RC
+    echo "addons_path = $ODOO_ADDONS_BASEPATH,$EXTRA_ADDONS_PATHS" >> $ODOO_RC
+
+    if [ "$PIP_AUTO_INSTALL" -eq "1" ]; then
+        find $ODOO_EXTRA_ADDONS -name 'requirements.txt' -exec pip3 install --user --no-binary :all: -r {} \;
+    fi
+
 fi
 
 DB_ARGS=()
@@ -82,6 +91,11 @@ case "$1" in
         shift
         if [[ "$1" == "scaffold" ]] ; then
             exec ${ODOO_CMD} "$@"
+        elif [[ "$RUN_TESTS" -eq "1" ]] ; then
+            if [ -z "$EXTRA_MODULES" ]; then
+                EXTRA_MODULES=$(python3 -c "from getaddons import get_modules; print(','.join(get_modules('${ODOO_EXTRA_ADDONS}', depth=3)))")
+            fi
+            exec ${ODOO_CMD} "$@" "--test-enable" "--stop-after-init" "-i ${EXTRA_MODULES}" "${DB_ARGS[@]}"
         else
             exec ${ODOO_CMD} "$@" "${DB_ARGS[@]}"
         fi
