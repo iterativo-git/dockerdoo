@@ -70,97 +70,104 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-# Grab build deps
+# Install odoo deps
 RUN set -x; \
     apt-get -qq update && apt-get -qq install -y --no-install-recommends \
-    build-essential \
-    nano \
-    bzip2 \
+    ca-certificates \
     curl \
+    dirmngr \
     fonts-noto-cjk \
     gnupg \
-    libgeoip-dev \
-    libmaxminddb-dev \
-    node-less \
-    python3-renderpm \
-    python3-watchdog \
-    wget \
-    xz-utils \
-    libevent-dev \
     libssl-dev \
-    # lxml
-    libxml2-dev \
-    libxslt1-dev\
-    # Pillow
-    libjpeg-dev \
-    libfreetype6-dev \
-    liblcms2-dev \
-    libtiff5-dev \
-    tk-dev \
-    tcl-dev \
-    # psutil
-    linux-headers-amd64 \
-    libldap2-dev \
-    libsasl2-dev \
-    # postgres
-    libpq-dev \
-    lsb-release \
-    # Odoo browser tests
-    chromium \
-    ffmpeg \
-    fonts-liberation2 \
-    > /dev/null
+    node-less \
+    npm \
+    python3-num2words \
+    python3-pip \
+    python3-phonenumbers \
+    python3-pyldap \
+    python3-qrcode \
+    python3-renderpm \
+    python3-setuptools \
+    python3-vobject \
+    python3-watchdog \
+    python3-xlwt \
+    xz-utils \
+    && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb \
+    && echo '${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb' | sha256sum -c - \
+    && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
+    && apt-get autopurge -yqq \
+    && rm -rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
 
-# Grab run deps
+# Install hard & soft build dependencies
 RUN set -x; \
     apt-get -qq update && apt-get -qq install -y --no-install-recommends \
     apt-utils dialog \
     apt-transport-https \
-    ca-certificates \
+    build-essential \
+    libfreetype6-dev \
+    libfribidi-dev \
+    libghc-zlib-dev \
+    libharfbuzz-dev \
+    libjpeg-dev \
+    liblcms2-dev \
+    libldap2-dev \
+    libopenjp2-7-dev \
+    libpq-dev \
+    libsasl2-dev \
+    libtiff5-dev \
+    libwebp-dev \
+    tcl-dev \
+    tk-dev \
+    zlib1g-dev \
+    && apt-get autopurge -yqq \
+    && rm -rf /var/lib/apt/lists/* /tmp/*
+
+# Install latest postgresql-client
+RUN set -x; \
+    echo 'deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main' > etc/apt/sources.list.d/pgdg.list \
+    && export GNUPGHOME="$(mktemp -d)" \
+    && repokey='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8' \
+    && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "${repokey}" \
+    && gpg --batch --armor --export "${repokey}" > /etc/apt/trusted.gpg.d/pgdg.gpg.asc \
+    && gpgconf --kill all \
+    && rm -rf "$GNUPGHOME" \
+    && apt-get update  \
+    && apt-get install -y postgresql-client \
+    && apt-get autopurge -yqq \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install rtlcss (on Debian buster)
+RUN set -x; \
+    npm install -g rtlcss
+
+RUN set -x; \
+    apt-get -qq update && apt-get -qq install -y --no-install-recommends \
+    chromium \
+    ffmpeg \
+    fonts-liberation2 \
+    gettext-base \
+    git \
     gnupg2 \
-    locales \
-    fontconfig \
-    libfreetype6 \
-    libjpeg62-turbo \
-    liblcms2-2 \
-    libldap-2.4-2 \
-    libsasl2-2 \
-    libtiff5 \
-    libx11-6 \
-    libxext6 \
-    libxml2 \
-    libxrender1 \
-    libxslt1.1 \
-    tcl \
-    tk \
-    zlib1g \
+    lsb-release \
+    libgeoip-dev \
+    libmaxminddb-dev \
+    locales-all \
+    nano \
+    npm \
+    openssh-client \
+    telnet \
+    vim \
     zlibc \
-    > /dev/null
-
-# Grab latest pip
-RUN curl --silent --show-error --location https://bootstrap.pypa.io/get-pip.py | python3 /dev/stdin --no-cache-dir
-
-# Grab latest git            //-- to `pip install` customized python packages & apply patches
-RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends git-core > /dev/null
-
-# Grab postgres
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
-RUN curl --silent --show-error --location https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends postgresql-client > /dev/null
+    && apt-get autopurge -yqq \
+    && rm -Rf /var/lib/apt/lists/* /tmp/*
 
 # Grab pip dependencies
 ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
 RUN pip --quiet --quiet install --no-cache-dir --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt
-RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog psycogreen python-magic astor xlrd python-stdnum
+RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog psycogreen python-magic astor xlrd python-stdnum git-aggregator click-odoo-contrib ptvsd
 
 # Grab newer werkzeug        //-- for right IP in logs https://git.io/fNu6v
 RUN pip --quiet --quiet install --no-cache-dir --user Werkzeug==0.15.6
-
-# Grab wkhtmltopdf
-RUN curl --silent --show-error --location --output wkhtmltox.deb https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb
-RUN echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha256sum -c -
-RUN apt-get -qq update && apt-get -qq install -yqq --no-install-recommends libpng16-16 libssl1.1 xfonts-75dpi xfonts-base > /dev/null
-RUN dpkg -i ./wkhtmltox.deb && rm wkhtmltox.deb && wkhtmltopdf --version
 
 # Grab web stack
 RUN set -x;\
