@@ -59,10 +59,37 @@ ENV \
 # Use noninteractive to get rid of apt-utils message
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Fix locale  //-- for some tests that depend on locale (babel python-lib)
+# Install odoo deps
 RUN set -x; \
-    apt-get -qq update && apt-get -qq install -y locales
+    apt-get -qq update && apt-get -qq install -y --no-install-recommends \
+    ca-certificates \
+    git-core \
+    curl \
+    chromium \
+    ffmpeg \
+    fonts-liberation2 \
+    dirmngr \
+    fonts-noto-cjk \
+    gnupg \
+    libssl-dev \
+    libgeoip-dev \
+    libmaxminddb-dev \
+    locales \
+    lsb-release \
+    node-less \
+    npm \
+    python3-renderpm \
+    nano \
+    vim \
+    zlibc \
+    xz-utils \
+    && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb \
+    && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha256sum -c - \
+    && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && rm -rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
 
+# Fix locale  //-- for some tests that depend on locale (babel python-lib)
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     dpkg-reconfigure --frontend=noninteractive locales && \
     update-locale LANG=en_US.UTF-8
@@ -70,33 +97,8 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-# Install odoo deps
-RUN set -x; \
-    apt-get -qq update && apt-get -qq install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    dirmngr \
-    fonts-noto-cjk \
-    gnupg \
-    libssl-dev \
-    node-less \
-    npm \
-    python3-num2words \
-    python3-pip \
-    python3-phonenumbers \
-    python3-pyldap \
-    python3-qrcode \
-    python3-renderpm \
-    python3-setuptools \
-    python3-vobject \
-    python3-watchdog \
-    python3-xlwt \
-    xz-utils \
-    && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb \
-    && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha256sum -c - \
-    && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
-    && apt-get autopurge -yqq \
-    && rm -rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
+# Grab latest pip
+RUN curl --silent --show-error --location https://bootstrap.pypa.io/get-pip.py | python /dev/stdin --no-cache-dir
 
 # Install hard & soft build dependencies
 RUN set -x; \
@@ -120,7 +122,7 @@ RUN set -x; \
     tcl-dev \
     tk-dev \
     zlib1g-dev \
-    && apt-get autopurge -yqq \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Install latest postgresql-client
@@ -134,29 +136,12 @@ RUN set -x; \
     && rm -rf "$GNUPGHOME" \
     && apt-get update  \
     && apt-get install -y postgresql-client \
-    && apt-get autopurge -yqq \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/*
 
 # Install rtlcss (on Debian buster)
 RUN set -x; \
     npm install -g rtlcss
-
-RUN set -x; \
-    apt-get -qq update && apt-get -qq install -y --no-install-recommends \
-    chromium \
-    ffmpeg \
-    fonts-liberation2 \
-    gettext-base \
-    git \
-    lsb-release \
-    libgeoip-dev \
-    libmaxminddb-dev \
-    nano \
-    openssh-client \
-    vim \
-    zlibc \
-    && apt-get autopurge -yqq \
-    && rm -Rf /var/lib/apt/lists/* /tmp/*
 
 # Grab web stack
 RUN set -x;\
@@ -169,6 +154,7 @@ RUN set -x;\
     && rm -rf "$GNUPGHOME" \
     && apt-get -qq update \
     && apt-get -qq install -y nodejs \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/*
 
 # Create app user
@@ -190,8 +176,7 @@ RUN apt-get update \
     && chmod 0440 /etc/sudoers.d/${ODOO_USER} \
     #
     # Clean up
-    && apt-get autoremove -y \
-    && apt-get clean -y \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy from build env
@@ -201,24 +186,23 @@ COPY ./resources/getaddons.py /
 # Install Odoo source code and install it as a package inside the container with additional tools
 ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
 RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
-RUN pip install --no-cache-dir -e ./${ODOO_BASEPATH} \
-    && pip --quiet --quiet install --no-cache-dir \
-        astor \
-        psycogreen \
-        python-magic \
-        xlrd \
-        python-stdnum \
-        click-odoo-contrib \
-        git-aggregator \
-        python-json-logger \
-        wdb \
-        websocket-client \
+RUN pip install --no-cache-dir --upgrade -e ./${ODOO_BASEPATH} \
+    && pip --quiet --quiet install --no-cache-dir --upgrade \
+    astor \
+    psycogreen \
+    python-magic \
+    phonenumbers \
+    xlrd \
+    python-stdnum \
+    click-odoo-contrib \
+    git-aggregator \
+    python-json-logger \
+    wdb \
+    websocket-client \
+    Werkzeug==0.15.6 \
     && (python3 -m compileall -q /usr/local/lib/python3.7/ || true) \
-    && apt-get autopurge -yqq \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/* /tmp/*
-
-# Grab newer werkzeug        //-- for right IP in logs https://git.io/fNu6v & better performance
-RUN pip --quiet --quiet install --no-cache-dir Werkzeug==0.15.6
 
 # Define all needed directories
 ENV ODOO_RC ${ODOO_RC:-/etc/odoo/odoo.conf}
