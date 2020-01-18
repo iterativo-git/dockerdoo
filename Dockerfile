@@ -201,7 +201,7 @@ COPY ./resources/getaddons.py /
 # Install Odoo source code and install it as a package inside the container with additional tools
 ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
 RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
-RUN pip install --no-cache-dir -e ./${ODOO_BASEPATH} && # Grab extra dependencies and tools \
+RUN pip install --no-cache-dir -e ./${ODOO_BASEPATH} \
     && pip --quiet --quiet install --no-cache-dir \
         astor \
         psycogreen \
