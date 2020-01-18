@@ -4,13 +4,13 @@ USER root
 
 # Library versions
 ARG WKHTMLTOX_VERSION
-ENV WKHTMLTOX_VERSION ${WKHTMLTOX_VERSION:-0.12.5}
+ENV WKHTMLTOX_VERSION ${WKHTMLTOX_VERSION:-"0.12.5"}
 
 ARG WKHTMLTOPDF_CHECKSUM
-ENV WKHTMLTOPDF_CHECKSUM ${WKHTMLTOPDF_CHECKSUM:-1140b0ab02aa6e17346af2f14ed0de807376de475ba90e1db3975f112fbd20bb}
+ENV WKHTMLTOPDF_CHECKSUM ${WKHTMLTOPDF_CHECKSUM:-"1140b0ab02aa6e17346af2f14ed0de807376de475ba90e1db3975f112fbd20bb"}
 
 ARG NODE_VERSION
-ENV NODE_VERSION ${NODE_VERSION:-8}
+ENV NODE_VERSION ${NODE_VERSION:-"8"}
 
 # PIP auto-install requirements.txt (change value to "1" to auto-install)
 ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
@@ -93,7 +93,7 @@ RUN set -x; \
     python3-xlwt \
     xz-utils \
     && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb \
-    && echo '${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb' | sha256sum -c - \
+    && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha256sum -c - \
     && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
     && apt-get autopurge -yqq \
     && rm -rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
@@ -116,6 +116,7 @@ RUN set -x; \
     libsasl2-dev \
     libtiff5-dev \
     libwebp-dev \
+    lsb-release \
     tcl-dev \
     tk-dev \
     zlib1g-dev \
@@ -124,7 +125,7 @@ RUN set -x; \
 
 # Install latest postgresql-client
 RUN set -x; \
-    echo 'deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main' > etc/apt/sources.list.d/pgdg.list \
+    echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > etc/apt/sources.list.d/pgdg.list \
     && export GNUPGHOME="$(mktemp -d)" \
     && repokey='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8' \
     && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "${repokey}" \
