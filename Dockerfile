@@ -1,4 +1,4 @@
-FROM python:3.7-slim-buster
+FROM python:3.7-slim-buster as base
 
 USER root
 
@@ -9,8 +9,121 @@ ENV WKHTMLTOX_VERSION ${WKHTMLTOX_VERSION:-"0.12.5"}
 ARG WKHTMLTOPDF_CHECKSUM
 ENV WKHTMLTOPDF_CHECKSUM ${WKHTMLTOPDF_CHECKSUM:-"1140b0ab02aa6e17346af2f14ed0de807376de475ba90e1db3975f112fbd20bb"}
 
-ARG NODE_VERSION
-ENV NODE_VERSION ${NODE_VERSION:-"8"}
+# Use noninteractive to get rid of apt-utils message
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install odoo deps
+RUN set -x; \
+    apt-get -qq update && apt-get -qq install -y --no-install-recommends \
+    ca-certificates \
+    git-core \
+    curl \
+    chromium \
+    ffmpeg \
+    fonts-liberation2 \
+    dirmngr \
+    fonts-noto-cjk \
+    gnupg \
+    libssl-dev \
+    locales \
+    lsb-release \
+    node-less \
+    npm \
+    python3-renderpm \
+    nano \
+    vim \
+    zlibc \
+    xz-utils \
+    && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb \
+    && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha256sum -c - \
+    && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && rm -rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
+
+# Fix locale  //-- for some tests that depend on locale (babel python-lib)
+RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+    dpkg-reconfigure --frontend=noninteractive locales && \
+    update-locale LANG=en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+# Grab latest pip
+RUN curl --silent --show-error --location https://bootstrap.pypa.io/get-pip.py | python /dev/stdin --no-cache-dir
+
+# Install latest postgresql-client
+RUN set -x; \
+    echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > etc/apt/sources.list.d/pgdg.list \
+    && export GNUPGHOME="$(mktemp -d)" \
+    && repokey='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8' \
+    && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "${repokey}" \
+    && gpg --batch --armor --export "${repokey}" > /etc/apt/trusted.gpg.d/pgdg.gpg.asc \
+    && gpgconf --kill all \
+    && rm -rf "$GNUPGHOME" \
+    && apt-get update  \
+    && apt-get install -y postgresql-client \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install rtlcss (on Debian buster)
+RUN set -x; \
+    npm install -g rtlcss
+
+FROM base as builder
+
+# Install hard & soft build dependencies
+RUN set -x; \
+    apt-get -qq update && apt-get -qq install -y --no-install-recommends \
+    apt-utils dialog \
+    apt-transport-https \
+    build-essential \
+    libfreetype6-dev \
+    libfribidi-dev \
+    libghc-zlib-dev \
+    libharfbuzz-dev \
+    libjpeg-dev \
+    libgeoip-dev \
+    libmaxminddb-dev \
+    liblcms2-dev \
+    libldap2-dev \
+    libopenjp2-7-dev \
+    libpq-dev \
+    libsasl2-dev \
+    libtiff5-dev \
+    libwebp-dev \
+    lsb-release \
+    tcl-dev \
+    tk-dev \
+    zlib1g-dev \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && rm -rf /var/lib/apt/lists/* /tmp/*
+
+
+# Install Odoo source code and install it as a package inside the container with additional tools
+ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
+
+RUN pip install --no-cache-dir --upgrade --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip \
+    && pip --quiet --quiet install --prefix=/usr/local --no-cache-dir --upgrade \
+    astor \
+    psycogreen \
+    python-magic \
+    phonenumbers \
+    num2words \
+    xlrd \
+    python-stdnum \
+    click-odoo-contrib \
+    git-aggregator \
+    python-json-logger \
+    wdb \
+    websocket-client \
+    Werkzeug==0.15.6 \
+    && (python3 -m compileall -q /usr/local || true) \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && rm -rf /var/lib/apt/lists/* /tmp/*
+
+FROM base
+
+COPY --from=builder /usr/local /usr/local
 
 # PIP auto-install requirements.txt (change value to "1" to auto-install)
 ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
@@ -56,110 +169,9 @@ ENV \
     WITHOUT_DEMO=${WITHOUT_DEMO:-False} \
     WORKERS=${WORKERS:-0}
 
-# Use noninteractive to get rid of apt-utils message
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install odoo deps
-RUN set -x; \
-    apt-get -qq update && apt-get -qq install -y --no-install-recommends \
-    ca-certificates \
-    git-core \
-    curl \
-    chromium \
-    ffmpeg \
-    fonts-liberation2 \
-    dirmngr \
-    fonts-noto-cjk \
-    gnupg \
-    libssl-dev \
-    libgeoip-dev \
-    libmaxminddb-dev \
-    locales \
-    lsb-release \
-    node-less \
-    npm \
-    python3-renderpm \
-    nano \
-    vim \
-    zlibc \
-    xz-utils \
-    && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb \
-    && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha256sum -c - \
-    && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
-
-# Fix locale  //-- for some tests that depend on locale (babel python-lib)
-RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
-    dpkg-reconfigure --frontend=noninteractive locales && \
-    update-locale LANG=en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
-
-# Grab latest pip
-RUN curl --silent --show-error --location https://bootstrap.pypa.io/get-pip.py | python /dev/stdin --no-cache-dir
-
-# Install hard & soft build dependencies
-RUN set -x; \
-    apt-get -qq update && apt-get -qq install -y --no-install-recommends \
-    apt-utils dialog \
-    apt-transport-https \
-    build-essential \
-    libfreetype6-dev \
-    libfribidi-dev \
-    libghc-zlib-dev \
-    libharfbuzz-dev \
-    libjpeg-dev \
-    liblcms2-dev \
-    libldap2-dev \
-    libopenjp2-7-dev \
-    libpq-dev \
-    libsasl2-dev \
-    libtiff5-dev \
-    libwebp-dev \
-    lsb-release \
-    tcl-dev \
-    tk-dev \
-    zlib1g-dev \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/* /tmp/*
-
-# Install latest postgresql-client
-RUN set -x; \
-    echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > etc/apt/sources.list.d/pgdg.list \
-    && export GNUPGHOME="$(mktemp -d)" \
-    && repokey='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8' \
-    && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "${repokey}" \
-    && gpg --batch --armor --export "${repokey}" > /etc/apt/trusted.gpg.d/pgdg.gpg.asc \
-    && gpgconf --kill all \
-    && rm -rf "$GNUPGHOME" \
-    && apt-get update  \
-    && apt-get install -y postgresql-client \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install rtlcss (on Debian buster)
-RUN set -x; \
-    npm install -g rtlcss
-
-# Grab web stack
-RUN set -x;\
-    echo "deb http://deb.nodesource.com/node_${NODE_VERSION}.x $(lsb_release -cs) main" > /etc/apt/sources.list.d/nodesource.list \
-    && export GNUPGHOME="$(mktemp -d)" \
-    && repokey='9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280' \
-    && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "${repokey}" \
-    && gpg --armor --export "${repokey}" | apt-key add - \
-    && gpgconf --kill all \
-    && rm -rf "$GNUPGHOME" \
-    && apt-get -qq update \
-    && apt-get -qq install -y nodejs \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/*
-
 # Create app user
 ENV ODOO_USER odoo
-ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
+ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/usr/local/lib/python3.7/site-packages/odoo}
 
 ARG APP_UID
 ENV APP_UID ${APP_UID:-1000}
@@ -168,6 +180,7 @@ ARG APP_GID
 ENV APP_GID ${APP_UID:-1000}
 
 RUN apt-get update \
+    && chown ${APP_UID}:${APP_GID} -R ${ODOO_BASEPATH} \
     && addgroup --system --gid ${APP_GID} ${ODOO_USER} \
     && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
     # [Optional] Add sudo support for the non-root user
@@ -182,27 +195,6 @@ RUN apt-get update \
 # Copy from build env
 COPY ./resources/entrypoint.sh /
 COPY ./resources/getaddons.py /
-
-# Install Odoo source code and install it as a package inside the container with additional tools
-ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
-RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
-RUN pip install --no-cache-dir --upgrade -e ./${ODOO_BASEPATH} \
-    && pip --quiet --quiet install --no-cache-dir --upgrade \
-    astor \
-    psycogreen \
-    python-magic \
-    phonenumbers \
-    xlrd \
-    python-stdnum \
-    click-odoo-contrib \
-    git-aggregator \
-    python-json-logger \
-    wdb \
-    websocket-client \
-    Werkzeug==0.15.6 \
-    && (python3 -m compileall -q /usr/local/lib/python3.7/ || true) \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Define all needed directories
 ENV ODOO_RC ${ODOO_RC:-/etc/odoo/odoo.conf}
