@@ -119,8 +119,7 @@ FROM base as builder
 ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
 ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
 
-RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
-RUN pip install --no-cache-dir --upgrade --prefix=/usr/local -e ./${ODOO_BASEPATH} \
+RUN pip install --no-cache-dir --upgrade --prefix=/usr/local https://nightly.odoo.com/11.0/nightly/src/odoo_11.0.latest.zip \
     && pip --quiet --quiet install --prefix=/usr/local --no-cache-dir --upgrade \
     astor \
     psycogreen \
@@ -140,6 +139,8 @@ RUN pip install --no-cache-dir --upgrade --prefix=/usr/local -e ./${ODOO_BASEPAT
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 FROM base
+
+COPY --from=builder /usr/local /usr/local
 
 ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
 
@@ -186,9 +187,6 @@ ENV \
     UNACCENT=${UNACCENT:-False} \
     WITHOUT_DEMO=${WITHOUT_DEMO:-False} \
     WORKERS=${WORKERS:-0}
-
-COPY --from=builder /usr/local /usr/local
-COPY --from=builder /opt/odoo ${ODOO_BASEPATH}
 
 # Create app user
 ENV ODOO_USER odoo
