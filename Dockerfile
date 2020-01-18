@@ -9,9 +9,6 @@ ENV WKHTMLTOX_VERSION ${WKHTMLTOX_VERSION:-"0.12.5"}
 ARG WKHTMLTOPDF_CHECKSUM
 ENV WKHTMLTOPDF_CHECKSUM ${WKHTMLTOPDF_CHECKSUM:-"1140b0ab02aa6e17346af2f14ed0de807376de475ba90e1db3975f112fbd20bb"}
 
-ARG NODE_VERSION
-ENV NODE_VERSION ${NODE_VERSION:-"8"}
-
 # Use noninteractive to get rid of apt-utils message
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -71,20 +68,6 @@ RUN set -x; \
 # Install rtlcss (on Debian buster)
 RUN set -x; \
     npm install -g rtlcss
-
-# Grab web stack
-RUN set -x;\
-    echo "deb http://deb.nodesource.com/node_${NODE_VERSION}.x $(lsb_release -cs) main" > /etc/apt/sources.list.d/nodesource.list \
-    && export GNUPGHOME="$(mktemp -d)" \
-    && repokey='9FD3B784BC1C6FC31A8A0A1C1655A0AB68576280' \
-    && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "${repokey}" \
-    && gpg --armor --export "${repokey}" | apt-key add - \
-    && gpgconf --kill all \
-    && rm -rf "$GNUPGHOME" \
-    && apt-get -qq update \
-    && apt-get -qq install -y nodejs \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/*
 
 FROM base as builder
 
