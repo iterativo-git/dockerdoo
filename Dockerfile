@@ -125,8 +125,6 @@ FROM base
 
 COPY --from=builder /usr/local /usr/local
 
-ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/usr/local/lib/python3.7/site-packages/odoo}
-
 # PIP auto-install requirements.txt (change value to "1" to auto-install)
 ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
 
@@ -173,6 +171,7 @@ ENV \
 
 # Create app user
 ENV ODOO_USER odoo
+ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/usr/local/lib/python3.7/site-packages/odoo}
 
 ARG APP_UID
 ENV APP_UID ${APP_UID:-1000}
@@ -181,6 +180,7 @@ ARG APP_GID
 ENV APP_GID ${APP_UID:-1000}
 
 RUN apt-get update \
+    && chown ${APP_UID}:${APP_GID} -R ${ODOO_BASEPATH} \
     && addgroup --system --gid ${APP_GID} ${ODOO_USER} \
     && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
     # [Optional] Add sudo support for the non-root user
