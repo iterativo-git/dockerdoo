@@ -28,8 +28,6 @@ RUN set -x; \
     fonts-noto-cjk \
     gnupg \
     libssl-dev \
-    libgeoip-dev \
-    libmaxminddb-dev \
     locales \
     lsb-release \
     node-less \
@@ -55,31 +53,6 @@ ENV LC_ALL en_US.UTF-8
 
 # Grab latest pip
 RUN curl --silent --show-error --location https://bootstrap.pypa.io/get-pip.py | python /dev/stdin --no-cache-dir
-
-# Install hard & soft build dependencies
-RUN set -x; \
-    apt-get -qq update && apt-get -qq install -y --no-install-recommends \
-    apt-utils dialog \
-    apt-transport-https \
-    build-essential \
-    libfreetype6-dev \
-    libfribidi-dev \
-    libghc-zlib-dev \
-    libharfbuzz-dev \
-    libjpeg-dev \
-    liblcms2-dev \
-    libldap2-dev \
-    libopenjp2-7-dev \
-    libpq-dev \
-    libsasl2-dev \
-    libtiff5-dev \
-    libwebp-dev \
-    lsb-release \
-    tcl-dev \
-    tk-dev \
-    zlib1g-dev \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Install latest postgresql-client
 RUN set -x; \
@@ -115,11 +88,38 @@ RUN set -x;\
 
 FROM base as builder
 
+# Install hard & soft build dependencies
+RUN set -x; \
+    apt-get -qq update && apt-get -qq install -y --no-install-recommends \
+    apt-utils dialog \
+    apt-transport-https \
+    build-essential \
+    libfreetype6-dev \
+    libfribidi-dev \
+    libghc-zlib-dev \
+    libharfbuzz-dev \
+    libjpeg-dev \
+    libgeoip-dev \
+    libmaxminddb-dev \
+    liblcms2-dev \
+    libldap2-dev \
+    libopenjp2-7-dev \
+    libpq-dev \
+    libsasl2-dev \
+    libtiff5-dev \
+    libwebp-dev \
+    lsb-release \
+    tcl-dev \
+    tk-dev \
+    zlib1g-dev \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && rm -rf /var/lib/apt/lists/* /tmp/*
+
+
 # Install Odoo source code and install it as a package inside the container with additional tools
 ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
-ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
 
-RUN pip install --no-cache-dir --upgrade --prefix=/usr/local https://nightly.odoo.com/11.0/nightly/src/odoo_11.0.latest.zip \
+RUN pip install --no-cache-dir --upgrade --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip \
     && pip --quiet --quiet install --prefix=/usr/local --no-cache-dir --upgrade \
     astor \
     psycogreen \
@@ -142,7 +142,7 @@ FROM base
 
 COPY --from=builder /usr/local /usr/local
 
-ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
+ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/usr/local/lib/python3.7/site-packages/odoo}
 
 # PIP auto-install requirements.txt (change value to "1" to auto-install)
 ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
