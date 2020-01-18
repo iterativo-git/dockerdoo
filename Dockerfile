@@ -148,27 +148,15 @@ RUN set -x; \
     fonts-liberation2 \
     gettext-base \
     git \
-    gnupg2 \
     lsb-release \
     libgeoip-dev \
     libmaxminddb-dev \
-    locales-all \
     nano \
-    npm \
     openssh-client \
-    telnet \
     vim \
     zlibc \
     && apt-get autopurge -yqq \
     && rm -Rf /var/lib/apt/lists/* /tmp/*
-
-# Grab pip dependencies
-ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
-RUN pip --quiet --quiet install --no-cache-dir --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt
-RUN pip --quiet --quiet install --no-cache-dir phonenumbers wdb watchdog psycogreen python-magic astor xlrd python-stdnum git-aggregator click-odoo-contrib ptvsd
-
-# Grab newer werkzeug        //-- for right IP in logs https://git.io/fNu6v
-RUN pip --quiet --quiet install --no-cache-dir --user Werkzeug==0.15.6
 
 # Grab web stack
 RUN set -x;\
@@ -182,9 +170,6 @@ RUN set -x;\
     && apt-get -qq update \
     && apt-get -qq install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
-
-# Grab latest json logger    //-- for easier parsing (Patch 0001)
-RUN pip --quiet --quiet install python-json-logger
 
 # Create app user
 ENV ODOO_USER odoo
@@ -213,10 +198,27 @@ RUN apt-get update \
 COPY ./resources/entrypoint.sh /
 COPY ./resources/getaddons.py /
 
-# Install Odoo source code and install it as a package inside the container
+# Install Odoo source code and install it as a package inside the container with additional tools
+ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
 RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
-RUN pip install --no-cache-dir -e ./${ODOO_BASEPATH}
+RUN pip install --no-cache-dir -e ./${ODOO_BASEPATH} && # Grab extra dependencies and tools \
+    && pip --quiet --quiet install --no-cache-dir \
+        astor \
+        psycogreen \
+        python-magic \
+        xlrd \
+        python-stdnum \
+        click-odoo-contrib \
+        git-aggregator \
+        python-json-logger \
+        wdb \
+        websocket-client \
+    && (python3 -m compileall -q /usr/local/lib/python3.7/ || true) \
+    && apt-get autopurge -yqq \
+    && rm -rf /var/lib/apt/lists/* /tmp/*
 
+# Grab newer werkzeug        //-- for right IP in logs https://git.io/fNu6v & better performance
+RUN pip --quiet --quiet install --no-cache-dir Werkzeug==0.15.6
 
 # Define all needed directories
 ENV ODOO_RC ${ODOO_RC:-/etc/odoo/odoo.conf}
