@@ -215,7 +215,7 @@ COPY ./resources/getaddons.py /
 
 # Install Odoo source code and install it as a package inside the container
 RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
-RUN pip install -e ./${ODOO_BASEPATH}
+RUN pip install --no-cache-dir -e ./${ODOO_BASEPATH}
 
 
 # Define all needed directories
@@ -248,7 +248,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
 ENV EXTRA_MODULES ${EXTRA_MODULES}
 
-RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip3 --no-cache-dir install -r {} \;
+RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip install --no-cache-dir -r {} \;
 
 USER ${ODOO_USER}
 
