@@ -1,4 +1,4 @@
-FROM python:3.7-slim-buster
+FROM python:3.7-slim-buster as base
 
 USER root
 
@@ -11,50 +11,6 @@ ENV WKHTMLTOPDF_CHECKSUM ${WKHTMLTOPDF_CHECKSUM:-"1140b0ab02aa6e17346af2f14ed0de
 
 ARG NODE_VERSION
 ENV NODE_VERSION ${NODE_VERSION:-"8"}
-
-# PIP auto-install requirements.txt (change value to "1" to auto-install)
-ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
-
-# Run tests for all the modules in the custom addons
-ENV RUN_TESTS=${RUN_TESTS:-"0"}
-
-# Odoo Configuration file defaults
-ENV \
-    ADMIN_PASSWORD=${ADMIN_PASSWORD:-my-weak-password} \
-    ODOO_DATA_DIR=${ODOO_DATA_DIR:-/var/lib/odoo/data} \
-    DB_PORT_5432_TCP_ADDR=${DB_PORT_5432_TCP_ADDR:-db} \
-    DB_MAXCONN=${DB_MAXCONN:-64} \
-    DB_ENV_POSTGRES_PASSWORD=${DB_ENV_POSTGRES_PASSWORD:-odoo} \
-    DB_PORT_5432_TCP_PORT=${DB_PORT_5432_TCP_PORT:-5432} \
-    DB_SSLMODE=${DB_SSLMODE:-prefer} \
-    DB_TEMPLATE=${DB_TEMPLATE:-template1} \
-    DB_ENV_POSTGRES_USER=${DB_ENV_POSTGRES_USER:-odoo} \
-    DBFILTER=${DBFILTER:-.*} \
-    HTTP_INTERFACE=${HTTP_INTERFACE:-0.0.0.0} \
-    HTTP_PORT=${HTTP_PORT:-8069} \
-    LIMIT_MEMORY_HARD=${LIMIT_MEMORY_HARD:-2684354560} \
-    LIMIT_MEMORY_SOFT=${LIMIT_MEMORY_SOFT:-2147483648} \
-    LIMIT_TIME_CPU=${LIMIT_TIME_CPU:-60} \
-    LIMIT_TIME_REAL=${LIMIT_TIME_REAL:-120} \
-    LIMIT_TIME_REAL_CRON=${LIMIT_TIME_REAL_CRON:-0} \
-    LIST_DB=${LIST_DB:-True} \
-    LOG_DB=${LOG_DB:-False} \
-    LOG_DB_LEVEL=${LOG_DB_LEVEL:-warning} \
-    LOGFILE=${LOGFILE:-None} \
-    LOG_HANDLER=${LOG_HANDLER:-:INFO} \
-    LOG_LEVEL=${LOG_LEVEL:-info} \
-    MAX_CRON_THREADS=${MAX_CRON_THREADS:-2} \
-    PROXY_MODE=${PROXY_MODE:-False} \
-    SERVER_WIDE_MODULES=${SERVER_WIDE_MODULES:-base,web} \
-    SMTP_PASSWORD=${SMTP_PASSWORD:-False} \
-    SMTP_PORT=${SMTP_PORT:-25} \
-    SMTP_SERVER=${SMTP_SERVER:-localhost} \
-    SMTP_SSL=${SMTP_SSL:-False} \
-    SMTP_USER=${SMTP_USER:-False} \
-    TEST_ENABLE=${TEST_ENABLE:-False} \
-    UNACCENT=${UNACCENT:-False} \
-    WITHOUT_DEMO=${WITHOUT_DEMO:-False} \
-    WORKERS=${WORKERS:-0}
 
 # Use noninteractive to get rid of apt-utils message
 ENV DEBIAN_FRONTEND=noninteractive
@@ -157,9 +113,85 @@ RUN set -x;\
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/*
 
+FROM base as builder
+
+# Install Odoo source code and install it as a package inside the container with additional tools
+ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
+ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
+
+RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
+RUN pip install --no-cache-dir --upgrade --prefix=/usr/local -e ./${ODOO_BASEPATH} \
+    && pip --quiet --quiet install --prefix=/usr/local --no-cache-dir --upgrade \
+    astor \
+    psycogreen \
+    python-magic \
+    phonenumbers \
+    num2words \
+    xlrd \
+    python-stdnum \
+    click-odoo-contrib \
+    git-aggregator \
+    python-json-logger \
+    wdb \
+    websocket-client \
+    Werkzeug==0.15.6 \
+    && (python3 -m compileall -q /usr/local || true) \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && rm -rf /var/lib/apt/lists/* /tmp/*
+
+FROM base
+
+ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
+
+# PIP auto-install requirements.txt (change value to "1" to auto-install)
+ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
+
+# Run tests for all the modules in the custom addons
+ENV RUN_TESTS=${RUN_TESTS:-"0"}
+
+# Odoo Configuration file defaults
+ENV \
+    ADMIN_PASSWORD=${ADMIN_PASSWORD:-my-weak-password} \
+    ODOO_DATA_DIR=${ODOO_DATA_DIR:-/var/lib/odoo/data} \
+    DB_PORT_5432_TCP_ADDR=${DB_PORT_5432_TCP_ADDR:-db} \
+    DB_MAXCONN=${DB_MAXCONN:-64} \
+    DB_ENV_POSTGRES_PASSWORD=${DB_ENV_POSTGRES_PASSWORD:-odoo} \
+    DB_PORT_5432_TCP_PORT=${DB_PORT_5432_TCP_PORT:-5432} \
+    DB_SSLMODE=${DB_SSLMODE:-prefer} \
+    DB_TEMPLATE=${DB_TEMPLATE:-template1} \
+    DB_ENV_POSTGRES_USER=${DB_ENV_POSTGRES_USER:-odoo} \
+    DBFILTER=${DBFILTER:-.*} \
+    HTTP_INTERFACE=${HTTP_INTERFACE:-0.0.0.0} \
+    HTTP_PORT=${HTTP_PORT:-8069} \
+    LIMIT_MEMORY_HARD=${LIMIT_MEMORY_HARD:-2684354560} \
+    LIMIT_MEMORY_SOFT=${LIMIT_MEMORY_SOFT:-2147483648} \
+    LIMIT_TIME_CPU=${LIMIT_TIME_CPU:-60} \
+    LIMIT_TIME_REAL=${LIMIT_TIME_REAL:-120} \
+    LIMIT_TIME_REAL_CRON=${LIMIT_TIME_REAL_CRON:-0} \
+    LIST_DB=${LIST_DB:-True} \
+    LOG_DB=${LOG_DB:-False} \
+    LOG_DB_LEVEL=${LOG_DB_LEVEL:-warning} \
+    LOGFILE=${LOGFILE:-None} \
+    LOG_HANDLER=${LOG_HANDLER:-:INFO} \
+    LOG_LEVEL=${LOG_LEVEL:-info} \
+    MAX_CRON_THREADS=${MAX_CRON_THREADS:-2} \
+    PROXY_MODE=${PROXY_MODE:-False} \
+    SERVER_WIDE_MODULES=${SERVER_WIDE_MODULES:-base,web} \
+    SMTP_PASSWORD=${SMTP_PASSWORD:-False} \
+    SMTP_PORT=${SMTP_PORT:-25} \
+    SMTP_SERVER=${SMTP_SERVER:-localhost} \
+    SMTP_SSL=${SMTP_SSL:-False} \
+    SMTP_USER=${SMTP_USER:-False} \
+    TEST_ENABLE=${TEST_ENABLE:-False} \
+    UNACCENT=${UNACCENT:-False} \
+    WITHOUT_DEMO=${WITHOUT_DEMO:-False} \
+    WORKERS=${WORKERS:-0}
+
+COPY --from=builder /usr/local /usr/local
+COPY --from=builder /opt/odoo ${ODOO_BASEPATH}
+
 # Create app user
 ENV ODOO_USER odoo
-ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
 
 ARG APP_UID
 ENV APP_UID ${APP_UID:-1000}
@@ -182,27 +214,6 @@ RUN apt-get update \
 # Copy from build env
 COPY ./resources/entrypoint.sh /
 COPY ./resources/getaddons.py /
-
-# Install Odoo source code and install it as a package inside the container with additional tools
-ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
-RUN git clone --depth=1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git ${ODOO_BASEPATH}
-RUN pip install --no-cache-dir --upgrade -e ./${ODOO_BASEPATH} \
-    && pip --quiet --quiet install --no-cache-dir --upgrade \
-    astor \
-    psycogreen \
-    python-magic \
-    phonenumbers \
-    xlrd \
-    python-stdnum \
-    click-odoo-contrib \
-    git-aggregator \
-    python-json-logger \
-    wdb \
-    websocket-client \
-    Werkzeug==0.15.6 \
-    && (python3 -m compileall -q /usr/local/lib/python3.7/ || true) \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Define all needed directories
 ENV ODOO_RC ${ODOO_RC:-/etc/odoo/odoo.conf}
