@@ -28,15 +28,17 @@
 			"/opt/odoo"
 		],
 		"python.linting.pylintArgs": [
-			"--config=${workspaceFolder}/.vscode/oca_pylint.cfg"
+			"--rcfile", "${workspaceFolder}/.vscode/oca_pylint.cfg",
+			"--load-plugins", "pylint_odoo"
+			
 		],
 		"python.linting.flake8Enabled": true,
 		"python.linting.flake8Args": [
-			"--config=/etc/.vscode/travis_run_flake8.cfg"
+			"--config", "${workspaceFolder}/.vscode/travis_run_flake8.cfg"
 		],
 		"python.formatting.provider": "yapf",
 		"python.formatting.yapfArgs": [
-			"--style=/etc/.vscode/.style.yapf"
+			"--style", "${workspaceFolder}/.vscode/.style.yapf"
 		],
 
 		"window.zoomLevel": -0.5,
