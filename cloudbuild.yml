@@ -25,4 +25,4 @@ steps:
 images: 
 - 'gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME}'
 
-timeout: 900s
+timeout: 1300s
