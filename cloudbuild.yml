@@ -24,3 +24,5 @@ steps:
 # Tag the image for GCR and Cloud Build
 images: 
 - 'gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME}'
+
+timeout: 1300s
