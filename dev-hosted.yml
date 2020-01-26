@@ -19,9 +19,10 @@ services:
     #  dockerfile: Dockerfile
     volumes:
       # Host paths (odoo src code & .vscode conf)
+      - ./.devcontainer/.vscode:${ODOO_EXTRA_ADDONS}/.vscode
+      - ./config/odoo.conf:/etc/odoo/odoo.conf
+      - ~/.ssh/:/opt/odoo/.ssh/
       - ./src/odoo:/${ODOO_BASEPATH}
-      - ./config:/etc/odoo
-      - ./.devcontainer/.vscode:/etc/.vscode
     environment:
       - LOG_LEVEL=debug
       - WITHOUT_DEMO=False
