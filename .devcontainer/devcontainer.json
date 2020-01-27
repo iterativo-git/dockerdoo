@@ -88,8 +88,11 @@
 		"dbaeumer.vscode-eslint",
 		"DotJoshJohnson.xml",
 		"eamodio.gitlens",
-		"emmanuelbeziat.vscode-great-icons",
+		"magicstack.magicpython",
 		"ms-python.python",
-		"mstuttgart.odoo-snippets"
+		"ms-azuretools.vscode-docker",
+		"mstuttgart.odoo-snippets",
+		"vscode-icons-team.vscode-icons",
+		"visualstudioexptteam.vscodeintellicode"
 	]
 }
