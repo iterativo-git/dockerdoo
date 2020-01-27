@@ -8,7 +8,7 @@
 	"workspaceFolder": "/mnt/extra-addons",
 
 	"shutdownAction": "stopCompose",
-	"postCreateCommand": "sudo pip install --no-cache-dir --upgrade git+https://github.com/oca/pylint-odoo.git yapf flake8 inotify",
+	"postCreateCommand": "sudo pip install --no-cache-dir --upgrade --pre git+https://github.com/oca/pylint-odoo.git black flake8 inotify",
 
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash",
@@ -36,9 +36,9 @@
 		"python.linting.flake8Args": [
 			"--config", "${workspaceFolder}/.vscode/travis_run_flake8.cfg"
 		],
-		"python.formatting.provider": "yapf",
-		"python.formatting.yapfArgs": [
-			"--style", "${workspaceFolder}/.vscode/.style.yapf"
+		"python.formatting.provider": "black",
+		"python.formatting.blackArgs": [
+			"--skip-string-normalization"
 		],
 
 		"window.zoomLevel": -0.5,
@@ -63,7 +63,7 @@
 		},
 
 		"workbench.colorTheme": "Monokai Dark Soda",
-		"workbench.iconTheme": "vscode-great-icons",
+		"workbench.iconTheme": "vscode-icons",
 		"workbench.colorCustomizations": {
 			"activityBarBadge.background": "#388E3C",
 			"editorSuggestWidget.highlightForeground": "#388E3C",
