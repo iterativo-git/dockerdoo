@@ -44,6 +44,7 @@
 		"window.zoomLevel": -0.5,
 		"editor.fontSize": 16,
 		"editor.formatOnType": true,
+		"files.eol": "\n",
 		"files.exclude": {
 			"**/*.cache": true,
 			"**/*.idea": true,
