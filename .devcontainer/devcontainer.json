@@ -8,7 +8,7 @@
 	"workspaceFolder": "/mnt/extra-addons",
 
 	"shutdownAction": "stopCompose",
-	"postCreateCommand": "sudo pip install --no-cache-dir --upgrade --pre git+https://github.com/oca/pylint-odoo.git black flake8 inotify",
+	"postCreateCommand": "sudo pip install --no-cache-dir --upgrade --pre git+https://github.com/oca/pylint-odoo.git black flake8 inotify ptvsd",
 
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash",

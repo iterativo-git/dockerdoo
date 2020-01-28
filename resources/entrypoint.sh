@@ -63,11 +63,8 @@ smtp_user = ${SMTP_USER}
 test_enable = ${TEST_ENABLE}
 unaccent = ${UNACCENT}
 without_demo = ${WITHOUT_DEMO}
-workers = ${WORKERS}" > $ODOO_RC
-
-    if [ ! -z "$EXTRA_ADDONS_PATHS" ]; then
-        echo "addons_path = ${EXTRA_ADDONS_PATHS}" >> $ODOO_RC
-    fi
+workers = ${WORKERS}
+addons_path = ${EXTRA_ADDONS_PATHS}" > $ODOO_RC
 fi
 
 DB_ARGS=()
