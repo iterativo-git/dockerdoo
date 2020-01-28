@@ -11,8 +11,23 @@ set -x
 
 # set all variables
 
+function getAddons() {
+
+    EXTRA_ADDONS_PATHS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS} 2>&1)
+}
+
+getAddons
+
+if [ -z "$EXTRA_ADDONS_PATHS" ]; then
+    echo "The variable \$EXTRA_ADDONS_PATHS is empty, using default addons_path"
+else
+    if [ "$PIP_AUTO_INSTALL" -eq "1" ]; then
+        find $ODOO_EXTRA_ADDONS -name 'requirements.txt' -exec pip3 install --user -r {} \;
+    fi
+fi
+
 if [ ! -f ${ODOO_RC} ]; then
-    echo "
+echo "
 [options]
 admin_passwd = ${ADMIN_PASSWORD}
 data_dir = ${ODOO_DATA_DIR}
@@ -48,26 +63,11 @@ smtp_user = ${SMTP_USER}
 test_enable = ${TEST_ENABLE}
 unaccent = ${UNACCENT}
 without_demo = ${WITHOUT_DEMO}
-workers = ${WORKERS}
-    " > $ODOO_RC
-fi
+workers = ${WORKERS}" > $ODOO_RC
 
-function getAddons() {
-
-    EXTRA_ADDONS_PATHS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS} 2>&1)
-}
-
-getAddons
-
-if [ -z "$EXTRA_ADDONS_PATHS" ]; then
-    echo "The variable \$EXTRA_ADDONS_PATHS is empty, using default addons_path"
-else
-    echo "addons_path = $EXTRA_ADDONS_PATHS" >> $ODOO_RC
-
-    if [ "$PIP_AUTO_INSTALL" -eq "1" ]; then
-        find $ODOO_EXTRA_ADDONS -name 'requirements.txt' -exec pip3 install --user -r {} \;
+    if [ ! -z "$EXTRA_ADDONS_PATHS" ]; then
+        echo "addons_path = ${EXTRA_ADDONS_PATHS}" >> $ODOO_RC
     fi
-
 fi
 
 DB_ARGS=()

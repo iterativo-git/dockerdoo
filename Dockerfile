@@ -113,6 +113,7 @@ RUN pip install --no-cache-dir --upgrade --prefix=/usr/local https://nightly.odo
     python-stdnum \
     click-odoo-contrib \
     git-aggregator \
+    inotify \
     python-json-logger \
     wdb \
     websocket-client \
