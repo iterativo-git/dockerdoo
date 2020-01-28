@@ -27,7 +27,7 @@ else
 fi
 
 if [ ! -f ${ODOO_RC} ]; then
-    echo "
+echo "
 [options]
 admin_passwd = ${ADMIN_PASSWORD}
 data_dir = ${ODOO_DATA_DIR}
@@ -63,9 +63,11 @@ smtp_user = ${SMTP_USER}
 test_enable = ${TEST_ENABLE}
 unaccent = ${UNACCENT}
 without_demo = ${WITHOUT_DEMO}
-workers = ${WORKERS}
-addons_path = ${EXTRA_ADDONS_PATHS}
-    " > $ODOO_RC
+workers = ${WORKERS}" > $ODOO_RC
+
+    if [ ! -z "$EXTRA_ADDONS_PATHS" ]; then
+        echo "addons_path = ${EXTRA_ADDONS_PATHS}" >> $ODOO_RC
+    fi
 fi
 
 DB_ARGS=()
