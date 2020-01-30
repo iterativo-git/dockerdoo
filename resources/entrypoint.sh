@@ -64,7 +64,7 @@ test_enable = ${TEST_ENABLE}
 unaccent = ${UNACCENT}
 without_demo = ${WITHOUT_DEMO}
 workers = ${WORKERS}
-addons_path = ${EXTRA_ADDONS_PATHS}" > $ODOO_RC
+addons_path = ${ODOO_ADDONS_BASEPATH},${EXTRA_ADDONS_PATHS}" > $ODOO_RC
 fi
 
 DB_ARGS=()

@@ -30,6 +30,7 @@ RUN set -x; \
     node-less \
     npm \
     python3-renderpm \
+    python3-watchdog \
     nano \
     vim \
     zlibc \
@@ -102,13 +103,15 @@ RUN set -x; \
 # Install Odoo source code and install it as a package inside the container with additional tools
 ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
 
-RUN pip install --no-cache-dir --upgrade --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip \
-    && pip --quiet --quiet install --prefix=/usr/local --no-cache-dir --upgrade \
+RUN pip -qq install --no-cache-dir --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
+    && pip -qq install --prefix=/usr/local --no-cache-dir --upgrade \
     astor \
     psycogreen \
     python-magic \
     phonenumbers \
     num2words \
+    qrcode \
+    vobject \
     xlrd \
     python-stdnum \
     click-odoo-contrib \
@@ -118,7 +121,6 @@ RUN pip install --no-cache-dir --upgrade --prefix=/usr/local https://nightly.odo
     wdb \
     websocket-client \
     Werkzeug==0.15.6 \
-    && (python3 -m compileall -q /usr/local || true) \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
@@ -170,10 +172,14 @@ ENV \
     WITHOUT_DEMO=${WITHOUT_DEMO:-False} \
     WORKERS=${WORKERS:-0}
 
+# Install Odoo
+ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
+ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
+RUN git clone -b ${ODOO_VERSION} --depth=1 --single-branch https://github.com/odoo/odoo.git ${ODOO_BASEPATH} \
+    && pip -qq install --no-cache-dir -e ${ODOO_BASEPATH}
+
 # Create app user
 ENV ODOO_USER odoo
-ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
-
 ARG APP_UID
 ENV APP_UID ${APP_UID:-1000}
 
@@ -181,7 +187,6 @@ ARG APP_GID
 ENV APP_GID ${APP_UID:-1000}
 
 RUN apt-get update \
-    && ln -fs /usr/local/lib/python3.7/site-packages/odoo ${ODOO_BASEPATH} \
     && addgroup --system --gid ${APP_GID} ${ODOO_USER} \
     && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
     # [Optional] Add sudo support for the non-root user
@@ -214,7 +219,7 @@ RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} /etc/odoo/
 COPY ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
 
 # Own folders    //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
-RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} ${ODOO_EXTRA_ADDONS} /etc/odoo/ /entrypoint.sh /getaddons.py /usr/local/lib/python3.7/site-packages/odoo
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} ${ODOO_EXTRA_ADDONS} /etc/odoo/ /entrypoint.sh /getaddons.py
 RUN chmod u+x /entrypoint.sh /getaddons.py
 
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
