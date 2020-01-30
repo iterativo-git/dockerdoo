@@ -21,7 +21,7 @@ steps:
   - |
     docker pull gcr.io/$PROJECT_ID/${REPO_NAME}:${BRANCH_NAME} || exit 0
 
-    # Build the new image
+# Build the new image
 - name: 'gcr.io/cloud-builders/docker'
   id: build
   waitFor: ['pull-dockerdoo']
@@ -33,8 +33,8 @@ steps:
       '.'
     ]
 
-  # Install PostgreSQL
-  - name: gcr.io/cloud-builders/docker
+# Install PostgreSQL
+- name: gcr.io/cloud-builders/docker
   id: postgres
   waitFor: ['-']
   args: 
