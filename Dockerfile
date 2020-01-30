@@ -121,6 +121,7 @@ RUN pip -qq install --no-cache-dir --requirement https://raw.githubusercontent.c
     wdb \
     websocket-client \
     Werkzeug==0.15.6 \
+    && (python3 -m compileall -q /usr/local || true) \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
