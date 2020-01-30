@@ -1,6 +1,6 @@
 substitutions:
   # Odoo variables
-  _RUN_TESTS: '1'
+  _RUN_TESTS: '0'
   _PIP_AUTO_INSTALL: '0'
   _LOG_LEVEL: info
   _WITHOUT_DEMO: 'False'
