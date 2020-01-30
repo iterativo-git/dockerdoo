@@ -175,8 +175,7 @@ ENV \
 # Install Odoo
 ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
 ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
-RUN git clone -b ${ODOO_VERSION} --depth=1 --single-branch https://github.com/odoo/odoo.git ${ODOO_BASEPATH} \
-    && pip -qq install --no-cache-dir -e ${ODOO_BASEPATH}
+RUN pip install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip
 
 # Create app user
 ENV ODOO_USER odoo
@@ -187,6 +186,7 @@ ARG APP_GID
 ENV APP_GID ${APP_UID:-1000}
 
 RUN apt-get update \
+    && ln -fs /usr/local/lib/python3.7/site-packages/odoo ${ODOO_BASEPATH} \
     && addgroup --system --gid ${APP_GID} ${ODOO_USER} \
     && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
     # [Optional] Add sudo support for the non-root user
