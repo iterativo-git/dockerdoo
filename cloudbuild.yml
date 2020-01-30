@@ -52,7 +52,7 @@ steps:
   id: tests
   dir: /
   waitFor: ['postgres', 'build']
-  args: ['odoo', '-d', '${REPO_NAME}-${BRANCH_NAME}', '--stop-after-init']
+  args: ['odoo', '-d', '${REPO_NAME}-${BRANCH_NAME}', '--test-enable', '-i', 'base', '--stop-after-init']
   env:
     - 'DB_PORT_5432_TCP_ADDR=${REPO_NAME}-${BRANCH_NAME}'
     - 'DB_ENV_POSTGRES_USER=odoo'
