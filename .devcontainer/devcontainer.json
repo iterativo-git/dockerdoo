@@ -2,13 +2,14 @@
 	"name": "Python 3 & PostgreSQL",
 	"dockerComposeFile": [
 		"../docker-compose.yml",
-		"../dev-standalone.yml"
+		"dev-vscode.yml"
 	],
 	"service": "odoo",
-	"workspaceFolder": "/mnt/extra-addons",
-
+	"remoteUser": "odoo",
 	"shutdownAction": "stopCompose",
 	"postCreateCommand": "sudo pip install --no-cache-dir --upgrade --pre git+https://github.com/oca/pylint-odoo.git black flake8 inotify ptvsd",
+
+	"workspaceFolder": "/mnt/extra-addons",
 
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash",
