@@ -1,0 +1,10 @@
+version: "3.7"
+
+services:
+  odoo:
+    volumes:
+      # Host paths (.vscode configuration)
+      - ./.devcontainer/.vscode:${ODOO_EXTRA_ADDONS}/.vscode
+      - ~/.ssh/:/opt/odoo/.ssh/
+    depends_on: ["db"]
+    command: /bin/sh -c "while sleep 1000; do :; done"
