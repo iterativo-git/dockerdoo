@@ -49,9 +49,6 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-# Grab latest pip
-RUN curl --silent --show-error --location https://bootstrap.pypa.io/get-pip.py | python /dev/stdin --no-cache-dir
-
 # Install latest postgresql-client
 RUN set -x; \
     echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > etc/apt/sources.list.d/pgdg.list \
@@ -99,12 +96,12 @@ RUN set -x; \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
-
 # Install Odoo source code and install it as a package inside the container with additional tools
 ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
 
-RUN pip -qq install --no-cache-dir --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
-    && pip -qq install --prefix=/usr/local --no-cache-dir --upgrade \
+RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip \
+    && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
+    && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
     astor \
     psycogreen \
     python-magic \
@@ -129,7 +126,7 @@ FROM base
 
 COPY --from=builder /usr/local /usr/local
 
-# PIP auto-install requirements.txt (change value to "1" to auto-install)
+# pip3 auto-install requirements.txt (change value to "1" to auto-install)
 ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
 
 # Run tests for all the modules in the custom addons
@@ -175,8 +172,6 @@ ENV \
 
 # Install Odoo
 ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
-ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
-RUN pip install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip
 
 # Create app user
 ENV ODOO_USER odoo
@@ -220,7 +215,7 @@ RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} /etc/odoo/
 COPY ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
 
 # Own folders    //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
-RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} ${ODOO_EXTRA_ADDONS} /etc/odoo/ /entrypoint.sh /getaddons.py
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} ${ODOO_EXTRA_ADDONS} /etc/odoo/ /entrypoint.sh /getaddons.py /usr/local/lib/python3.7/site-packages/odoo
 RUN chmod u+x /entrypoint.sh /getaddons.py
 
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
@@ -233,7 +228,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
 ENV EXTRA_MODULES ${EXTRA_MODULES}
 
-RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip install --no-cache-dir -r {} \;
+RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip3 install --no-cache-dir -r {} \;
 
 USER ${ODOO_USER}
 
