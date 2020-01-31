@@ -30,6 +30,7 @@ RUN set -x; \
     node-less \
     npm \
     python3-renderpm \
+    python3-watchdog \
     nano \
     vim \
     zlibc \
@@ -47,9 +48,6 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
-
-# Grab latest pip
-RUN curl --silent --show-error --location https://bootstrap.pypa.io/get-pip.py | python /dev/stdin --no-cache-dir
 
 # Install latest postgresql-client
 RUN set -x; \
@@ -98,17 +96,19 @@ RUN set -x; \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
-
 # Install Odoo source code and install it as a package inside the container with additional tools
 ENV ODOO_VERSION ${ODOO_VERSION:-13.0}
 
-RUN pip install --no-cache-dir --upgrade --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip \
-    && pip --quiet --quiet install --prefix=/usr/local --no-cache-dir --upgrade \
+RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip \
+    && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
+    && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
     astor \
     psycogreen \
     python-magic \
     phonenumbers \
     num2words \
+    qrcode \
+    vobject \
     xlrd \
     python-stdnum \
     click-odoo-contrib \
@@ -126,7 +126,7 @@ FROM base
 
 COPY --from=builder /usr/local /usr/local
 
-# PIP auto-install requirements.txt (change value to "1" to auto-install)
+# pip3 auto-install requirements.txt (change value to "1" to auto-install)
 ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
 
 # Run tests for all the modules in the custom addons
@@ -170,10 +170,11 @@ ENV \
     WITHOUT_DEMO=${WITHOUT_DEMO:-False} \
     WORKERS=${WORKERS:-0}
 
-# Create app user
-ENV ODOO_USER odoo
+# Install Odoo
 ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
 
+# Create app user
+ENV ODOO_USER odoo
 ARG APP_UID
 ENV APP_UID ${APP_UID:-1000}
 
@@ -227,7 +228,7 @@ ENTRYPOINT ["/entrypoint.sh"]
 ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
 ENV EXTRA_MODULES ${EXTRA_MODULES}
 
-RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip install --no-cache-dir -r {} \;
+RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip3 install --no-cache-dir -r {} \;
 
 USER ${ODOO_USER}
 
