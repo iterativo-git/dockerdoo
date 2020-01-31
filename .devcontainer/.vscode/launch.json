@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Odoo debug",
+            "type": "python",
+            "request": "launch",
+            "redirectOutput": false,
+            "cwd": "${workspaceRoot}",
+            "justMyCode": true,
+            "program": "/usr/local/bin/odoo",
+            "args": [
+                "--config=/etc/odoo/odoo.conf",
+                "--dev=reload,qweb,werkzeug,xml",
+                "--log-level=info",
+            ],
+        },
+    ]
+}
