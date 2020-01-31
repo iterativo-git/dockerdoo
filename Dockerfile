@@ -126,7 +126,7 @@ FROM base
 
 COPY --from=builder /usr/local /usr/local
 
-# pip3 auto-install requirements.txt (change value to "1" to auto-install)
+# PIP auto-install requirements.txt (change value to "1" to auto-install)
 ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
 
 # Run tests for all the modules in the custom addons
@@ -170,11 +170,9 @@ ENV \
     WITHOUT_DEMO=${WITHOUT_DEMO:-False} \
     WORKERS=${WORKERS:-0}
 
-# Install Odoo
-ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
-
 # Create app user
 ENV ODOO_USER odoo
+ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
 ARG APP_UID
 ENV APP_UID ${APP_UID:-1000}
 
