@@ -7,4 +7,6 @@ services:
       - ./.devcontainer/.vscode:${ODOO_EXTRA_ADDONS}/.vscode
       - ~/.ssh/:/opt/odoo/.ssh/
     depends_on: ["db"]
+    environment:
+      - PIP_AUTO_INSTALL=1
     command: /bin/sh -c "while sleep 1000; do :; done"
