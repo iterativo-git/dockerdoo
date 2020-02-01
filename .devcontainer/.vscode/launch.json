@@ -2,7 +2,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Odoo debug",
+            "name": "Normal",
+            "type": "python",
+            "request": "launch",
+            "redirectOutput": false,
+            "cwd": "${workspaceRoot}",
+            "justMyCode": true,
+            "program": "/usr/local/bin/odoo",
+            "args": [
+                "--config=/etc/odoo/odoo.conf",
+                "--log-level=warn",
+            ],
+        },
+        {
+            "name": "Debug",
             "type": "python",
             "request": "launch",
             "redirectOutput": false,
@@ -13,6 +26,36 @@
                 "--config=/etc/odoo/odoo.conf",
                 "--dev=reload,qweb,werkzeug,xml",
                 "--log-level=info",
+            ],
+        },
+        {
+            "name": "Update",
+            "type": "python",
+            "request": "launch",
+            "redirectOutput": false,
+            "cwd": "${workspaceRoot}",
+            "program": "/usr/local/bin/odoo",
+            "args": [
+                "--config=/etc/odoo/odoo.conf",
+                "--log-level=info",
+                "--test-enable",
+                "-d", "",
+                "-u", "",
+            ],
+        },
+        {
+            "name": "Test",
+            "type": "python",
+            "request": "launch",
+            "redirectOutput": false,
+            "cwd": "${workspaceRoot}",
+            "program": "/usr/local/bin/odoo",
+            "args": [
+                "--config=/etc/odoo/odoo.conf",
+                "--log-level=info",
+                "--test-enable",
+                "-d", "",
+                "-i", "",
             ],
         },
     ]
