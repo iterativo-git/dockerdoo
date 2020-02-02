@@ -60,10 +60,10 @@ workers = ${WORKERS}" > $ODOO_RC
         echo "The variable \$EXTRA_ADDONS_PATHS is empty, using default addons_path"
         echo "addons_path = ${ODOO_ADDONS_BASEPATH}" >> $ODOO_RC
     else
-        echo "addons_path = ${ODOO_ADDONS_BASEPATH},${EXTRA_ADDONS_PATHS}" >> $ODOO_RC
         if [ "$PIP_AUTO_INSTALL" -eq "1" ]; then
             find $ODOO_EXTRA_ADDONS -name 'requirements.txt' -exec pip3 install --user -r {} \;
         fi
+        echo "addons_path = ${ODOO_ADDONS_BASEPATH},${EXTRA_ADDONS_PATHS}" >> $ODOO_RC
     fi
 fi
 
