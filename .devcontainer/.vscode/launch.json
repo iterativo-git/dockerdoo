@@ -11,7 +11,7 @@
             "program": "/usr/local/bin/odoo",
             "args": [
                 "--config=/etc/odoo/odoo.conf",
-                "--log-level=warn",
+                "--log-level=info",
             ],
         },
         {
@@ -38,7 +38,6 @@
             "args": [
                 "--config=/etc/odoo/odoo.conf",
                 "--log-level=info",
-                "--test-enable",
                 "-d", "",
                 "-u", "",
             ],
