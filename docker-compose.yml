@@ -22,7 +22,7 @@ services:
 
     volumes:
       # Host paths (addons & conf)
-      - ./custom:${ODOO_EXTRA_ADDONS}
+      - ./custom:${ODOO_EXTRA_ADDONS}:delegated
       # Named volumes
       - odoo-data:${ODOO_DATA_DIR}
       - odoo-testlogs:${ODOO_LOGS_DIR}
