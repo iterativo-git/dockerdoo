@@ -91,7 +91,7 @@ case "$1" in
             if [ -z "$EXTRA_MODULES" ]; then
                 EXTRA_MODULES=$(python3 -c "from getaddons import get_modules; print(','.join(get_modules('${ODOO_EXTRA_ADDONS}', depth=3)))")
             fi
-            exec odoo "$@" "--test-enable" "--stop-after-init" "-i" "${EXTRA_MODULES}" "${DB_ARGS[@]}"
+            exec odoo "$@" "--test-enable" "--stop-after-init" "-i" "${EXTRA_MODULES}" "--test-tags" "${EXTRA_MODULES}" "${DB_ARGS[@]}"
         else
             exec odoo "$@" "${DB_ARGS[@]}"
         fi
