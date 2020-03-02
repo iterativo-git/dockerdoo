@@ -221,10 +221,13 @@ VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
 # Docker healthcheck command
 HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
 
-ENTRYPOINT ["/entrypoint.sh"]
-
+ARG EXTRA_ADDONS_PATHS
 ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
+
+ARG EXTRA_MODULES
 ENV EXTRA_MODULES ${EXTRA_MODULES}
+
+ENTRYPOINT ["/entrypoint.sh"]
 
 RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip3 install --no-cache-dir -r {} \;
 
