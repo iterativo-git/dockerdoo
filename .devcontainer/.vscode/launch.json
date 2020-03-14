@@ -1,0 +1,61 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Normal",
+            "type": "python",
+            "request": "launch",
+            "redirectOutput": false,
+            "cwd": "${workspaceRoot}",
+            "justMyCode": true,
+            "program": "/usr/local/bin/odoo",
+            "args": [
+                "--config=/etc/odoo/odoo.conf",
+                "--log-level=info",
+            ],
+        },
+        {
+            "name": "Debug",
+            "type": "python",
+            "request": "launch",
+            "redirectOutput": false,
+            "cwd": "${workspaceRoot}",
+            "justMyCode": true,
+            "program": "/usr/local/bin/odoo",
+            "args": [
+                "--config=/etc/odoo/odoo.conf",
+                "--dev=reload,qweb,werkzeug,xml",
+                "--log-level=info",
+            ],
+        },
+        {
+            "name": "Update",
+            "type": "python",
+            "request": "launch",
+            "redirectOutput": false,
+            "cwd": "${workspaceRoot}",
+            "program": "/usr/local/bin/odoo",
+            "args": [
+                "--config=/etc/odoo/odoo.conf",
+                "--log-level=info",
+                "-d", "",
+                "-u", "",
+            ],
+        },
+        {
+            "name": "Test",
+            "type": "python",
+            "request": "launch",
+            "redirectOutput": false,
+            "cwd": "${workspaceRoot}",
+            "program": "/usr/local/bin/odoo",
+            "args": [
+                "--config=/etc/odoo/odoo.conf",
+                "--log-level=info",
+                "--test-enable",
+                "-d", "",
+                "-i", "",
+            ],
+        },
+    ]
+}

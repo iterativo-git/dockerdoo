@@ -2,13 +2,14 @@
 	"name": "Python 3 & PostgreSQL",
 	"dockerComposeFile": [
 		"../docker-compose.yml",
-		"../dev-standalone.yml"
+		"dev-vscode.yml"
 	],
 	"service": "odoo",
-	"workspaceFolder": "/mnt/extra-addons",
-
+	"remoteUser": "odoo",
 	"shutdownAction": "stopCompose",
-	"postCreateCommand": "sudo pip install --no-cache-dir --upgrade git+https://github.com/oca/pylint-odoo.git yapf flake8 inotify",
+	"postCreateCommand": "sudo apt update && sudo apt install -y ssh && sudo pip install --no-cache-dir --upgrade --pre git+https://github.com/oca/pylint-odoo.git black flake8 inotify ptvsd",
+
+	"workspaceFolder": "/mnt/extra-addons",
 
 	"settings": {
 		"terminal.integrated.shell.linux": "/bin/bash",
@@ -36,14 +37,15 @@
 		"python.linting.flake8Args": [
 			"--config", "${workspaceFolder}/.vscode/travis_run_flake8.cfg"
 		],
-		"python.formatting.provider": "yapf",
-		"python.formatting.yapfArgs": [
-			"--style", "${workspaceFolder}/.vscode/.style.yapf"
+		"python.formatting.provider": "black",
+		"python.formatting.blackArgs": [
+			"--skip-string-normalization"
 		],
 
 		"window.zoomLevel": -0.5,
 		"editor.fontSize": 16,
 		"editor.formatOnType": true,
+		"files.eol": "\n",
 		"files.exclude": {
 			"**/*.cache": true,
 			"**/*.idea": true,
@@ -63,7 +65,7 @@
 		},
 
 		"workbench.colorTheme": "Monokai Dark Soda",
-		"workbench.iconTheme": "vscode-great-icons",
+		"workbench.iconTheme": "vscode-icons",
 		"workbench.colorCustomizations": {
 			"activityBarBadge.background": "#388E3C",
 			"editorSuggestWidget.highlightForeground": "#388E3C",
@@ -88,8 +90,11 @@
 		"dbaeumer.vscode-eslint",
 		"DotJoshJohnson.xml",
 		"eamodio.gitlens",
-		"emmanuelbeziat.vscode-great-icons",
+		"magicstack.magicpython",
 		"ms-python.python",
-		"mstuttgart.odoo-snippets"
+		"ms-azuretools.vscode-docker",
+		"mstuttgart.odoo-snippets",
+		"vscode-icons-team.vscode-icons",
+		"visualstudioexptteam.vscodeintellicode"
 	]
 }

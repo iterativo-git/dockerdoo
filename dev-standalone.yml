@@ -18,9 +18,7 @@ services:
     #  dockerfile: Dockerfile
     volumes:
       # Host paths (.vscode configuration)
-      - ./.devcontainer/.vscode:/etc/.vscode
-      - ./config/odoo.conf:/etc/odoo/odoo.conf
-      - ~/.ssh/:/opt/odoo/.ssh/
+      - ~/.ssh/:/opt/odoo/.ssh/:cached
     environment:
       - LOG_LEVEL=debug
       - WITHOUT_DEMO=False

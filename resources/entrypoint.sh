@@ -4,15 +4,23 @@ set -x
 
 # set the postgres database host, port, user and password according to the environment
 # and pass them as arguments to the odoo process if not present in the config file
-: ${HOST:=${DB_PORT_5432_TCP_ADDR:='db'}}
-: ${PORT:=${DB_PORT_5432_TCP_PORT:=5432}}
-: ${USER:=${DB_ENV_POSTGRES_USER:=${POSTGRES_USER:='odoo'}}}
-: ${PASSWORD:=${DB_ENV_POSTGRES_PASSWORD:=${POSTGRES_PASSWORD:='odoo'}}}
+: ${PGHOST:=${DB_PORT_5432_TCP_ADDR:='db'}}
+: ${PGPORT:=${DB_PORT_5432_TCP_PORT:=5432}}
+: ${PGUSER:=${DB_ENV_POSTGRES_USER:=${POSTGRES_USER:='odoo'}}}
+: ${PGPASSWORD:=${DB_ENV_POSTGRES_PASSWORD:=${POSTGRES_PASSWORD:='odoo'}}}
+export PGHOST PGPORT PGUSER PGPASSWORD
 
 # set all variables
 
+function getAddons() {
+
+    EXTRA_ADDONS_PATHS=$(python getaddons.py ${ODOO_EXTRA_ADDONS} 2>&1)
+}
+
+getAddons
+
 if [ ! -f ${ODOO_RC} ]; then
-    echo "
+echo "
 [options]
 admin_passwd = ${ADMIN_PASSWORD}
 data_dir = ${ODOO_DATA_DIR}
@@ -48,26 +56,16 @@ smtp_user = ${SMTP_USER}
 test_enable = ${TEST_ENABLE}
 unaccent = ${UNACCENT}
 without_demo = ${WITHOUT_DEMO}
-workers = ${WORKERS}
-    " > $ODOO_RC
-fi
-
-function getAddons() {
-
-    EXTRA_ADDONS_PATHS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS} 2>&1)
-}
-
-getAddons
-
-if [ -z "$EXTRA_ADDONS_PATHS" ]; then
-    echo "The variable \$EXTRA_ADDONS_PATHS is empty, using default addons_path"
-else
-    echo "addons_path = $EXTRA_ADDONS_PATHS" >> $ODOO_RC
-
-    if [ "$PIP_AUTO_INSTALL" -eq "1" ]; then
-        find $ODOO_EXTRA_ADDONS -name 'requirements.txt' -exec pip install --user -r {} \;
+workers = ${WORKERS}" > $ODOO_RC
+    if [ -z "$EXTRA_ADDONS_PATHS" ]; then
+        echo "The variable \$EXTRA_ADDONS_PATHS is empty, using default addons_path"
+        echo "addons_path = ${ODOO_ADDONS_BASEPATH}" >> $ODOO_RC
+    else
+        if [ "$PIP_AUTO_INSTALL" -eq "1" ]; then
+            find $ODOO_EXTRA_ADDONS -name 'requirements.txt' -exec pip install --user -r {} \;
+        fi
+        echo "addons_path = ${ODOO_ADDONS_BASEPATH},${EXTRA_ADDONS_PATHS}" >> $ODOO_RC
     fi
-
 fi
 
 DB_ARGS=()
@@ -80,10 +78,10 @@ function check_config() {
    fi;
 }
 
-check_config "db_host" "$HOST"
-check_config "db_port" "$PORT"
-check_config "db_user" "$USER"
-check_config "db_password" "$PASSWORD"
+check_config "db_host" "$PGHOST"
+check_config "db_port" "$PGPORT"
+check_config "db_user" "$PGUSER"
+check_config "db_password" "$PGPASSWORD"
 
 case "$1" in
     -- | odoo | ${ODOO_CMD})
@@ -94,7 +92,7 @@ case "$1" in
             if [ -z "$EXTRA_MODULES" ]; then
                 EXTRA_MODULES=$(python -c "from getaddons import get_modules; print(','.join(get_modules('${ODOO_EXTRA_ADDONS}', depth=3)))")
             fi
-            exec odoo "$@" "--test-enable" "--stop-after-init" "-i ${EXTRA_MODULES}" "${DB_ARGS[@]}"
+            exec odoo "$@" "--test-enable" "--stop-after-init" "-i" "${EXTRA_MODULES}" "${DB_ARGS[@]}"
         else
             exec odoo "$@" "${DB_ARGS[@]}"
         fi

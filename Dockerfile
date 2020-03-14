@@ -47,9 +47,6 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-# Grab latest pip
-RUN curl --silent --show-error --location https://bootstrap.pypa.io/get-pip.py | python /dev/stdin --no-cache-dir
-
 # Install latest postgresql-client
 RUN set -x; \
     echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > etc/apt/sources.list.d/pgdg.list \
@@ -97,21 +94,24 @@ RUN set -x; \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
-
 # Install Odoo source code and install it as a package inside the container with additional tools
 ENV ODOO_VERSION ${ODOO_VERSION:-10.0}
 
-RUN pip install --no-cache-dir --upgrade --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip \
-    && pip --quiet --quiet install --prefix=/usr/local --no-cache-dir --upgrade \
+RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip \
+    && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
+    && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
     astor \
     psycogreen \
     python-magic \
     phonenumbers \
     num2words \
+    qrcode \
+    vobject \
     xlrd \
     python-stdnum \
     click-odoo-contrib \
     git-aggregator \
+    inotify \
     python-json-logger \
     wdb \
     websocket-client \
@@ -169,8 +169,7 @@ ENV \
 
 # Create app user
 ENV ODOO_USER odoo
-ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/usr/local/lib/python2.7/site-packages/odoo}
-
+ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
 ARG APP_UID
 ENV APP_UID ${APP_UID:-1000}
 
@@ -178,7 +177,7 @@ ARG APP_GID
 ENV APP_GID ${APP_UID:-1000}
 
 RUN apt-get update \
-    && chown ${APP_UID}:${APP_GID} -R ${ODOO_BASEPATH} \
+    && ln -fs /usr/local/lib/python2.7/site-packages/odoo ${ODOO_BASEPATH} \
     && addgroup --system --gid ${APP_GID} ${ODOO_USER} \
     && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
     # [Optional] Add sudo support for the non-root user
@@ -211,7 +210,7 @@ RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} /etc/odoo/
 COPY ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
 
 # Own folders    //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
-RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} ${ODOO_EXTRA_ADDONS} /etc/odoo/ /entrypoint.sh /getaddons.py
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} ${ODOO_EXTRA_ADDONS} /etc/odoo/ /entrypoint.sh /getaddons.py /usr/local/lib/python2.7/site-packages/odoo
 RUN chmod u+x /entrypoint.sh /getaddons.py
 
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
@@ -219,12 +218,20 @@ VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
 # Docker healthcheck command
 HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
 
-ENTRYPOINT ["/entrypoint.sh"]
-
+ARG EXTRA_ADDONS_PATHS
 ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
+
+ARG EXTRA_MODULES
 ENV EXTRA_MODULES ${EXTRA_MODULES}
 
-RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip install --no-cache-dir -r {} \;
+ENTRYPOINT ["/entrypoint.sh"]
+
+ENV PGHOST ${DB_PORT_5432_TCP_ADDR}
+ENV PGPORT ${DB_PORT_5432_TCP_PORT}
+ENV PGUSER ${DB_ENV_POSTGRES_USER}
+ENV PGPASSWORD ${DB_ENV_POSTGRES_PASSWORD}
+
+RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip3 install --no-cache-dir -r {} \;
 
 USER ${ODOO_USER}
 
