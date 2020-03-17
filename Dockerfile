@@ -97,9 +97,9 @@ RUN set -x; \
 # Install Odoo source code and install it as a package inside the container with additional tools
 ENV ODOO_VERSION ${ODOO_VERSION:-10.0}
 
-RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip \
-    && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
-    && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
+RUN pip install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip \
+    && pip -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
+    && pip -qq install --prefix=/usr/local --no-cache-dir --upgrade \
     astor \
     psycogreen \
     python-magic \
@@ -231,7 +231,7 @@ ENV PGPORT ${DB_PORT_5432_TCP_PORT}
 ENV PGUSER ${DB_ENV_POSTGRES_USER}
 ENV PGPASSWORD ${DB_ENV_POSTGRES_PASSWORD}
 
-RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip3 install --no-cache-dir -r {} \;
+RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip install --no-cache-dir -r {} \;
 
 USER ${ODOO_USER}
 
