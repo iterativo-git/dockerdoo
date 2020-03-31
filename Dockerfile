@@ -35,7 +35,11 @@ RUN set -x; \
     xz-utils \
     && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb \
     && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha256sum -c - \
-    && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
+    && apt-get -qq update && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
+    && echo "deb http://packages.cloud.google.com/apt gcsfuse-$(lsb_release -cs) main" \
+        | tee /etc/apt/sources.list.d/gcsfuse.list \
+    && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
+    && apt-get -qq update && apt-get install -y gcsfuse \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
 
@@ -113,6 +117,7 @@ RUN pip install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${OD
     xlrd \
     python-stdnum \
     click-odoo-contrib \
+    firebase-admin \
     git-aggregator \
     inotify \
     python-json-logger \
