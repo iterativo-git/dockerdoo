@@ -4,7 +4,7 @@ services:
   odoo:
     volumes:
       # Host paths (.vscode configuration)
-      - ./.devcontainer/.vscode:${ODOO_EXTRA_ADDONS}/.vscode
+      - ./.devcontainer/.vscode/:${ODOO_EXTRA_ADDONS}/.vscode/:delegated
       - ~/.ssh/:/opt/odoo/.ssh/
     depends_on: ["db"]
     environment:

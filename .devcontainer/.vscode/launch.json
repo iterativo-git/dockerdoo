@@ -2,12 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Normal",
+            "name": "Run",
             "type": "python",
             "request": "launch",
             "redirectOutput": false,
             "cwd": "${workspaceRoot}",
-            "justMyCode": true,
             "program": "/usr/local/bin/odoo",
             "args": [
                 "--config=/etc/odoo/odoo.conf",
@@ -20,16 +19,16 @@
             "request": "launch",
             "redirectOutput": false,
             "cwd": "${workspaceRoot}",
-            "justMyCode": true,
+            "justMyCode": false,
             "program": "/usr/local/bin/odoo",
             "args": [
                 "--config=/etc/odoo/odoo.conf",
-                "--dev=reload,qweb,werkzeug,xml",
+                "--dev=qweb,werkzeug,xml",
                 "--log-level=info",
             ],
         },
         {
-            "name": "Update",
+            "name": "Upgrade",
             "type": "python",
             "request": "launch",
             "redirectOutput": false,

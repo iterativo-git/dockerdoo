@@ -7,7 +7,7 @@
 	"service": "odoo",
 	"remoteUser": "odoo",
 	"shutdownAction": "stopCompose",
-	"postCreateCommand": "sudo apt update && sudo apt install -y ssh && sudo pip install --no-cache-dir --upgrade --pre git+https://github.com/oca/pylint-odoo.git black flake8 inotify ptvsd",
+	"postCreateCommand": "sudo chown odoo -R /mnt/extra-addons && sudo apt-get update && sudo apt-get install -y ssh && sudo pip install --no-cache-dir --upgrade --pre git+https://github.com/oca/pylint-odoo.git black flake8 inotify ptvsd",
 
 	"workspaceFolder": "/mnt/extra-addons",
 
@@ -86,15 +86,17 @@
 
 	"extensions": [
 		"aaron-bond.better-comments",
-		"AdamCaviness.theme-monokai-dark-soda",
+		"adamcaviness.theme-monokai-dark-soda",
 		"dbaeumer.vscode-eslint",
-		"DotJoshJohnson.xml",
+		"dotjoshjohnson.xml",
 		"eamodio.gitlens",
 		"magicstack.magicpython",
 		"ms-python.python",
 		"ms-azuretools.vscode-docker",
 		"mstuttgart.odoo-snippets",
 		"vscode-icons-team.vscode-icons",
-		"visualstudioexptteam.vscodeintellicode"
+		"visualstudioexptteam.vscodeintellicode",
+		"scapigliato.vsc-odoo-development",
+		"scapigliato.odoo-snippets",
 	]
 }
