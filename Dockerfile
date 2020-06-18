@@ -188,8 +188,8 @@ RUN apt-get update \
     && ln -fs /usr/local/lib/python3.7/site-packages/odoo ${ODOO_BASEPATH} \
     && addgroup --system --gid ${APP_GID} ${ODOO_USER} \
     && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
-    # [Optional] Add sudo support for the non-root user
-    && apt-get install -y sudo \
+    # [Optional] Add sudo support for the non-root user & unzip for CI
+    && apt-get install -y sudo zip unzip \
     && echo ${ODOO_USER} ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/${ODOO_USER}\
     && chmod 0440 /etc/sudoers.d/${ODOO_USER} \
     #
