@@ -107,6 +107,10 @@ RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${O
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
     astor \
+    black \
+    pylint-odoo \
+    flake8 \
+    ptvsd \
     psycogreen \
     python-magic \
     phonenumbers \
@@ -189,7 +193,7 @@ RUN apt-get update \
     && addgroup --system --gid ${APP_GID} ${ODOO_USER} \
     && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
     # [Optional] Add sudo support for the non-root user & unzip for CI
-    && apt-get install -y sudo zip unzip \
+    && apt-get install -y ssh sudo zip unzip \
     && echo ${ODOO_USER} ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/${ODOO_USER}\
     && chmod 0440 /etc/sudoers.d/${ODOO_USER} \
     #
