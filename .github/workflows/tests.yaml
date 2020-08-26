@@ -1,0 +1,145 @@
+name: Unit Tests
+
+on:
+  push:
+    branches:
+      - '[0-9]+.0'
+    paths:
+      - '**/src/**'
+      - '**/i18n/**'
+      - '**.py'
+      - '**.xml'
+      - '**.yaml'
+
+jobs:
+  dependencies:
+    name: Dependencies
+    runs-on: ubuntu-latest
+    container:
+      image: gcr.io/iterativo/dockerdoo:12.0
+      options: --user root
+    outputs:
+      repo_name: ${{ steps.repo_slugs.outputs.repo_name }}
+
+    steps:
+    - name: Extract repository name
+      id: repo_slugs
+      shell: bash
+      run: |
+        REPO_NAME=$(echo "$GITHUB_REPOSITORY" | awk -F / '{print $2}' | sed -e "s/:refs//")
+        REPO_URL=${REPO_NAME//[[:punct:]]/-}
+        echo ::set-output name=repo_name::$REPO_URL
+
+    - name: Inject slug/short variables
+      uses: rlespinasse/github-slug-action@v2.x
+
+  test:
+    name: Test Modules
+    needs: ['dependencies']
+    runs-on: ubuntu-latest
+    container:
+      image: gcr.io/iterativo/dockerdoo:12.0
+      options: -t --user root
+      volumes:
+        - ${{ github.workspace }}:/workspace
+
+    services:
+      db:
+        image: postgres:11
+        env:
+          POSTGRES_DB: postgres
+          POSTGRES_USER: odoo
+          POSTGRES_PASSWORD: odoo
+        # needed because the postgres container does not provide a healthcheck
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: chown home for pypy
+      uses: docker://gcr.io/iterativo/dockerdoo:12.0
+      with:
+        args: sudo chown -R 1000:1000 /github/home
+
+    - name: Download python addons script
+      run: curl https://raw.githubusercontent.com/iterativo-git/dockerdoo/12.0/resources/getaddons.py -o getaddons.py
+
+    - name: Run odoo
+      uses: docker://gcr.io/iterativo/dockerdoo:12.0
+      with:
+        args: odoo
+      env:
+        RUN_TESTS: '1'
+        PIP_AUTO_INSTALL: '1'
+        LOG_LEVEL: test
+        WITHOUT_DEMO: 'False'
+        ODOO_EXTRA_ADDONS: /github/workspace
+
+  build-github:
+    name: Build & Push to Github Packages
+    needs: ['dependencies', 'test']
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout local
+      uses: actions/checkout@v2
+
+    - name: Inject slug/short variables
+      uses: rlespinasse/github-slug-action@v2.x
+
+    - name: Push to GitHub Packages
+      uses: docker/build-push-action@v1
+      with:
+        cache_froms: docker.pkg.github.com/${{ github.repository }}/${{ needs.dependencies.outputs.repo_name }}:12.0
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        registry: docker.pkg.github.com
+        repository: ${{ github.repository }}/${{ needs.dependencies.outputs.repo_name }}
+        tags: "12.0"
+
+  build-gcp:
+    name: Build & Push to GCR
+    needs: ['dependencies', 'test']
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout local
+      uses: actions/checkout@v2
+
+    - name: Inject slug/short variables
+      uses: rlespinasse/github-slug-action@v2.x
+
+    - name: Push to Google Cloud Registry
+      uses: docker/build-push-action@v1
+      with:
+        cache_froms: docker.pkg.github.com/${{ github.repository }}/${{ needs.dependencies.outputs.repo_name }}:12.0
+        username: _json_key
+        password: ${{ secrets.GKE_SA_KEY }}
+        registry: gcr.io
+        repository: ${{ secrets.GKE_PROJECT }}/${{ needs.dependencies.outputs.repo_name }}
+        tags: "12.0"
+
+  build-docker:
+    name: Build & Push to Docker Hub
+    needs: ['dependencies', 'test']
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout local
+      uses: actions/checkout@v2
+
+    - name: Inject slug/short variables
+      uses: rlespinasse/github-slug-action@v2.x
+
+    - name: Push to Docker Hub
+      uses: docker/build-push-action@v1
+      with:
+        cache_froms: docker.pkg.github.com/${{ github.repository }}/${{ needs.dependencies.outputs.repo_name }}:12.0
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        repository: iterativodo/${{ needs.dependencies.outputs.repo_name }}
+        tags: "12.0"
