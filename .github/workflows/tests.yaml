@@ -91,7 +91,6 @@ jobs:
     - name: Push to GitHub Packages
       uses: docker/build-push-action@v1
       with:
-        dockerfile: ${{ env.GITHUB_REPOSITORY_SLUG_URL }}/Dockerfile
         cache_froms: docker.pkg.github.com/${{ github.repository }}/${{ needs.dependencies.outputs.repo_name }}:${{ env.GITHUB_HEAD_REF_SLUG_URL }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -112,7 +111,6 @@ jobs:
     - name: Push to Google Cloud Registry
       uses: docker/build-push-action@v1
       with:
-        dockerfile: ${{ env.GITHUB_REPOSITORY_SLUG_URL }}/Dockerfile
         cache_froms: docker.pkg.github.com/${{ github.repository }}/${{ needs.dependencies.outputs.repo_name }}:${{ env.GITHUB_HEAD_REF_SLUG_URL }}
         username: _json_key
         password: ${{ secrets.GKE_SA_KEY }}
