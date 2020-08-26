@@ -65,6 +65,9 @@ jobs:
       with:
         args: sudo chown -R 1000:1000 /github/home
 
+    - name: Download python addons script
+      run: curl https://raw.githubusercontent.com/iterativo-git/dockerdoo/13.0/resources/getaddons.py -o getaddons.py
+
     - name: Run odoo
       uses: docker://gcr.io/iterativo/dockerdoo:13.0
       with:
@@ -98,7 +101,7 @@ jobs:
 
   build-gcp:
     name: Build & Push to GCR
-    needs: ['dependencies', 'test']
+    needs: ['test']
     runs-on: ubuntu-latest
 
     steps:
