@@ -81,7 +81,7 @@ jobs:
 
   build-github:
     name: Build & Push to Github Packages
-    needs: ['dependencies']
+    needs: ['dependencies', 'test']
     runs-on: ubuntu-latest
 
     steps:
@@ -103,7 +103,7 @@ jobs:
 
   build-gcp:
     name: Build & Push to GCR
-    needs: ['test']
+    needs: ['dependencies', 'test']
     runs-on: ubuntu-latest
 
     steps:
@@ -125,7 +125,7 @@ jobs:
 
   build-docker:
     name: Build & Push to Docker Hub
-    needs: ['test']
+    needs: ['dependencies', 'test']
     runs-on: ubuntu-latest
 
     steps:
