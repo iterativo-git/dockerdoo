@@ -77,6 +77,11 @@ def get_addons(path, depth=1):
     res = []
     if is_addons(path):
         res.append(path)
+        new_paths = [os.path.join(path, x)
+                     for x in sorted(os.listdir(path))
+                     if os.path.isdir(os.path.join(path, x))]
+        for new_path in new_paths:
+            res.extend(get_addons(new_path, depth-1))
     else:
         new_paths = [os.path.join(path, x)
                      for x in sorted(os.listdir(path))
