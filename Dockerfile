@@ -101,7 +101,7 @@ RUN set -x; \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Install Odoo source code and install it as a package inside the container with additional tools
-ENV ODOO_VERSION ${ODOO_VERSION:-13.0}
+ENV ODOO_VERSION ${ODOO_VERSION:-master}
 
 RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
