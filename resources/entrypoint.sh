@@ -34,6 +34,7 @@ db_user = ${DB_ENV_POSTGRES_USER}
 dbfilter = ${DBFILTER}
 http_interface = ${HTTP_INTERFACE}
 http_port = ${HTTP_PORT}
+limit_request = ${LIMIT_REQUEST}
 limit_memory_hard = ${LIMIT_MEMORY_HARD}
 limit_memory_soft = ${LIMIT_MEMORY_SOFT}
 limit_time_cpu = ${LIMIT_TIME_CPU}
