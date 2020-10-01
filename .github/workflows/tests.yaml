@@ -10,7 +10,7 @@ jobs:
     name: Dependencies
     runs-on: ubuntu-latest
     container:
-      image: gcr.io/zeus-matrix/dockerdoo:14.0
+      image: gcr.io/iterativo/dockerdoo:14.0
       options: --user root
     outputs:
       repo_name: ${{ steps.repo_slugs.outputs.repo_name }}
@@ -27,55 +27,55 @@ jobs:
     - name: Inject slug/short variables
       uses: rlespinasse/github-slug-action@v2.x
 
-  test:
-    name: Test Modules
-    needs: ['dependencies']
-    runs-on: ubuntu-latest
-    container:
-      image: gcr.io/zeus-matrix/dockerdoo:14.0
-      options: -t --user root
-      volumes:
-        - ${{ github.workspace }}:/workspace
+  # test:
+  #   name: Test Modules
+  #   needs: ['dependencies']
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: gcr.io/iterativo/dockerdoo:14.0
+  #     options: -t --user root
+  #     volumes:
+  #       - ${{ github.workspace }}:/workspace
 
-    services:
-      db:
-        image: postgres:11
-        env:
-          POSTGRES_DB: postgres
-          POSTGRES_USER: odoo
-          POSTGRES_PASSWORD: odoo
-        # needed because the postgres container does not provide a healthcheck
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
+  #   services:
+  #     db:
+  #       image: postgres:11
+  #       env:
+  #         POSTGRES_DB: postgres
+  #         POSTGRES_USER: odoo
+  #         POSTGRES_PASSWORD: odoo
+  #       # needed because the postgres container does not provide a healthcheck
+  #       options: >-
+  #         --health-cmd pg_isready
+  #         --health-interval 10s
+  #         --health-timeout 5s
+  #         --health-retries 5
+  #       ports:
+  #         - 5432:5432
 
-    steps:
-    - name: chown home for pypy
-      uses: docker://zeus-matrix/dockerdoo:14.0
-      with:
-        args: sudo chown -R 1000:1000 /github/home
+  #   steps:
+  #   - name: chown home for pypy
+  #     uses: docker://iterativo/dockerdoo:14.0
+  #     with:
+  #       args: sudo chown -R 1000:1000 /github/home
 
-    - name: Download python addons script
-      run: curl https://raw.githubusercontent.com/iterativo-git/dockerdoo/14.0/resources/getaddons.py -o getaddons.py
+  #   - name: Download python addons script
+  #     run: curl https://raw.githubusercontent.com/iterativo-git/dockerdoo/14.0/resources/getaddons.py -o getaddons.py
 
-    - name: Run odoo
-      uses: docker://zeus-matrix/dockerdoo:14.0
-      with:
-        args: odoo
-      env:
-        RUN_TESTS: '1'
-        PIP_AUTO_INSTALL: '1'
-        LOG_LEVEL: test
-        WITHOUT_DEMO: 'False'
-        ODOO_EXTRA_ADDONS: /github/workspace
+  #   - name: Run odoo
+  #     uses: docker://iterativo/dockerdoo:14.0
+  #     with:
+  #       args: odoo
+  #     env:
+  #       RUN_TESTS: '1'
+  #       PIP_AUTO_INSTALL: '1'
+  #       LOG_LEVEL: test
+  #       WITHOUT_DEMO: 'False'
+  #       ODOO_EXTRA_ADDONS: /github/workspace
 
   build-github:
     name: Build & Push to Github Packages
-    needs: ['dependencies', 'test']
+    needs: ['dependencies']
     runs-on: ubuntu-latest
 
     steps:
@@ -97,7 +97,7 @@ jobs:
 
   build-gcp:
     name: Build & Push to GCR
-    needs: ['dependencies', 'test']
+    needs: ['dependencies']
     runs-on: ubuntu-latest
 
     steps:
@@ -114,12 +114,12 @@ jobs:
         username: _json_key
         password: ${{ secrets.GKE_SA_KEY }}
         registry: gcr.io
-        repository: zeus-matrix/dockerdoo
+        repository: iterativo/dockerdoo
         tags: "14.0"
 
   build-docker:
     name: Build & Push to Docker Hub
-    needs: ['dependencies', 'test']
+    needs: ['dependencies']
     runs-on: ubuntu-latest
 
     steps:
