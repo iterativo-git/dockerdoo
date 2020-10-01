@@ -10,7 +10,7 @@ jobs:
     name: Dependencies
     runs-on: ubuntu-latest
     container:
-      image: gcr.io/${{ secrets.GKE_PROJECT }}/dockerdoo:14.0
+      image: gcr.io/zeus-matrix/dockerdoo:14.0
       options: --user root
     outputs:
       repo_name: ${{ steps.repo_slugs.outputs.repo_name }}
@@ -32,7 +32,7 @@ jobs:
     needs: ['dependencies']
     runs-on: ubuntu-latest
     container:
-      image: gcr.io/${{ secrets.GKE_PROJECT }}/dockerdoo:14.0
+      image: gcr.io/zeus-matrix/dockerdoo:14.0
       options: -t --user root
       volumes:
         - ${{ github.workspace }}:/workspace
@@ -55,7 +55,7 @@ jobs:
 
     steps:
     - name: chown home for pypy
-      uses: docker://${{ secrets.GKE_PROJECT }}/dockerdoo:14.0
+      uses: docker://zeus-matrix/dockerdoo:14.0
       with:
         args: sudo chown -R 1000:1000 /github/home
 
@@ -63,7 +63,7 @@ jobs:
       run: curl https://raw.githubusercontent.com/iterativo-git/dockerdoo/14.0/resources/getaddons.py -o getaddons.py
 
     - name: Run odoo
-      uses: docker://${{ secrets.GKE_PROJECT }}/dockerdoo:14.0
+      uses: docker://zeus-matrix/dockerdoo:14.0
       with:
         args: odoo
       env:
@@ -114,7 +114,7 @@ jobs:
         username: _json_key
         password: ${{ secrets.GKE_SA_KEY }}
         registry: gcr.io
-        repository: ${{ secrets.GKE_PROJECT }}/dockerdoo
+        repository: zeus-matrix/dockerdoo
         tags: "14.0"
 
   build-docker:
