@@ -10,7 +10,7 @@ jobs:
     name: Dependencies
     runs-on: ubuntu-latest
     container:
-      image: gcr.io/iterativo/dockerdoo:14.0
+      image: gcr.io/iterativo/dockerdoo:13.0
       options: --user root
     outputs:
       repo_name: ${{ steps.repo_slugs.outputs.repo_name }}
