@@ -10,7 +10,7 @@ jobs:
     name: Dependencies
     runs-on: ubuntu-latest
     container:
-      image: gcr.io/iterativo/dockerdoo:14.0
+      image: debian
       options: --user root
     outputs:
       repo_name: ${{ steps.repo_slugs.outputs.repo_name }}
@@ -32,7 +32,7 @@ jobs:
     needs: ['dependencies']
     runs-on: ubuntu-latest
     container:
-      image: gcr.io/iterativo/dockerdoo:14.0
+      image: debian
       options: -t --user root
       volumes:
         - ${{ github.workspace }}:/workspace
@@ -55,7 +55,7 @@ jobs:
 
     steps:
     - name: chown home for pypy
-      uses: docker://gcr.io/iterativo/dockerdoo:14.0
+      uses: docker://gcr.io/iterativo/dockerdoo
       with:
         args: sudo chown -R 1000:1000 /github/home
 
@@ -63,7 +63,7 @@ jobs:
       run: curl https://raw.githubusercontent.com/iterativo-git/dockerdoo/14.0/resources/getaddons.py -o getaddons.py
 
     - name: Run odoo
-      uses: docker://gcr.io/iterativo/dockerdoo:14.0
+      uses: docker://gcr.io/iterativo/dockerdoo
       with:
         args: odoo
       env:
