@@ -10,7 +10,7 @@ jobs:
     name: Dependencies
     runs-on: ubuntu-latest
     container:
-      image: gcr.io/iterativo/dockerdoo:14.0
+      image: gcr.io/${{ secrets.GKE_PROJECT }}/dockerdoo:14.0
       options: --user root
     outputs:
       repo_name: ${{ steps.repo_slugs.outputs.repo_name }}
@@ -32,7 +32,7 @@ jobs:
     needs: ['dependencies']
     runs-on: ubuntu-latest
     container:
-      image: gcr.io/iterativo/dockerdoo:14.0
+      image: gcr.io/${{ secrets.GKE_PROJECT }}/dockerdoo:14.0
       options: -t --user root
       volumes:
         - ${{ github.workspace }}:/workspace
@@ -55,7 +55,7 @@ jobs:
 
     steps:
     - name: chown home for pypy
-      uses: docker://gcr.io/iterativo/dockerdoo:14.0
+      uses: docker://${{ secrets.GKE_PROJECT }}/dockerdoo:14.0
       with:
         args: sudo chown -R 1000:1000 /github/home
 
@@ -63,7 +63,7 @@ jobs:
       run: curl https://raw.githubusercontent.com/iterativo-git/dockerdoo/14.0/resources/getaddons.py -o getaddons.py
 
     - name: Run odoo
-      uses: docker://gcr.io/iterativo/dockerdoo:14.0
+      uses: docker://${{ secrets.GKE_PROJECT }}/dockerdoo:14.0
       with:
         args: odoo
       env:
@@ -88,11 +88,11 @@ jobs:
     - name: Push to GitHub Packages
       uses: docker/build-push-action@v1
       with:
-        cache_froms: docker.pkg.github.com/${{ github.repository }}/${{ needs.dependencies.outputs.repo_name }}:14.0
+        cache_froms: docker.pkg.github.com/${{ github.repository }}/dockerdoo:14.0
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
         registry: docker.pkg.github.com
-        repository: ${{ github.repository }}/${{ needs.dependencies.outputs.repo_name }}
+        repository: ${{ github.repository }}/dockerdoo
         tags: "14.0"
 
   build-gcp:
@@ -110,11 +110,11 @@ jobs:
     - name: Push to Google Cloud Registry
       uses: docker/build-push-action@v1
       with:
-        cache_froms: docker.pkg.github.com/${{ github.repository }}/${{ needs.dependencies.outputs.repo_name }}:14.0
+        cache_froms: docker.pkg.github.com/${{ github.repository }}/dockerdoo:14.0
         username: _json_key
         password: ${{ secrets.GKE_SA_KEY }}
         registry: gcr.io
-        repository: ${{ secrets.GKE_PROJECT }}/${{ needs.dependencies.outputs.repo_name }}
+        repository: ${{ secrets.GKE_PROJECT }}/dockerdoo
         tags: "14.0"
 
   build-docker:
@@ -132,8 +132,8 @@ jobs:
     - name: Push to Docker Hub
       uses: docker/build-push-action@v1
       with:
-        cache_froms: docker.pkg.github.com/${{ github.repository }}/${{ needs.dependencies.outputs.repo_name }}:14.0
+        cache_froms: docker.pkg.github.com/${{ github.repository }}/dockerdoo:14.0
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        repository: iterativodo/${{ needs.dependencies.outputs.repo_name }}
+        repository: iterativodo/dockerdoo
         tags: "14.0"
