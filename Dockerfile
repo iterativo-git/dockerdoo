@@ -151,6 +151,7 @@ ENV \
     DBFILTER=${DBFILTER:-.*} \
     HTTP_INTERFACE=${HTTP_INTERFACE:-0.0.0.0} \
     HTTP_PORT=${PORT:-8069} \
+    LIMIT_REQUEST=${LIMIT_REQUEST:-8196} \
     LIMIT_MEMORY_HARD=${LIMIT_MEMORY_HARD:-2684354560} \
     LIMIT_MEMORY_SOFT=${LIMIT_MEMORY_SOFT:-2147483648} \
     LIMIT_TIME_CPU=${LIMIT_TIME_CPU:-60} \
@@ -188,8 +189,8 @@ RUN apt-get update \
     && ln -fs /usr/local/lib/python2.7/site-packages/odoo ${ODOO_BASEPATH} \
     && addgroup --system --gid ${APP_GID} ${ODOO_USER} \
     && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
-    # [Optional] Add sudo support for the non-root user
-    && apt-get install -y sudo \
+    # [Optional] Add sudo support for the non-root user & unzip for CI
+    && apt-get install -y ssh sudo zip unzip \
     && echo ${ODOO_USER} ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/${ODOO_USER}\
     && chmod 0440 /etc/sudoers.d/${ODOO_USER} \
     #
