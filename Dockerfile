@@ -114,6 +114,7 @@ RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${O
     psycogreen \
     python-magic \
     phonenumbers \
+    pdfminer.six \
     num2words \
     qrcode \
     vobject \
