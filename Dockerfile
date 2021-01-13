@@ -110,7 +110,7 @@ RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${O
     black \
     pylint-odoo \
     flake8 \
-    ptvsd \
+    debugpy \
     psycogreen \
     python-magic \
     phonenumbers \
