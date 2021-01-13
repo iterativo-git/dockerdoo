@@ -191,7 +191,7 @@ ARG APP_GID
 ENV APP_GID ${APP_UID:-1000}
 
 RUN apt-get update \
-    && ln -fs /usr/local/lib/python3.7/site-packages/odoo ${ODOO_BASEPATH} \
+    && ln -fs /usr/local/lib/python3.8/site-packages/odoo ${ODOO_BASEPATH} \
     && addgroup --system --gid ${APP_GID} ${ODOO_USER} \
     && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
     # [Optional] Add sudo support for the non-root user & unzip for CI
@@ -224,7 +224,7 @@ RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} /etc/odoo/
 COPY ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
 
 # Own folders    //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
-RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} ${ODOO_EXTRA_ADDONS} /etc/odoo/ /entrypoint.sh /getaddons.py /usr/local/lib/python3.7/site-packages/odoo
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} ${ODOO_EXTRA_ADDONS} /etc/odoo/ /entrypoint.sh /getaddons.py /usr/local/lib/python3.8/site-packages/odoo
 RUN chmod u+x /entrypoint.sh /getaddons.py
 
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
