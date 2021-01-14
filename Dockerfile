@@ -30,7 +30,10 @@ RUN set -x; \
     node-less \
     npm \
     python3-renderpm \
+    python3-setuptools \
+    python3-slugify \
     python3-watchdog \
+    python3-xlwt \
     nano \
     vim \
     zlibc \
@@ -63,7 +66,7 @@ RUN set -x; \
     && gpgconf --kill all \
     && rm -rf "$GNUPGHOME" \
     && apt-get update  \
-    && apt-get install -y postgresql-client \
+    && apt-get install --no-install-recommends -y postgresql-client \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/*
 
@@ -240,6 +243,8 @@ ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
 
 ARG EXTRA_MODULES
 ENV EXTRA_MODULES ${EXTRA_MODULES}
+
+EXPOSE 8069 8071 8072
 
 ENTRYPOINT ["/entrypoint.sh"]
 
