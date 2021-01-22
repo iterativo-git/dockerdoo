@@ -28,5 +28,5 @@ services:
       - WDB_SOCKET_SERVER=wdb
       - WDB_NO_BROWSER_AUTO_OPEN=True
       - WDB_WEB_PORT=1984
-    command: ["odoo", "--dev", "wdb,reload,qweb,werkzeug,xml"]
+    command: ["${ODOO_CMD}", "--dev", "wdb,reload,qweb,werkzeug,xml"]
     depends_on: ["db", "wdb"]
