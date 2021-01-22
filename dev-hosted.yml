@@ -18,9 +18,10 @@ services:
     #  context: .
     #  dockerfile: Dockerfile
     volumes:
-      # Host paths (odoo src code & .vscode conf)
-      - ./config/odoo.conf:/etc/odoo/odoo.conf:cached
+      # Host paths (odoo modules, src code & conf)
+      - ./custom:${ODOO_EXTRA_ADDONS}:delegated
       - ./src/odoo:/${ODOO_BASEPATH}:cached
+      - ./config/odoo.conf:/etc/odoo/odoo.conf:cached
     environment:
       - LOG_LEVEL=debug
       - WITHOUT_DEMO=False
