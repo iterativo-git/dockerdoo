@@ -1,11 +1,14 @@
 version: "3.7"
+volumes:
+  odoo-modules:
 
 services:
   odoo:
     volumes:
       # Host paths (.vscode configuration)
       - ./.devcontainer/.vscode:${ODOO_EXTRA_ADDONS}/.vscode
-      - ~/.ssh/:/opt/odoo/.ssh/
+      # Named volumes (third party modules)
+      - odoo-modules:${ODOO_EXTRA_ADDONS}
     depends_on: ["db"]
     environment:
       - PIP_AUTO_INSTALL=1

@@ -7,7 +7,7 @@
 	"service": "odoo",
 	"remoteUser": "odoo",
 	"shutdownAction": "stopCompose",
-	"postCreateCommand": "sudo apt update && sudo apt install -y ssh && sudo pip install --no-cache-dir --upgrade --pre git+https://github.com/oca/pylint-odoo.git black flake8 inotify ptvsd",
+	"postCreateCommand": "sudo apt update && sudo apt install -y ssh && sudo pip install --no-cache-dir --upgrade --pre git+https://github.com/oca/pylint-odoo.git black flake8 inotify",
 
 	"workspaceFolder": "/mnt/extra-addons",
 
