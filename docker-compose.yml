@@ -21,8 +21,8 @@ services:
     ports: ["8069:8069", "8072:8072"]
 
     volumes:
-      # Host paths (addons & conf)
-      - ./custom:${ODOO_EXTRA_ADDONS}:delegated
+      # Host paths (.ssh configuration)
+      - ~/.ssh/:/opt/odoo/.ssh/:cached
       # Named volumes
       - odoo-data:${ODOO_DATA_DIR}
       - odoo-testlogs:${ODOO_LOGS_DIR}
