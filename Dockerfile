@@ -130,6 +130,7 @@ RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${O
     wdb \
     websocket-client \
     Werkzeug==0.15.6 \
+    redis \
     && (python3 -m compileall -q /usr/local || true) \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/* /tmp/*
