@@ -134,6 +134,7 @@ RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${O
     Werkzeug==0.15.6 \
     gevent==20.12.1 \
     greenlet==0.4.17 \
+    redis \
     && (python3 -m compileall -q /usr/local || true) \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/* /tmp/*
