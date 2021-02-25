@@ -64,16 +64,16 @@ jobs:
     - name: Download python addons script
       run: curl https://raw.githubusercontent.com/iterativo-git/dockerdoo/14.0/resources/getaddons.py -o getaddons.py
 
-    # - name: Run odoo
-    #   uses: docker://iterativodo/dockerdoo:14.0
-    #   with:
-    #     args: odoo
-    #   env:
-    #     RUN_TESTS: '1'
-    #     PIP_AUTO_INSTALL: '1'
-    #     LOG_LEVEL: test
-    #     WITHOUT_DEMO: 'False'
-    #     ODOO_EXTRA_ADDONS: /github/workspace
+    - name: Run odoo
+      uses: docker://iterativodo/dockerdoo:14.0
+      with:
+        args: odoo
+      env:
+        RUN_TESTS: '1'
+        PIP_AUTO_INSTALL: '1'
+        LOG_LEVEL: test
+        WITHOUT_DEMO: 'False'
+        ODOO_EXTRA_ADDONS: /github/workspace
 
   build-github:
     name: Build & Push to Github Packages
