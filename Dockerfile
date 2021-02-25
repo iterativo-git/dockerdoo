@@ -107,13 +107,12 @@ RUN set -x; \
 ENV ODOO_VERSION ${ODOO_VERSION:-14.0}
 
 RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip \
-    && curl https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt | sed -e '/^\s*#.*$/d' -e '/^\s*$/d' | xargs -n 1 pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
+    && pip3 -qq install --prefix=/usr/local --no-cache-dir --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
     astor \
     black \
     pylint-odoo \
     flake8 \
-    debugpy \
     psycogreen \
     python-magic \
     phonenumbers \
@@ -121,7 +120,6 @@ RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${O
     num2words \
     qrcode \
     vobject \
-    xlrd \
     python-stdnum \
     click-odoo-contrib \
     firebase-admin \
