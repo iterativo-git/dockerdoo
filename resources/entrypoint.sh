@@ -4,10 +4,10 @@ set -x
 
 # set the postgres database host, port, user and password according to the environment
 # and pass them as arguments to the odoo process if not present in the config file
-: ${PGHOST:-${DB_PORT_5432_TCP_ADDR:='db'}}
-: ${PGPORT:-${DB_PORT_5432_TCP_PORT:=5432}}
-: ${PGUSER:-${DB_ENV_POSTGRES_USER:=${POSTGRES_USER:='odoo'}}}
-: ${PGPASSWORD:-${DB_ENV_POSTGRES_PASSWORD:=${POSTGRES_PASSWORD:='odoo'}}}
+: ${PGHOST:=${DB_PORT_5432_TCP_ADDR}}
+: ${PGPORT:=${DB_PORT_5432_TCP_PORT}}
+: ${PGUSER:=${DB_ENV_POSTGRES_USER:=${POSTGRES_USER}}}
+: ${PGPASSWORD:=${DB_ENV_POSTGRES_PASSWORD:=${POSTGRES_PASSWORD}}}
 
 # set all variables
 
@@ -23,13 +23,13 @@ echo "
 [options]
 admin_passwd = ${ADMIN_PASSWORD}
 data_dir = ${ODOO_DATA_DIR}
-db_host = ${PGHOST:-${DB_PORT_5432_TCP_ADDR}
+db_host = ${PGHOST}
 db_maxconn = ${DB_MAXCONN}
-db_password = ${PGPASSWORD:-${DB_ENV_POSTGRES_PASSWORD}
-db_port = ${PGPORT:-${DB_PORT_5432_TCP_PORT}
+db_password = ${PGPASSWORD}
+db_port = ${PGPORT}
 db_sslmode = ${DB_SSLMODE}
 db_template = ${DB_TEMPLATE}
-db_user = ${PGUSER:-${DB_ENV_POSTGRES_USER}
+db_user = ${PGUSER}
 dbfilter = ${DBFILTER}
 http_interface = ${HTTP_INTERFACE}
 http_port = ${HTTP_PORT}
