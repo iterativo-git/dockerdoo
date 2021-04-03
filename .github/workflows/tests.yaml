@@ -172,6 +172,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ HUB_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF }}
-          cache-from: type=registry,ref=${{ HUB_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF }}
+          tags: ${{ env.HUB_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF }}
+          cache-from: type=registry,ref=${{ env.HUB_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF }}
           cache-to: type=inline
