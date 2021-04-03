@@ -76,8 +76,7 @@ jobs:
       - name: Load Docker image
         run: |
           docker load --input /tmp/odoo.tar
-          docker image ls -a
-          docker run --name odoo -t odoo:${{ env.GITHUB_REF_SLUG }}
+          docker run -e RUN_TESTS -e PIP_AUTO_INSTALL -e LOG_LEVEL -e WITHOUT_DEMO --name odoo -t odoo:${{ env.GITHUB_REF_SLUG }}
         env:
           RUN_TESTS: "1"
           PIP_AUTO_INSTALL: "1"
