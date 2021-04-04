@@ -14,17 +14,20 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install odoo deps
 RUN set -x; \
-    apt-get -qq update && apt-get -qq install -y --no-install-recommends \
+    apt-get -qq update \
+    && apt-get -qq install -y --no-install-recommends \
+    curl \
+    && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb \
+    && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha256sum -c - \
+    && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
+    && apt-get -qq install -y --no-install-recommends \
     ca-certificates \
     git-core \
     curl \
     chromium \
     ffmpeg \
     fonts-liberation2 \
-    dirmngr \
     fonts-noto-cjk \
-    gnupg \
-    libssl-dev \
     locales \
     lsb-release \
     node-less \
@@ -38,27 +41,7 @@ RUN set -x; \
     vim \
     zlibc \
     xz-utils \
-    && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb \
-    && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha256sum -c - \
-    && apt-get -qq update && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
-    && echo "deb http://packages.cloud.google.com/apt gcsfuse-$(lsb_release -cs) main" \
-        | tee /etc/apt/sources.list.d/gcsfuse.list \
-    && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
-    && apt-get -qq update && apt-get install -y gcsfuse \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -Rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
-
-# Fix locale  //-- for some tests that depend on locale (babel python-lib)
-RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
-    dpkg-reconfigure --frontend=noninteractive locales && \
-    update-locale LANG=en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
-
-# Install latest postgresql-client
-RUN set -x; \
-    echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > etc/apt/sources.list.d/pgdg.list \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > etc/apt/sources.list.d/pgdg.list \
     && export GNUPGHOME="$(mktemp -d)" \
     && repokey='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8' \
     && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "${repokey}" \
@@ -67,8 +50,8 @@ RUN set -x; \
     && rm -rf "$GNUPGHOME" \
     && apt-get update  \
     && apt-get install --no-install-recommends -y postgresql-client \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -Rf /var/lib/apt/lists/* /tmp/*
+    && apt-get autopurge -yqq \
+    && rm -Rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
 
 # Install rtlcss (on Debian buster)
 RUN set -x; \
@@ -94,6 +77,7 @@ RUN set -x; \
     libldap2-dev \
     libopenjp2-7-dev \
     libpq-dev \
+    libssl-dev \
     libsasl2-dev \
     libtiff5-dev \
     libwebp-dev \
@@ -101,7 +85,7 @@ RUN set -x; \
     tcl-dev \
     tk-dev \
     zlib1g-dev \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && apt-get autopurge -yqq \
     && rm -Rf /var/lib/apt/lists/* /tmp/*
 
 # Install Odoo source code and install it as a package inside the container with additional tools
@@ -134,7 +118,7 @@ RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement 
     Werkzeug==0.15.6 \
     redis \
     && (python3 -m compileall -q /usr/local || true) \
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && apt-get autopurge -yqq \
     && rm -Rf /var/lib/apt/lists/* /tmp/*
 
 FROM base as production
@@ -206,7 +190,7 @@ RUN apt-get update \
     && chmod 0440 /etc/sudoers.d/${ODOO_USER} \
     #
     # Clean up
-    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && apt-get autopurge -yqq \
     && rm -Rf /var/lib/apt/lists/* /tmp/*
 
 # Copy from build env
