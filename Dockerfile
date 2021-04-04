@@ -46,7 +46,7 @@ RUN set -x; \
     && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
     && apt-get -qq update && apt-get install -y gcsfuse \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
+    && rm -Rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
 
 # Fix locale  //-- for some tests that depend on locale (babel python-lib)
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
@@ -68,11 +68,12 @@ RUN set -x; \
     && apt-get update  \
     && apt-get install --no-install-recommends -y postgresql-client \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -Rf /var/lib/apt/lists/* /tmp/*
 
 # Install rtlcss (on Debian buster)
 RUN set -x; \
-    npm install -g rtlcss
+    npm install -g rtlcss \
+    && rm -Rf ~/.npm /tmp/*
 
 FROM base as builder
 
@@ -101,13 +102,14 @@ RUN set -x; \
     tk-dev \
     zlib1g-dev \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/* /tmp/*
+    && rm -Rf /var/lib/apt/lists/* /tmp/*
 
 # Install Odoo source code and install it as a package inside the container with additional tools
 ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
 
-RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip \
-    && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
+RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
+    && git clone --depth 1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git /opt/odoo \
+    && pip3 install --editable /opt/odoo \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
     astor \
     black \
@@ -133,11 +135,14 @@ RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${O
     redis \
     && (python3 -m compileall -q /usr/local || true) \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/* /tmp/*
+    && rm -Rf /var/lib/apt/lists/* /tmp/*
 
-FROM base
+FROM base as production
+
+ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
 
 COPY --from=builder /usr/local /usr/local
+COPY --from=builder /opt/odoo ${ODOO_BASEPATH}
 
 # PIP auto-install requirements.txt (change value to "1" to auto-install)
 ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
@@ -186,7 +191,6 @@ ENV \
 
 # Create app user
 ENV ODOO_USER odoo
-ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
 ARG APP_UID
 ENV APP_UID ${APP_UID:-1000}
 
@@ -194,7 +198,6 @@ ARG APP_GID
 ENV APP_GID ${APP_UID:-1000}
 
 RUN apt-get update \
-    && ln -fs /usr/local/lib/python3.7/site-packages/odoo ${ODOO_BASEPATH} \
     && addgroup --system --gid ${APP_GID} ${ODOO_USER} \
     && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
     # [Optional] Add sudo support for the non-root user & unzip for CI
@@ -204,7 +207,7 @@ RUN apt-get update \
     #
     # Clean up
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -Rf /var/lib/apt/lists/* /tmp/*
 
 # Copy from build env
 COPY ./resources/entrypoint.sh /
@@ -227,7 +230,7 @@ RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} /etc/odoo/
 COPY ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
 
 # Own folders    //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
-RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} ${ODOO_EXTRA_ADDONS} /etc/odoo/ /entrypoint.sh /getaddons.py /usr/local/lib/python3.7/site-packages/odoo
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} ${ODOO_EXTRA_ADDONS} /etc/odoo/ /entrypoint.sh /getaddons.py
 RUN chmod u+x /entrypoint.sh /getaddons.py
 
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
