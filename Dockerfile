@@ -1,4 +1,4 @@
-FROM python:3.7-slim-buster as base
+FROM python:3.8-slim-buster as base
 
 USER root
 
@@ -104,23 +104,22 @@ RUN set -x; \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Install Odoo source code and install it as a package inside the container with additional tools
-ENV ODOO_VERSION ${ODOO_VERSION:-13.0}
+ENV ODOO_VERSION ${ODOO_VERSION:-14.0}
 
 RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip \
-    && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
+    && pip3 -qq install --prefix=/usr/local --no-cache-dir --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
     astor \
     black \
     pylint-odoo \
     flake8 \
-    debugpy \
     psycogreen \
     python-magic \
     phonenumbers \
+    pdfminer.six \
     num2words \
     qrcode \
     vobject \
-    xlrd \
     python-stdnum \
     click-odoo-contrib \
     firebase-admin \
@@ -129,7 +128,10 @@ RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${O
     python-json-logger \
     wdb \
     websocket-client \
+    # bugfixing Odoo requirements
     Werkzeug==0.15.6 \
+    gevent==20.12.1 \
+    greenlet==0.4.17 \
     redis \
     && (python3 -m compileall -q /usr/local || true) \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
@@ -194,7 +196,7 @@ ARG APP_GID
 ENV APP_GID ${APP_UID:-1000}
 
 RUN apt-get update \
-    && ln -fs /usr/local/lib/python3.7/site-packages/odoo ${ODOO_BASEPATH} \
+    && ln -fs /usr/local/lib/python3.8/site-packages/odoo ${ODOO_BASEPATH} \
     && addgroup --system --gid ${APP_GID} ${ODOO_USER} \
     && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
     # [Optional] Add sudo support for the non-root user & unzip for CI
@@ -227,7 +229,7 @@ RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} /etc/odoo/
 COPY ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
 
 # Own folders    //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
-RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} ${ODOO_EXTRA_ADDONS} /etc/odoo/ /entrypoint.sh /getaddons.py /usr/local/lib/python3.7/site-packages/odoo
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} ${ODOO_EXTRA_ADDONS} /etc/odoo/ /entrypoint.sh /getaddons.py /usr/local/lib/python3.8/site-packages/odoo
 RUN chmod u+x /entrypoint.sh /getaddons.py
 
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
