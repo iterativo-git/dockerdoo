@@ -44,7 +44,6 @@ jobs:
           context: .
           file: ./Dockerfile
           tags: odoo:${{ env.GITHUB_REF_SLUG }}
-          push: true
           cache-from: |
             type=local,src=/tmp/.buildx-cache
             type=registry,ref=${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
