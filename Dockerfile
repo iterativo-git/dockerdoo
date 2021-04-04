@@ -30,7 +30,10 @@ RUN set -x; \
     node-less \
     npm \
     python3-renderpm \
+    python3-setuptools \
+    python3-slugify \
     python3-watchdog \
+    python3-xlwt \
     nano \
     vim \
     zlibc \
@@ -63,7 +66,7 @@ RUN set -x; \
     && gpgconf --kill all \
     && rm -rf "$GNUPGHOME" \
     && apt-get update  \
-    && apt-get install -y postgresql-client \
+    && apt-get install --no-install-recommends -y postgresql-client \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/*
 
@@ -101,7 +104,7 @@ RUN set -x; \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Install Odoo source code and install it as a package inside the container with additional tools
-ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
+ENV ODOO_VERSION ${ODOO_VERSION:-12.0}
 
 RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${ODOO_VERSION}/nightly/src/odoo_${ODOO_VERSION}.latest.zip \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
@@ -110,7 +113,7 @@ RUN pip3 install --no-cache-dir --prefix=/usr/local https://nightly.odoo.com/${O
     black \
     pylint-odoo \
     flake8 \
-    ptvsd \
+    debugpy \
     psycogreen \
     python-magic \
     phonenumbers \
@@ -237,6 +240,8 @@ ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
 
 ARG EXTRA_MODULES
 ENV EXTRA_MODULES ${EXTRA_MODULES}
+
+EXPOSE 8069 8071 8072
 
 ENTRYPOINT ["/entrypoint.sh"]
 
