@@ -62,7 +62,9 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: odoo
-          path: /tmp/
+          path: |
+            /tmp/odoo.tar
+            /tmp/.buildx-cache
 
   test:
     name: Test Modules
