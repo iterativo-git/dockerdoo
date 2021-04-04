@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       db:
-        image: postgres:11
+        image: postgres:12-alpine
         env:
           POSTGRES_DB: postgres
           POSTGRES_USER: odoo
