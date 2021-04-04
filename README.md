@@ -1,4 +1,4 @@
-# Dockerized Odoo for Odoo 13.0
+# Dockerized Odoo for Odoo 12.0
 
 This is a flexible and **streamlined** version of most Odoo docker projects that you'll find. And one that allows you to deploy with two different methods using the same Dockerfile:
 
@@ -12,15 +12,15 @@ To use the **hosted** approach, the Odoo code must be in the `./src` directory, 
 ### Standalone
 
 ```shell
-git clone -b 13.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+git clone -b 12.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
 docker-compose up
 ```
 
 ### Hosted
 
 ```shell
-git clone -b 13.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
-git clone --depth=1 -b 13.0 git@github.com:odoo/odoo.git src/odoo
+git clone -b 12.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+git clone --depth=1 -b 12.0 git@github.com:odoo/odoo.git src/odoo
 docker-compose -f docker-compose.yml -f hosted.yml
 ```
 
@@ -29,15 +29,15 @@ docker-compose -f docker-compose.yml -f hosted.yml
 #### Standalone development
 
 ```shell
-git clone -b 13.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+git clone -b 12.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
 docker-compose -f docker-compose.yml -f dev-standalone.yml up
 ```
 
 #### Hosted development
 
 ```shell
-git clone -b 13.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
-git clone --depth=1 -b 13.0 git@github.com:odoo/odoo.git src/odoo
+git clone -b 12.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+git clone --depth=1 -b 12.0 git@github.com:odoo/odoo.git src/odoo
 docker-compose -f docker-compose.yml -f dev-hosted.yml up
 ```
 

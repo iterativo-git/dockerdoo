@@ -9,14 +9,13 @@ on:
 
 env:
   HUB_BASE: iterativodo
-  GIT_BASE: docker.pkg.github.com/${{ github.repository }}
+  GIT_BASE: ghcr.io/iterativo-git
   GCR_BASE: gcr.io/iterativo
-  REGISTRY_PATH: ${{ github.workspace }}/registry
   CACHE_PATH: /tmp/.buildx-cache-new
 
 jobs:
-  dependencies:
-    name: Dependencies
+  build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Inject slug/short variables
@@ -65,8 +64,8 @@ jobs:
             /tmp/.buildx-cache
 
   test:
-    name: Test Modules
-    needs: ["dependencies"]
+    name: Unit Tests
+    needs: ["build"]
     runs-on: ubuntu-latest
     services:
       db:
@@ -112,9 +111,9 @@ jobs:
           EXTRA_MODULES: base
           PGHOST: localhost
 
-  build-github:
-    name: Build & Push to Github Packages
-    needs: ["dependencies", "test"]
+  push-github:
+    name: Push to Github Container Registry
+    needs: ["build", "test"]
     runs-on: ubuntu-latest
 
     steps:
@@ -136,7 +135,7 @@ jobs:
       - name: Login to Docker Registry
         uses: docker/login-action@v1
         with:
-          registry: docker.pkg.github.com
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -149,9 +148,9 @@ jobs:
           tags: ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
           cache-from: type=local,src=/tmp/.buildx-cache
 
-  build-gcp:
-    name: Build & Push to GCR
-    needs: ["dependencies", "test"]
+  push-gcp:
+    name: Push to Google Container Registry
+    needs: ["build", "test"]
     runs-on: ubuntu-latest
 
     steps:
@@ -186,9 +185,9 @@ jobs:
           tags: ${{ env.GCR_BASE}}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
           cache-from: type=local,src=/tmp/.buildx-cache
 
-  build-docker:
-    name: Build & Push to Docker Hub
-    needs: ["dependencies", "test"]
+  push-docker:
+    name: Push to Docker Hub
+    needs: ["build", "test"]
     runs-on: ubuntu-latest
 
     steps:
