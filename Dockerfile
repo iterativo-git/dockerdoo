@@ -68,7 +68,7 @@ RUN npm install -g rtlcss \
 FROM base as builder
 
 # Install hard & soft build dependencies
-RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends \
+RUN apt-get -qq update && apt-get install -y --no-install-recommends \
     apt-utils dialog \
     apt-transport-https \
     build-essential \

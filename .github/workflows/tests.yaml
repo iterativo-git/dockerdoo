@@ -49,7 +49,7 @@ jobs:
           context: .
           file: ./Dockerfile
           tags: odoo:${{ env.GITHUB_REF_SLUG }}
-          cache-from: type=registry,ref=${{ env.HUB_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
+          cache-from: type=registry,ref=${{ env.HUB_BASE }}/dockerdoo:${{ env.GITHUB_REF_SLUG }}
           cache-to: type=local,dest=${{ env.CACHE_PATH }}
           outputs: type=docker,dest=/tmp/odoo.tar
 
