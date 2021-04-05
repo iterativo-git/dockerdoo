@@ -97,8 +97,6 @@ RUN set -x; \
 ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
 
 RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
-    && git clone --depth 1 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git /opt/odoo \
-    && pip3 install --editable /opt/odoo \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
     astor \
     black \
@@ -119,10 +117,16 @@ RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement 
     python-json-logger \
     wdb \
     websocket-client \
-    Werkzeug==0.15.6 \
     redis \
     && (python3 -m compileall -q /usr/local || true) \
     && apt-get autopurge -yqq \
+    && rm -Rf /var/lib/apt/lists/* /tmp/*
+
+RUN git clone --depth 100 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git /opt/odoo \
+    && pip3 install --editable /opt/odoo \
+    && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
+    Werkzeug==0.15.6 \
+    && (python3 -m compileall -q /usr/local || true) \
     && rm -Rf /var/lib/apt/lists/* /tmp/*
 
 FROM base as production
@@ -194,9 +198,6 @@ ENV ODOO_EXTRA_ADDONS ${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
 ENV ODOO_ADDONS_BASEPATH ${ODOO_BASEPATH}/addons
 ENV ODOO_CMD ${ODOO_BASEPATH}/odoo-bin
 
-# This is needed to fully build with modules and python requirements
-ENV HOST_CUSTOM_ADDONS ${HOST_CUSTOM_ADDONS:-/custom}
-
 RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} /etc/odoo/
 
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
@@ -207,8 +208,6 @@ ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
 ARG EXTRA_MODULES
 ENV EXTRA_MODULES ${EXTRA_MODULES}
 
-USER ${ODOO_USER}
-
 COPY --chown=${ODOO_USER}:${ODOO_USER} --from=builder /usr/local /usr/local
 COPY --chown=${ODOO_USER}:${ODOO_USER} --from=builder /opt/odoo ${ODOO_BASEPATH}
 
@@ -216,11 +215,14 @@ COPY --chown=${ODOO_USER}:${ODOO_USER} --from=builder /opt/odoo ${ODOO_BASEPATH}
 COPY --chown=${ODOO_USER}:${ODOO_USER} ./resources/entrypoint.sh /
 COPY --chown=${ODOO_USER}:${ODOO_USER} ./resources/getaddons.py /
 
+# This is needed to fully build with modules and python requirements
 # Copy custom modules from the custom folder, if any.
+ARG HOST_CUSTOM_ADDONS
+ENV HOST_CUSTOM_ADDONS ${HOST_CUSTOM_ADDONS:-./custom}
 COPY --chown=${ODOO_USER}:${ODOO_USER} ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
 
 # Own folders    //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
-RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_RC}
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} /etc/odoo
 RUN chmod u+x /entrypoint.sh
 
 EXPOSE 8069 8071 8072
@@ -234,5 +236,7 @@ ENV PGUSER ${DB_ENV_POSTGRES_USER}
 ENV PGPASSWORD ${DB_ENV_POSTGRES_PASSWORD}
 
 ENTRYPOINT ["/entrypoint.sh"]
+
+USER ${ODOO_USER}
 
 CMD ["odoo"]
