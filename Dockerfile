@@ -1,5 +1,7 @@
 FROM python:3.7-slim-buster as base
 
+SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
+
 USER root
 
 # Library versions
@@ -55,7 +57,7 @@ RUN apt-get -qq update \
     && rm -rf "$GNUPGHOME" \
     && apt-get update  \
     && apt-get install --no-install-recommends -y postgresql-client \
-    && rm -f /etc/apt/sources.list.d/pgdg.list \
+    # && rm -f /etc/apt/sources.list.d/pgdg.list \
     && apt-get autopurge -yqq \
     && rm -Rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
 
@@ -81,12 +83,12 @@ RUN apt-get -qq update \
     liblcms2-dev \
     libldap2-dev \
     libopenjp2-7-dev \
-    libpq-dev \
     libssl-dev \
     libsasl2-dev \
     libtiff5-dev \
     libxml2-dev \
     libxslt1-dev \
+    libpq-dev \
     libwebp-dev \
     lsb-release \
     tcl-dev \
