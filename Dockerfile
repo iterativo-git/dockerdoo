@@ -110,11 +110,12 @@ ENV ODOO_VERSION ${ODOO_VERSION:-11.0}
 
 RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
+    'websocket-client~=0.56' \
     astor \
     black \
     pylint-odoo \
     flake8 \
-    debugpy \
+    pydevd-odoo \
     psycogreen \
     python-magic \
     python-stdnum \
@@ -123,11 +124,13 @@ RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement 
     inotify \
     python-json-logger \
     wdb \
-    websocket-client \
     redis \
     && (python3 -m compileall -q /usr/local || true) \
     && apt-get autopurge -yqq \
     && rm -Rf /var/lib/apt/lists/* /tmp/*
+
+# debugpy has python2 libraries which can't be compiled with python3
+RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade debugpy
 
 RUN git clone --depth 100 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git /opt/odoo \
     && pip3 install --editable /opt/odoo \
@@ -144,7 +147,10 @@ ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
 # Run tests for all the modules in the custom addons
 ENV RUN_TESTS=${RUN_TESTS:-"0"}
 
-# Create app user
+ENV DEBUGPY_ARGS="--listen 0.0.0.0:6899 --wait-for-client" \
+    DEBUGPY_ENABLE=0
+
+    # Create app user
 ENV ODOO_USER odoo
 ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
 ARG APP_UID
@@ -246,4 +252,4 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 USER ${ODOO_USER}
 
-CMD ["sh", "-c", "${ODOO_CMD}"]
+CMD ${ODOO_CMD}
