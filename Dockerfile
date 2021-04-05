@@ -186,10 +186,6 @@ ENV \
     WITHOUT_DEMO=${WITHOUT_DEMO:-False} \
     WORKERS=${WORKERS:-0}
 
-# Copy from build env
-COPY ./resources/entrypoint.sh /
-COPY ./resources/getaddons.py /
-
 # Define all needed directories
 ENV ODOO_RC ${ODOO_RC:-/etc/odoo/odoo.conf}
 ENV ODOO_DATA_DIR ${ODOO_DATA_DIR:-/var/lib/odoo/data}
@@ -203,13 +199,6 @@ ENV HOST_CUSTOM_ADDONS ${HOST_CUSTOM_ADDONS:-/custom}
 
 RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} /etc/odoo/
 
-# Copy custom modules from the custom folder, if any.
-COPY ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
-
-# Own folders    //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
-RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_BASEPATH} ${ODOO_EXTRA_ADDONS} /etc/odoo/ /entrypoint.sh /getaddons.py
-RUN chmod u+x /entrypoint.sh /getaddons.py
-
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
 
 ARG EXTRA_ADDONS_PATHS
@@ -222,6 +211,17 @@ USER ${ODOO_USER}
 
 COPY --chown=${ODOO_USER}:${ODOO_USER} --from=builder /usr/local /usr/local
 COPY --chown=${ODOO_USER}:${ODOO_USER} --from=builder /opt/odoo ${ODOO_BASEPATH}
+
+# Copy from build env
+COPY --chown=${ODOO_USER}:${ODOO_USER} ./resources/entrypoint.sh /
+COPY --chown=${ODOO_USER}:${ODOO_USER} ./resources/getaddons.py /
+
+# Copy custom modules from the custom folder, if any.
+COPY --chown=${ODOO_USER}:${ODOO_USER} ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
+
+# Own folders    //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_RC}
+RUN chmod u+x /entrypoint.sh
 
 EXPOSE 8069 8071 8072
 
