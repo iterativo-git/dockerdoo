@@ -26,6 +26,7 @@ RUN apt-get -qq update \
     chromium \
     git-core \
     gnupg \
+    htop \
     ffmpeg \
     fonts-liberation2 \
     fonts-noto-cjk \
@@ -33,10 +34,17 @@ RUN apt-get -qq update \
     lsb-release \
     node-less \
     npm \
+    python3-num2words \
+    python3-pip \
+    python3-phonenumbers \
+    python3-pyldap \
+    python3-qrcode \
     python3-renderpm \
     python3-setuptools \
     python3-slugify \
+    python3-vobject \
     python3-watchdog \
+    python3-xlrd \
     python3-xlwt \
     nano \
     ssh \
@@ -109,11 +117,6 @@ RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement 
     debugpy \
     psycogreen \
     python-magic \
-    phonenumbers \
-    num2words \
-    qrcode \
-    vobject \
-    xlrd \
     python-stdnum \
     click-odoo-contrib \
     git-aggregator \
