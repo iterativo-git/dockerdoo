@@ -85,6 +85,8 @@ RUN set -x; \
     libssl-dev \
     libsasl2-dev \
     libtiff5-dev \
+    libxml2-dev \
+    libxslt1-dev \
     libwebp-dev \
     lsb-release \
     tcl-dev \
