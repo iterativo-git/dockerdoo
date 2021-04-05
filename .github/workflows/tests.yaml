@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Inject slug/short variables
-        uses: rlespinasse/github-slug-action@v2.x
+        uses: rlespinasse/github-slug-action@v3.x
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -91,7 +91,7 @@ jobs:
 
     steps:
       - name: Inject slug/short variables
-        uses: rlespinasse/github-slug-action@v2.x
+        uses: rlespinasse/github-slug-action@v3.x
 
       - name: Download artifact
         uses: actions/download-artifact@v2

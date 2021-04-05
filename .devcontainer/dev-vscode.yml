@@ -12,4 +12,5 @@ services:
     depends_on: ["db"]
     environment:
       - PIP_AUTO_INSTALL=1
+      - DEBUGPY_ENABLE=1
     command: /bin/sh -c "while sleep 1000; do :; done"
