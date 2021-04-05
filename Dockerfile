@@ -1,5 +1,7 @@
 FROM python:3.7-slim-buster as base
 
+SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
+
 USER root
 
 # Library versions
@@ -13,8 +15,7 @@ ENV WKHTMLTOPDF_CHECKSUM ${WKHTMLTOPDF_CHECKSUM:-"1140b0ab02aa6e17346af2f14ed0de
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install odoo deps
-RUN set -x; \
-    apt-get -qq update \
+RUN apt-get -qq update \
     && apt-get -qq install -y --no-install-recommends \
     curl \
     && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb \
@@ -47,7 +48,8 @@ RUN set -x; \
     zlibc \
     xz-utils \
     && echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > etc/apt/sources.list.d/pgdg.list \
-    && export GNUPGHOME="$(mktemp -d)" \
+    && GNUPGHOME="$(mktemp -d)" \
+    && export GNUPGHOME \
     && repokey='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8' \
     && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "${repokey}" \
     && gpg --batch --armor --export "${repokey}" > /etc/apt/trusted.gpg.d/pgdg.gpg.asc \
@@ -55,19 +57,18 @@ RUN set -x; \
     && rm -rf "$GNUPGHOME" \
     && apt-get update  \
     && apt-get install --no-install-recommends -y postgresql-client \
+    && rm -f /etc/apt/sources.list.d/pgdg.list \
     && apt-get autopurge -yqq \
     && rm -Rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
 
 # Install rtlcss (on Debian buster)
-RUN set -x; \
-    npm install -g rtlcss \
+RUN npm install -g rtlcss \
     && rm -Rf ~/.npm /tmp/*
 
 FROM base as builder
 
 # Install hard & soft build dependencies
-RUN set -x; \
-    apt-get -qq update && apt-get -qq install -y --no-install-recommends \
+RUN apt-get -qq update && apt-get -qq install -y --no-install-recommends \
     apt-utils dialog \
     apt-transport-https \
     build-essential \
