@@ -1,7 +1,5 @@
 FROM python:3.7-slim-buster as base
 
-SHELL ["/bin/bash", "-x", "-c"]
-
 USER root
 
 # Library versions
@@ -68,7 +66,8 @@ RUN npm install -g rtlcss \
 FROM base as builder
 
 # Install hard & soft build dependencies
-RUN apt-get -qq update && apt-get install -y --no-install-recommends \
+RUN apt-get -qq update \
+    && apt-get -qq install -y --no-install-recommends \
     apt-utils dialog \
     apt-transport-https \
     build-essential \
