@@ -1,4 +1,4 @@
-.git
+.git*
 .gitignore
 LICENSE
 README.md
@@ -6,3 +6,5 @@ Changelog.md
 Makefile
 custom/*
 src/*
+.devcontainer/*
+.yaml
