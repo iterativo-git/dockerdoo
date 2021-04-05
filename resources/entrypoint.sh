@@ -66,7 +66,7 @@ else
     if [ "$PIP_AUTO_INSTALL" -eq "1" ]; then
         find $ODOO_EXTRA_ADDONS -name 'requirements.txt' -exec pip3 install --user -r {} \;
     fi
-    sed -i 's|addons_path = *|addons_path = ${EXTRA_ADDONS_PATHS},|' $ODOO_RC
+    sed -i "s|addons_path = *|addons_path = ${EXTRA_ADDONS_PATHS},|" $ODOO_RC
 fi
 
 
