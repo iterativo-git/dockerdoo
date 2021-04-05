@@ -26,6 +26,7 @@ RUN apt-get -qq update \
     chromium \
     git-core \
     gnupg \
+    htop \
     ffmpeg \
     fonts-liberation2 \
     fonts-noto-cjk \
@@ -33,10 +34,17 @@ RUN apt-get -qq update \
     lsb-release \
     node-less \
     npm \
+    python3-num2words \
+    python3-pip \
+    python3-phonenumbers \
+    python3-pyldap \
+    python3-qrcode \
     python3-renderpm \
     python3-setuptools \
     python3-slugify \
+    python3-vobject \
     python3-watchdog \
+    python3-xlrd \
     python3-xlwt \
     nano \
     ssh \
@@ -102,24 +110,21 @@ ENV ODOO_VERSION ${ODOO_VERSION:-14.0}
 
 RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
+    'websocket-client~=0.56' \
     astor \
     black \
     pylint-odoo \
     flake8 \
+    pydevd-odoo \
     psycogreen \
     python-magic \
-    phonenumbers \
-    pdfminer.six \
-    num2words \
-    qrcode \
-    vobject \
     python-stdnum \
+    pdfminer.six \
     click-odoo-contrib \
     git-aggregator \
     inotify \
     python-json-logger \
     wdb \
-    websocket-client \
     redis \
     && (python3 -m compileall -q /usr/local || true) \
     && apt-get autopurge -yqq \
@@ -134,6 +139,10 @@ RUN git clone --depth 100 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git /o
     && (python3 -m compileall -q /usr/local || true) \
     && rm -Rf /var/lib/apt/lists/* /tmp/*
 
+# debugpy has python2 libraries which can't be compiled with python3
+RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade debugpy \
+    && rm -Rf /var/lib/apt/lists/* /tmp/*
+
 FROM base as production
 
 # PIP auto-install requirements.txt (change value to "1" to auto-install)
@@ -142,7 +151,10 @@ ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
 # Run tests for all the modules in the custom addons
 ENV RUN_TESTS=${RUN_TESTS:-"0"}
 
-# Create app user
+ENV DEBUGPY_ARGS="--listen 0.0.0.0:6899 --wait-for-client" \
+    DEBUGPY_ENABLE=0
+
+    # Create app user
 ENV ODOO_USER odoo
 ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
 ARG APP_UID
@@ -244,4 +256,4 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 USER ${ODOO_USER}
 
-CMD ["odoo"]
+CMD ["/opt/odoo/odoo-bin"]
