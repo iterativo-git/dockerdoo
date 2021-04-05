@@ -1,6 +1,6 @@
 FROM python:3.7-slim-buster as base
 
-SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
+SHELL ["/bin/bash", "-x", "-c"]
 
 USER root
 
