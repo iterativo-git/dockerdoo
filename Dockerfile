@@ -22,9 +22,9 @@ RUN set -x; \
     && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
     && apt-get -qq install -y --no-install-recommends \
     ca-certificates \
-    git-core \
-    curl \
     chromium \
+    git-core \
+    gnupg \
     ffmpeg \
     fonts-liberation2 \
     fonts-noto-cjk \
@@ -38,7 +38,12 @@ RUN set -x; \
     python3-watchdog \
     python3-xlwt \
     nano \
+    ssh \
+    # Add sudo support for the non-root user & unzip for CI
+    sudo \
+    unzip \
     vim \
+    zip \
     zlibc \
     xz-utils \
     && echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > etc/apt/sources.list.d/pgdg.list \
@@ -109,7 +114,6 @@ RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement 
     xlrd \
     python-stdnum \
     click-odoo-contrib \
-    firebase-admin \
     git-aggregator \
     inotify \
     python-json-logger \
@@ -123,16 +127,25 @@ RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement 
 
 FROM base as production
 
-ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
-
-COPY --from=builder /usr/local /usr/local
-COPY --from=builder /opt/odoo ${ODOO_BASEPATH}
-
 # PIP auto-install requirements.txt (change value to "1" to auto-install)
 ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
 
 # Run tests for all the modules in the custom addons
 ENV RUN_TESTS=${RUN_TESTS:-"0"}
+
+# Create app user
+ENV ODOO_USER odoo
+ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
+ARG APP_UID
+ENV APP_UID ${APP_UID:-1000}
+
+ARG APP_GID
+ENV APP_GID ${APP_UID:-1000}
+
+RUN addgroup --system --gid ${APP_GID} ${ODOO_USER} \
+    && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
+    && echo ${ODOO_USER} ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/${ODOO_USER}\
+    && chmod 0440 /etc/sudoers.d/${ODOO_USER}
 
 # Odoo Configuration file defaults
 ENV \
@@ -173,26 +186,6 @@ ENV \
     WITHOUT_DEMO=${WITHOUT_DEMO:-False} \
     WORKERS=${WORKERS:-0}
 
-# Create app user
-ENV ODOO_USER odoo
-ARG APP_UID
-ENV APP_UID ${APP_UID:-1000}
-
-ARG APP_GID
-ENV APP_GID ${APP_UID:-1000}
-
-RUN apt-get update \
-    && addgroup --system --gid ${APP_GID} ${ODOO_USER} \
-    && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
-    # [Optional] Add sudo support for the non-root user & unzip for CI
-    && apt-get install -y ssh sudo zip unzip \
-    && echo ${ODOO_USER} ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/${ODOO_USER}\
-    && chmod 0440 /etc/sudoers.d/${ODOO_USER} \
-    #
-    # Clean up
-    && apt-get autopurge -yqq \
-    && rm -Rf /var/lib/apt/lists/* /tmp/*
-
 # Copy from build env
 COPY ./resources/entrypoint.sh /
 COPY ./resources/getaddons.py /
@@ -219,26 +212,27 @@ RUN chmod u+x /entrypoint.sh /getaddons.py
 
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
 
-# Docker healthcheck command
-HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
-
 ARG EXTRA_ADDONS_PATHS
 ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
 
 ARG EXTRA_MODULES
 ENV EXTRA_MODULES ${EXTRA_MODULES}
 
+USER ${ODOO_USER}
+
+COPY --chown=${ODOO_USER}:${ODOO_USER} --from=builder /usr/local /usr/local
+COPY --chown=${ODOO_USER}:${ODOO_USER} --from=builder /opt/odoo ${ODOO_BASEPATH}
+
 EXPOSE 8069 8071 8072
 
-ENTRYPOINT ["/entrypoint.sh"]
+# Docker healthcheck command
+HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
 
 ENV PGHOST ${DB_PORT_5432_TCP_ADDR}
 ENV PGPORT ${DB_PORT_5432_TCP_PORT}
 ENV PGUSER ${DB_ENV_POSTGRES_USER}
 ENV PGPASSWORD ${DB_ENV_POSTGRES_PASSWORD}
 
-RUN find ${ODOO_EXTRA_ADDONS} -name 'requirements.txt' -exec pip3 install --no-cache-dir -r {} \;
-
-USER ${ODOO_USER}
+ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["odoo"]
