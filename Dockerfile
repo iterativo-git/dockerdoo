@@ -243,4 +243,4 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 USER ${ODOO_USER}
 
-CMD ["odoo"]
+CMD ["sh", "-c", "${ODOO_CMD}"]
