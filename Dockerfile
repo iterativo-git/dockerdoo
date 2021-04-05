@@ -129,14 +129,15 @@ RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement 
     && apt-get autopurge -yqq \
     && rm -Rf /var/lib/apt/lists/* /tmp/*
 
-# debugpy has python2 libraries which can't be compiled with python3
-RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade debugpy
-
 RUN git clone --depth 100 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git /opt/odoo \
     && pip3 install --editable /opt/odoo \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
     Werkzeug==0.15.6 \
     && (python3 -m compileall -q /usr/local || true) \
+    && rm -Rf /var/lib/apt/lists/* /tmp/*
+
+# debugpy has python2 libraries which can't be compiled with python3
+RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade debugpy \
     && rm -Rf /var/lib/apt/lists/* /tmp/*
 
 FROM base as production
@@ -252,4 +253,4 @@ ENTRYPOINT ["/entrypoint.sh"]
 
 USER ${ODOO_USER}
 
-CMD ${ODOO_CMD}
+CMD ["/opt/odoo/odoo-bin"]
