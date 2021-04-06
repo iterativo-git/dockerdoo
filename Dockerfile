@@ -125,7 +125,6 @@ RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement 
     python-json-logger \
     wdb \
     redis \
-    && (python3 -m compileall -q /usr/local || true) \
     && apt-get autopurge -yqq \
     && rm -Rf /var/lib/apt/lists/* /tmp/*
 
