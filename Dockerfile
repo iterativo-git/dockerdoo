@@ -240,11 +240,6 @@ EXPOSE 8069 8071 8072
 # Docker healthcheck command
 HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
 
-ENV PGHOST ${DB_PORT_5432_TCP_ADDR}
-ENV PGPORT ${DB_PORT_5432_TCP_PORT}
-ENV PGUSER ${DB_ENV_POSTGRES_USER}
-ENV PGPASSWORD ${DB_ENV_POSTGRES_PASSWORD}
-
 ENTRYPOINT ["/entrypoint.sh"]
 
 USER ${ODOO_USER}
