@@ -126,7 +126,6 @@ RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement 
     python-json-logger \
     wdb \
     redis \
-    && (python3 -m compileall -q /usr/local || true) \
     && apt-get autopurge -yqq \
     && rm -Rf /var/lib/apt/lists/* /tmp/*
 
@@ -136,11 +135,8 @@ RUN git clone --depth 100 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git /o
     gevent==20.12.1 \
     greenlet==0.4.17 \
     Werkzeug==0.15.6 \
-    && (python3 -m compileall -q /usr/local || true) \
-    && rm -Rf /var/lib/apt/lists/* /tmp/*
-
-# debugpy has python2 libraries which can't be compiled with python3
-RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade debugpy \
+    # debugpy has python2 libraries which can't be compiled with python3
+    debugpy \
     && rm -Rf /var/lib/apt/lists/* /tmp/*
 
 FROM base as production
@@ -246,11 +242,6 @@ EXPOSE 8069 8071 8072
 
 # Docker healthcheck command
 HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
-
-ENV PGHOST ${DB_PORT_5432_TCP_ADDR}
-ENV PGPORT ${DB_PORT_5432_TCP_PORT}
-ENV PGUSER ${DB_ENV_POSTGRES_USER}
-ENV PGPASSWORD ${DB_ENV_POSTGRES_PASSWORD}
 
 ENTRYPOINT ["/entrypoint.sh"]
 
