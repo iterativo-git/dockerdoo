@@ -144,7 +144,7 @@ ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
 # Run tests for all the modules in the custom addons
 ENV RUN_TESTS=${RUN_TESTS:-"0"}
 
-ENV DEBUGPY_ARGS="--listen 0.0.0.0:6899 --wait-for-client" \
+ENV DEBUGPY_ARGS="--listen 0.0.0.0:5678 --wait-for-client" \
     DEBUGPY_ENABLE=0
 
     # Create app user
