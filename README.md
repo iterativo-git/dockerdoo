@@ -1,6 +1,6 @@
-# Dockerized Odoo for Odoo 13.0
+# Dockerized Odoo
 
-This is a flexible and **streamlined** version of most Odoo docker projects that you'll find. And one that allows you to deploy with two different methods using the same Dockerfile:
+This is a flexible and **streamlined** version of most dockerized Odoo projects that you'll find. And one that allows you to deploy with two different methods using the same Dockerfile:
 
 * **Standalone**: As most people use their implementation. With Odoo's source code inside the container. **This is the default**
 * **Hosted**: A more practical deployment for **development**, as the HOST (where docker is installed) has the source code, and each container uses this single source.
