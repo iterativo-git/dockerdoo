@@ -1,14 +1,16 @@
 version: "3.7"
-volumes:
-  odoo-modules:
 
 services:
   odoo:
     volumes:
       # Host paths (.vscode configuration)
       - ./.devcontainer/.vscode:${ODOO_EXTRA_ADDONS}/.vscode
-      # Named volumes (third party modules)
-      - odoo-modules:${ODOO_EXTRA_ADDONS}
+      #
+      # Uncomment to use hosted volume from your Host
+      # This is not the default for VSContainers as it's too slow on PC and Mac
+      # because of Docker's hosted volumes performance
+      #
+      # - ./custom:${ODOO_EXTRA_ADDONS}:delegated
     depends_on: ["db"]
     environment:
       - PIP_AUTO_INSTALL=1
