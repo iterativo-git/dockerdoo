@@ -5,6 +5,10 @@ This is a flexible and **streamlined** version of most dockerized Odoo projects 
 * **Standalone**: As most people use their implementation. With Odoo's source code inside the container. **This is the default**
 * **Hosted**: A more practical deployment for **development**, as the HOST (where docker is installed) has the source code, and each container uses this single source.
 
+Dockerdoo is integrated with **VSCode** for fast development and debugging, just install the [Remote Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
+
+> By default this approach does not use the modules availables at the `./custom` directory, as this uses Docker's hosted volumes approach which is considerably slow on Mac and PC. If you'd like to use it this way, just uncomment `./custom:${ODOO_EXTRA_ADDONS}:delegated` from the `dev-vscode.yml`
+
 ## Quick usage
 
 To use the **hosted** approach, the Odoo code must be in the `./src` directory, if you also use Enterprise you can add it to the `custom` directory, which is automagically added to your addons_path.
