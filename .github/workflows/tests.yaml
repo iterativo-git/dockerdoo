@@ -6,6 +6,10 @@ on:
   push:
     branches:
       - "[0-9]+.0"
+    paths:
+      - "**/workflows/**"
+      - "**/resources/**"
+      - "Dockerfile"
 
 env:
   HUB_BASE: iterativodo
