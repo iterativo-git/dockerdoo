@@ -32,6 +32,7 @@ db_sslmode = ${DB_SSLMODE}
 db_template = ${DB_TEMPLATE}
 db_user = ${PGUSER}
 dbfilter = ${DBFILTER}
+db_name = ${DBNAME}
 http_interface = ${HTTP_INTERFACE}
 http_port = ${HTTP_PORT}
 limit_request = ${LIMIT_REQUEST}
