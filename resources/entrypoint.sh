@@ -97,6 +97,13 @@ case "$1" in
             fi
             exec odoo "$@" "--test-enable" "--stop-after-init" "-i" "${EXTRA_MODULES}" "-d" "${TEST_DB:-test}" "${DB_ARGS[@]}"
         else
+            if [[ "$UPGRADE_ODOO" -eq "1" ]] ; then
+                ODOO_DB_LIST=$(psql -X -A -h ${PGHOST} -p ${PGPORT} -U ${PGUSER} -d postgres -t -c "SELECT STRING_AGG(datname, ' ') FROM pg_database WHERE datdba=(SELECT usesysid FROM pg_user WHERE usename=current_user) AND NOT datistemplate and datallowconn")
+                for db in ${ODOO_DB_LIST}; do
+                    click-odoo-update --ignore-core-addons -d $db -c ${ODOO_RC} --log-level=error
+                    echo "The Database ${db} has been updated"
+                done
+            fi
             exec odoo "$@" "${DB_ARGS[@]}"
         fi
         ;;
