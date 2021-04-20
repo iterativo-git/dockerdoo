@@ -15,7 +15,6 @@ env:
   HUB_BASE: iterativodo
   GIT_BASE: ghcr.io/iterativo-git
   GCR_BASE: gcr.io/iterativo
-  CACHE_PATH: /tmp/.buildx-cache-new
 
 jobs:
   build:
@@ -88,7 +87,7 @@ jobs:
 
       - name: Run Odoo tests
         run: |
-          docker pull ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}::${{ env.GITHUB_SHA_SHORT }}
+          docker pull ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_SHA_SHORT }}
           docker run -e RUN_TESTS -e LOG_LEVEL -e EXTRA_MODULES -e PGHOST --network="host" --name odoo -t ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_SHA_SHORT }}
         env:
           RUN_TESTS: "1"
