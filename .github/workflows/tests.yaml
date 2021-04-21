@@ -15,7 +15,6 @@ env:
   HUB_BASE: iterativodo
   GIT_BASE: ghcr.io/iterativo-git
   GCR_BASE: gcr.io/iterativo
-  CACHE_PATH: /tmp/.buildx-cache-new
 
 jobs:
   build:
@@ -33,40 +32,22 @@ jobs:
         with:
           driver-opts: network=host
 
-      - name: Login to DockerHub
+      - name: Login to Github Registry
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: |
-            /tmp/.buildx-cache
-            /tmp/odoo.tar
-          key: ${{ runner.os }}-buildx-${{ env.GITHUB_REF_SLUG }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-            ${{ runner.os }}-
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./Dockerfile
-          tags: odoo:${{ env.GITHUB_REF_SLUG }}
-          cache-from: type=registry,ref=${{ env.HUB_BASE }}/dockerdoo:${{ env.GITHUB_REF_SLUG }}
-          cache-to: type=local,dest=${{ env.CACHE_PATH }}
-          outputs: type=docker,dest=/tmp/odoo.tar
-
-        # Temp fix
-        # https://github.com/docker/build-push-action/issues/252
-        # https://github.com/moby/buildkit/issues/1896
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+          push: true
+          tags: ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_SHA_SHORT }}
+          cache-from: type=registry,ref=${{ env.GIT_BASE }}/dockerdoo:${{ env.GITHUB_REF_SLUG }}
+          cache-to: type=inline
 
   test:
     name: Unit Tests
@@ -92,32 +73,25 @@ jobs:
       - name: Inject slug/short variables
         uses: rlespinasse/github-slug-action@v3.x
 
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: |
-            /tmp/.buildx-cache
-            /tmp/odoo.tar
-          key: ${{ runner.os }}-buildx-${{ env.GITHUB_REF_SLUG }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-            ${{ runner.os }}-
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
         with:
           driver-opts: network=host
 
+      - name: Login to Github Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Run Odoo tests
         run: |
-          docker image ls -a
-          docker load --input /tmp/odoo.tar
-          docker run -e RUN_TESTS -e PIP_AUTO_INSTALL -e LOG_LEVEL -e WITHOUT_DEMO -e EXTRA_MODULES -e PGHOST --network="host" --name odoo -t odoo:${{ env.GITHUB_REF_SLUG }}
+          docker pull ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_SHA_SHORT }}
+          docker run -e RUN_TESTS -e LOG_LEVEL -e EXTRA_MODULES -e PGHOST --network="host" --name odoo -t ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_SHA_SHORT }}
         env:
           RUN_TESTS: "1"
-          PIP_AUTO_INSTALL: "1"
           LOG_LEVEL: test
-          WITHOUT_DEMO: "False"
           EXTRA_MODULES: base
           PGHOST: localhost
 
@@ -132,17 +106,6 @@ jobs:
 
       - name: Inject slug/short variables
         uses: rlespinasse/github-slug-action@v3.x
-
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: |
-            /tmp/.buildx-cache
-            /tmp/odoo.tar
-          key: ${{ runner.os }}-buildx-${{ env.GITHUB_REF_SLUG }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-            ${{ runner.os }}-
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -161,7 +124,8 @@ jobs:
           context: .
           push: true
           tags: ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
-          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-from: type=registry,src=${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
+          cache-to: type=inline
 
   push-gcp:
     name: Push to Google Container Registry
@@ -174,17 +138,6 @@ jobs:
 
       - name: Inject slug/short variables
         uses: rlespinasse/github-slug-action@v3.x
-
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: |
-            /tmp/.buildx-cache
-            /tmp/odoo.tar
-          key: ${{ runner.os }}-buildx-${{ env.GITHUB_REF_SLUG }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-            ${{ runner.os }}-
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -203,7 +156,8 @@ jobs:
           context: .
           push: true
           tags: ${{ env.GCR_BASE}}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
-          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-from: type=registry,src=${{ env.GCR_BASE}}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
+          cache-to: type=inline
 
   push-docker:
     name: Push to Docker Hub
@@ -216,17 +170,6 @@ jobs:
 
       - name: Inject slug/short variables
         uses: rlespinasse/github-slug-action@v3.x
-
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: |
-            /tmp/.buildx-cache
-            /tmp/odoo.tar
-          key: ${{ runner.os }}-buildx-${{ env.GITHUB_REF_SLUG }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-            ${{ runner.os }}-
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -244,4 +187,5 @@ jobs:
           context: .
           push: true
           tags: ${{ env.HUB_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
-          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-from: type=registry,src=${{ env.HUB_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
+          cache-to: type=inline
