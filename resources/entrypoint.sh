@@ -58,7 +58,8 @@ smtp_user = ${SMTP_USER}
 test_enable = ${TEST_ENABLE}
 unaccent = ${UNACCENT}
 without_demo = ${WITHOUT_DEMO}
-workers = ${WORKERS}" > $ODOO_RC
+workers = ${WORKERS}
+running_env = ${RUNNING_ENV}" > $ODOO_RC
 fi
 
 if [ -z "$EXTRA_ADDONS_PATHS" ]; then
