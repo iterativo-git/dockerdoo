@@ -265,6 +265,9 @@ ENV ODOO_CMD ${ODOO_BASEPATH}/odoo-bin
 
 RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} /etc/odoo/
 
+# Own folders    //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
+RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} /etc/odoo
+
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
 
 ARG EXTRA_ADDONS_PATHS
@@ -286,8 +289,6 @@ ARG HOST_CUSTOM_ADDONS
 ENV HOST_CUSTOM_ADDONS ${HOST_CUSTOM_ADDONS:-./custom}
 COPY --chown=${ODOO_USER}:${ODOO_USER} ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
 
-# Own folders    //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
-RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} /etc/odoo
 RUN chmod u+x /entrypoint.sh
 
 EXPOSE 8069 8071 8072
