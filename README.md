@@ -25,7 +25,7 @@ docker-compose up
 ```shell
 git clone -b 14.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
 git clone --depth=1 -b 14.0 git@github.com:odoo/odoo.git src/odoo
-docker-compose -f docker-compose.yml -f hosted.yml
+docker-compose -f docker-compose.yml -f hosted.yml up
 ```
 
 ### Development
