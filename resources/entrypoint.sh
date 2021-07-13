@@ -96,7 +96,12 @@ case "$1" in
             if [ -z "$EXTRA_MODULES" ]; then
                 EXTRA_MODULES=$(python3 -c "from getaddons import get_modules; print(','.join(get_modules('${ODOO_EXTRA_ADDONS}', depth=3)))")
             fi
-            exec odoo "$@" "--test-enable" "--stop-after-init" "-i" "${EXTRA_MODULES}" "--test-tags" "${EXTRA_MODULES}" "-d" "${TEST_DB:-test}" "${DB_ARGS[@]}"
+            if [ "$WITHOUT_TEST_TAGS" -eq "1" ]; then
+                exec odoo "$@" "--test-enable" "--stop-after-init" "-i" "${EXTRA_MODULES}" "-d" "${TEST_DB:-test}" "${DB_ARGS[@]}"
+            else
+                exec odoo "$@" "--test-enable" "--stop-after-init" "-i" "${EXTRA_MODULES}" "--test-tags" "${EXTRA_MODULES}" "-d" "${TEST_DB:-test}" "${DB_ARGS[@]}"
+            fi
+            
         else
             if [[ "$UPGRADE_ODOO" -eq "1" ]] ; then
                 ODOO_DB_LIST=$(psql -X -A -h ${PGHOST} -p ${PGPORT} -U ${PGUSER} -d postgres -t -c "SELECT STRING_AGG(datname, ' ') FROM pg_database WHERE datdba=(SELECT usesysid FROM pg_user WHERE usename=current_user) AND NOT datistemplate and datallowconn")
