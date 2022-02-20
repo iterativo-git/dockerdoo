@@ -24,6 +24,7 @@ RUN apt-get -qq update \
     && apt-get -qq install -y --no-install-recommends \
     ca-certificates \
     chromium \
+    dirmngr \
     git-core \
     gnupg \
     htop \
@@ -35,6 +36,7 @@ RUN apt-get -qq update \
     node-less \
     npm \
     python3-num2words \
+    python3-pdfminer \
     python3-pip \
     python3-phonenumbers \
     python3-pyldap \
