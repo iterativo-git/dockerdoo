@@ -51,8 +51,13 @@ RUN apt-get -qq update \
     vim \
     zip \
     xz-utils \
-    && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.buster_amd64.deb \
-    && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha1sum -c - \
+    && \
+    if [ "$(uname -m)" = "aarch64" ]; then \
+        curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_arm64.deb \
+    ; else \
+        curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.buster_amd64.deb \
+        && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha1sum -c - \
+    ; fi \
     && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
     && apt-get autopurge -yqq \
     && rm -rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
