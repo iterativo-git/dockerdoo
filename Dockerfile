@@ -79,8 +79,8 @@ RUN npm install -g rtlcss \
 FROM base as builder
 
 # Install hard & soft build dependencies
-RUN apt-get -qq update \
-    && apt-get -qq install -y --no-install-recommends \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
     apt-utils dialog \
     apt-transport-https \
     build-essential \
@@ -105,7 +105,7 @@ RUN apt-get -qq update \
     tcl-dev \
     tk-dev \
     zlib1g-dev \
-    && apt-get autopurge -yqq \
+    # && apt-get autopurge -yqq \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Install Odoo source code and install it as a package inside the container with additional tools
