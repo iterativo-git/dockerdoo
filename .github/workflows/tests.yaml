@@ -154,7 +154,7 @@ jobs:
           target: production
           platforms: |
             linux/amd64
-          #  linux/arm64
+            linux/arm64
           push: true
           tags: |
             ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_HEAD_REF_SLUG_URL || env.GITHUB_REF_SLUG_URL }}
