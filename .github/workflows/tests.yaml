@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       db:
-        image: postgres:12-alpine
+        image: postgres:14-alpine
         env:
           POSTGRES_DB: postgres
           POSTGRES_USER: odoo
@@ -112,9 +112,7 @@ jobs:
         uses: docker/setup-qemu-action@v1
         with:
           image: tonistiigi/binfmt:latest
-          platforms: |
-            linux/amd64
-            linux/arm64
+          platforms: all
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
