@@ -107,6 +107,15 @@ jobs:
       - name: Inject slug/short variables
         uses: rlespinasse/github-slug-action@v3.x
 
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v1
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: |
+            linux/amd64
+            linux/arm64
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
@@ -135,7 +144,9 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: |
+            linux/amd64
+            linux/arm64
           push: true
           tags: |
             ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
