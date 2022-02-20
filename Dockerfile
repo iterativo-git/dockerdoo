@@ -28,7 +28,6 @@ RUN apt-get -qq update \
     fonts-liberation2 \
     fonts-noto-cjk \
     locales \
-    lsb-release \
     node-less \
     npm \
     python3-num2words \
@@ -59,7 +58,10 @@ RUN apt-get -qq update \
     && rm -rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
 
 # install latest postgresql-client
-RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main' > /etc/apt/sources.list.d/pgdg.list \
+RUN apt-get -qq update \
+    && apt-get -qq install -y --no-install-recommends \
+    lsb-release \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && GNUPGHOME="$(mktemp -d)" \
     && export GNUPGHOME \
     && repokey='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8' \
@@ -67,8 +69,7 @@ RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg m
     && gpg --batch --armor --export "${repokey}" > /etc/apt/trusted.gpg.d/pgdg.gpg.asc \
     && gpgconf --kill all \
     && rm -rf "$GNUPGHOME" \
-    && apt-get update  \
-    && apt-get install --no-install-recommends -y postgresql-client \
+    && apt-get -qq install -y --no-install-recommends postgresql-client libpq-dev \
     && rm -f /etc/apt/sources.list.d/pgdg.list \
     && rm -rf /var/lib/apt/lists/*
 
@@ -79,8 +80,8 @@ RUN npm install -g rtlcss \
 FROM base as builder
 
 # Install hard & soft build dependencies
-RUN apt-get -qq update \
-    && apt-get -qq install -y --no-install-recommends \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
     apt-utils dialog \
     apt-transport-https \
     build-essential \
@@ -99,13 +100,10 @@ RUN apt-get -qq update \
     libtiff5-dev \
     libxml2-dev \
     libxslt1-dev \
-    libpq-dev \
     libwebp-dev \
-    lsb-release \
     tcl-dev \
     tk-dev \
     zlib1g-dev \
-    && apt-get autopurge -yqq \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Install Odoo source code and install it as a package inside the container with additional tools
