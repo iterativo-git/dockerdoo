@@ -19,7 +19,7 @@ RUN apt-get -qq update \
     && apt-get -qq install -y --no-install-recommends \
     curl \
     && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.buster_amd64.deb \
-    && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha256sum -c - \
+    && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha1sum -c - \
     && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
     && apt-get -qq install -y --no-install-recommends \
     ca-certificates \
