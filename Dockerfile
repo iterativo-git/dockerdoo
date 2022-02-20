@@ -99,13 +99,10 @@ RUN apt-get update \
     libtiff5-dev \
     libxml2-dev \
     libxslt1-dev \
-    libpq-dev \
     libwebp-dev \
-    lsb-release \
     tcl-dev \
     tk-dev \
     zlib1g-dev \
-    # && apt-get autopurge -yqq \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Install Odoo source code and install it as a package inside the container with additional tools
