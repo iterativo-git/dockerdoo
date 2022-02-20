@@ -115,6 +115,7 @@ jobs:
           platforms: all
 
       - name: Set up Docker Buildx
+        id: buildx
         uses: docker/setup-buildx-action@v1
 
       - name: Login to GitHub Registry
@@ -145,7 +146,7 @@ jobs:
           target: production
           platforms: |
             linux/amd64
-            linux/arm64
+          #  linux/arm64
           push: true
           tags: |
             ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
