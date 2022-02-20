@@ -46,8 +46,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_SHA_SHORT }}
-          cache-from: type=registry,ref=${{ env.GIT_BASE }}/dockerdoo:${{ env.GITHUB_REF_SLUG }}
-          cache-to: type=inline
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   test:
     name: Unit Tests
@@ -95,8 +95,8 @@ jobs:
           EXTRA_MODULES: base
           PGHOST: localhost
 
-  push-github:
-    name: Push to Github Container Registry
+  push:
+    name: Push to all registries
     needs: ["build", "test"]
     runs-on: ubuntu-latest
 
@@ -110,37 +110,18 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Login to Docker Registry
+      - name: Login to GitHub Registry
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
-        id: docker_build
-        uses: docker/build-push-action@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
         with:
-          context: .
-          push: true
-          tags: ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
-          cache-from: type=registry,src=${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
-          cache-to: type=inline
-
-  push-gcp:
-    name: Push to Google Container Registry
-    needs: ["build", "test"]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout local
-        uses: actions/checkout@v2
-
-      - name: Inject slug/short variables
-        uses: rlespinasse/github-slug-action@v3.x
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Login to GCR
         uses: docker/login-action@v1
@@ -155,37 +136,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.GCR_BASE}}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
-          cache-from: type=registry,src=${{ env.GCR_BASE}}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
-          cache-to: type=inline
-
-  push-docker:
-    name: Push to Docker Hub
-    needs: ["build", "test"]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout local
-        uses: actions/checkout@v2
-
-      - name: Inject slug/short variables
-        uses: rlespinasse/github-slug-action@v3.x
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build and push
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          push: true
-          tags: ${{ env.HUB_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
-          cache-from: type=registry,src=${{ env.HUB_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
-          cache-to: type=inline
+          tags: |
+            ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
+            ${{ env.HUB_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
+            ${{ env.GCR_BASE}}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

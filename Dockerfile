@@ -9,7 +9,7 @@ ARG WKHTMLTOX_VERSION
 ENV WKHTMLTOX_VERSION ${WKHTMLTOX_VERSION:-"0.12.5"}
 
 ARG WKHTMLTOPDF_CHECKSUM
-ENV WKHTMLTOPDF_CHECKSUM ${WKHTMLTOPDF_CHECKSUM:-"1140b0ab02aa6e17346af2f14ed0de807376de475ba90e1db3975f112fbd20bb"}
+ENV WKHTMLTOPDF_CHECKSUM ${WKHTMLTOPDF_CHECKSUM:-"ea8277df4297afc507c61122f3c349af142f31e5"}
 
 # Use noninteractive to get rid of apt-utils message
 ENV DEBIAN_FRONTEND=noninteractive
@@ -18,12 +18,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -qq update \
     && apt-get -qq install -y --no-install-recommends \
     curl \
-    && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.stretch_amd64.deb \
-    && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha256sum -c - \
+    && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.buster_amd64.deb \
+    && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha1sum -c - \
     && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
     && apt-get -qq install -y --no-install-recommends \
     ca-certificates \
     chromium \
+    dirmngr \
     git-core \
     gnupg \
     htop \
@@ -35,6 +36,7 @@ RUN apt-get -qq update \
     node-less \
     npm \
     python3-num2words \
+    python3-pdfminer \
     python3-pip \
     python3-phonenumbers \
     python3-pyldap \
@@ -119,7 +121,6 @@ RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement 
     psycogreen \
     python-magic \
     python-stdnum \
-    pdfminer.six \
     click-odoo-contrib \
     git-aggregator \
     inotify \
