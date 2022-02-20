@@ -9,7 +9,7 @@ ARG WKHTMLTOX_VERSION
 ENV WKHTMLTOX_VERSION ${WKHTMLTOX_VERSION:-"0.12.5"}
 
 ARG WKHTMLTOPDF_CHECKSUM
-ENV WKHTMLTOPDF_CHECKSUM ${WKHTMLTOPDF_CHECKSUM:-"1140b0ab02aa6e17346af2f14ed0de807376de475ba90e1db3975f112fbd20bb"}
+ENV WKHTMLTOPDF_CHECKSUM ${WKHTMLTOPDF_CHECKSUM:-"ea8277df4297afc507c61122f3c349af142f31e5"}
 
 # Use noninteractive to get rid of apt-utils message
 ENV DEBIAN_FRONTEND=noninteractive
@@ -121,7 +121,6 @@ RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement 
     psycogreen \
     python-magic \
     python-stdnum \
-    pdfminer.six \
     click-odoo-contrib \
     git-aggregator \
     inotify \
