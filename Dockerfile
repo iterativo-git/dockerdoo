@@ -17,12 +17,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install odoo deps
 RUN apt-get -qq update \
     && apt-get -qq install -y --no-install-recommends \
-    curl \
-    && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.buster_amd64.deb \
-    && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha1sum -c - \
-    && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
-    && apt-get -qq install -y --no-install-recommends \
     ca-certificates \
+    curl \
     chromium \
     dirmngr \
     git-core \
@@ -55,9 +51,15 @@ RUN apt-get -qq update \
     unzip \
     vim \
     zip \
-    zlibc \
     xz-utils \
-    && echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > etc/apt/sources.list.d/pgdg.list \
+    && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.buster_amd64.deb \
+    && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha1sum -c - \
+    && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
+    && apt-get autopurge -yqq \
+    && rm -rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
+
+# install latest postgresql-client
+RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main' > /etc/apt/sources.list.d/pgdg.list \
     && GNUPGHOME="$(mktemp -d)" \
     && export GNUPGHOME \
     && repokey='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8' \
@@ -67,9 +69,8 @@ RUN apt-get -qq update \
     && rm -rf "$GNUPGHOME" \
     && apt-get update  \
     && apt-get install --no-install-recommends -y postgresql-client \
-    # && rm -f /etc/apt/sources.list.d/pgdg.list \
-    && apt-get autopurge -yqq \
-    && rm -Rf /var/lib/apt/lists/* wkhtmltox.deb /tmp/*
+    && rm -f /etc/apt/sources.list.d/pgdg.list \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install rtlcss (on Debian buster)
 RUN npm install -g rtlcss \
@@ -105,7 +106,7 @@ RUN apt-get -qq update \
     tk-dev \
     zlib1g-dev \
     && apt-get autopurge -yqq \
-    && rm -Rf /var/lib/apt/lists/* /tmp/*
+    && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Install Odoo source code and install it as a package inside the container with additional tools
 ENV ODOO_VERSION ${ODOO_VERSION:-14.0}
@@ -129,7 +130,7 @@ RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement 
     redis \
     reportlab \
     && apt-get autopurge -yqq \
-    && rm -Rf /var/lib/apt/lists/* /tmp/*
+    && rm -rf /var/lib/apt/lists/* /tmp/*
 
 RUN git clone --depth 100 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git /opt/odoo \
     && pip3 install --editable /opt/odoo \
@@ -139,7 +140,7 @@ RUN git clone --depth 100 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git /o
     Werkzeug==0.15.6 \
     # debugpy has python2 libraries which can't be compiled with python3
     debugpy \
-    && rm -Rf /var/lib/apt/lists/* /tmp/*
+    && rm -rf /var/lib/apt/lists/* /tmp/*
 
 FROM base as production
 
