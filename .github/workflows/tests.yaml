@@ -43,7 +43,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./Dockerfile
+          target: production
           push: true
           tags: ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_SHA_SHORT }}
           cache-from: type=gha,scope=${{ env.GITHUB_REF_SLUG }}
@@ -142,6 +142,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
+          target: production
           platforms: |
             linux/amd64
             linux/arm64
