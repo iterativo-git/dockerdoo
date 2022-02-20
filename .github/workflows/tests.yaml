@@ -46,8 +46,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_SHA_SHORT }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ env.GITHUB_REF_SLUG }}
+          cache-to: type=gha,mode=max,scope=${{ env.GITHUB_REF_SLUG }}
 
   test:
     name: Unit Tests
@@ -140,5 +140,5 @@ jobs:
             ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
             ${{ env.HUB_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
             ${{ env.GCR_BASE}}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_REF_SLUG }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ env.GITHUB_REF_SLUG }}
+          cache-to: type=gha,mode=max,scope=${{ env.GITHUB_REF_SLUG }}
