@@ -1,4 +1,4 @@
-FROM python:3.8-slim-buster as base
+FROM python:3.9-slim-bullseye as base
 
 SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
 
@@ -108,7 +108,7 @@ RUN apt-get -qq update \
     && rm -Rf /var/lib/apt/lists/* /tmp/*
 
 # Install Odoo source code and install it as a package inside the container with additional tools
-ENV ODOO_VERSION ${ODOO_VERSION:-14.0}
+ENV ODOO_VERSION ${ODOO_VERSION:-15.0}
 
 RUN pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
