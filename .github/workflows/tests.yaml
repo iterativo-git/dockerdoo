@@ -116,6 +116,17 @@ jobs:
       - name: Inject slug/short variables
         uses: rlespinasse/github-slug-action@v4
 
+        # Automatic tag management and OCI Image Format Specification for labels
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}
+            ${{ env.HUB_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}
+            ${{ env.GCR_BASE}}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}
+
       - name: Set up QEMU
         id: qemu
         uses: docker/setup-qemu-action@v1
@@ -157,9 +168,7 @@ jobs:
             linux/amd64
             linux/arm64
           push: true
-          tags: |
-            ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_HEAD_REF_SLUG_URL || env.GITHUB_REF_SLUG_URL }}
-            ${{ env.HUB_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_HEAD_REF_SLUG_URL || env.GITHUB_REF_SLUG_URL }}
-            ${{ env.GCR_BASE}}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:${{ env.GITHUB_HEAD_REF_SLUG_URL || env.GITHUB_REF_SLUG_URL }}
-          cache-from: type=gha,scope=${{ env.GITHUB_HEAD_REF_SLUG_URL || env.GITHUB_REF_SLUG_URL }}
-          cache-to: type=gha,mode=max,scope=${{ env.GITHUB_HEAD_REF_SLUG_URL || env.GITHUB_REF_SLUG_URL }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.GCR_BASE}}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:buildcache
+          cache-to: type=registry,ref=${{ env.GCR_BASE}}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}:buildcache,mode=max
