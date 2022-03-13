@@ -4,9 +4,9 @@ on:
   schedule:
     - cron: "0 0 * * *"
   push:
-    branches:
-      - "[0-9]+.0"
-      - "[0-9]+.0-*"
+    # branches:
+    #   - "[0-9]+.0"
+    #   - "[0-9]+.0-*"
     paths:
       - "**/workflows/**"
       - "**/resources/**"
