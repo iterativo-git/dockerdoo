@@ -7,7 +7,7 @@
             "request": "launch",
             "redirectOutput": false,
             "cwd": "${workspaceRoot}",
-            "program": "/usr/local/bin/odoo",
+            "program": "/opt/odoo/odoo-bin",
             "args": [
                 "--config=/etc/odoo/odoo.conf",
                 "--log-level=info",
@@ -20,7 +20,7 @@
             "redirectOutput": false,
             "cwd": "${workspaceRoot}",
             "justMyCode": false,
-            "program": "/usr/local/bin/odoo",
+            "program": "/opt/odoo/odoo-bin",
             "args": [
                 "--config=/etc/odoo/odoo.conf",
                 "--dev=qweb,werkzeug,xml",
@@ -33,7 +33,7 @@
             "request": "launch",
             "redirectOutput": false,
             "cwd": "${workspaceRoot}",
-            "program": "/usr/local/bin/odoo",
+            "program": "/opt/odoo/odoo-bin",
             "args": [
                 "--config=/etc/odoo/odoo.conf",
                 "--log-level=info",
@@ -47,7 +47,7 @@
             "request": "launch",
             "redirectOutput": false,
             "cwd": "${workspaceRoot}",
-            "program": "/usr/local/bin/odoo",
+            "program": "/opt/odoo/odoo-bin",
             "args": [
                 "--config=/etc/odoo/odoo.conf",
                 "--log-level=info",

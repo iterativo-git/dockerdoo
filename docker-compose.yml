@@ -9,6 +9,7 @@ networks:
 volumes:
   odoo-data:
   odoo-testlogs:
+  odoo-modules:
   psql:
 
 services:
@@ -21,12 +22,12 @@ services:
     ports: ["8069:8069", "8072:8072"]
 
     volumes:
-      # Host paths (addons & conf)
-      - ./custom:${ODOO_EXTRA_ADDONS}:delegated
+      # Host paths (.ssh configuration)
+      - ~/.ssh/:/opt/odoo/.ssh/:cached
       # Named volumes
       - odoo-data:${ODOO_DATA_DIR}
       - odoo-testlogs:${ODOO_LOGS_DIR}
-
+      - odoo-modules:${ODOO_EXTRA_ADDONS}
     depends_on:
       - db
 

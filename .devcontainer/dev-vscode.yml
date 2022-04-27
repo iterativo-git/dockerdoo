@@ -4,9 +4,15 @@ services:
   odoo:
     volumes:
       # Host paths (.vscode configuration)
-      - ./.devcontainer/.vscode/:${ODOO_EXTRA_ADDONS}/.vscode/:delegated
-      - ~/.ssh/:/opt/odoo/.ssh/
+      - ./.devcontainer/.vscode:${ODOO_EXTRA_ADDONS}/.vscode
+      #
+      # Uncomment to use hosted volume from your Host
+      # This is not the default for VSContainers as it's too slow on PC and Mac
+      # because of Docker's hosted volumes performance
+      #
+      # - ./custom:${ODOO_EXTRA_ADDONS}:delegated
     depends_on: ["db"]
     environment:
       - PIP_AUTO_INSTALL=1
+      - DEBUGPY_ENABLE=1
     command: /bin/sh -c "while sleep 1000; do :; done"

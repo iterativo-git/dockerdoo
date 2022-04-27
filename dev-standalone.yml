@@ -4,6 +4,7 @@ services:
   wdb:
     image: kozea/wdb:3.3.0
     ports: ["1984:1984"]
+    restart: unless-stopped
     networks:
       - odoonet
     depends_on: ["db"]
@@ -11,19 +12,15 @@ services:
   # ------------------------
 
   odoo:
-    # Uncomment the next lines to build the image. This is mainly useful
-    # when you need to add additional requirements on the building phase
-    #build:
-    #  context: .
-    #  dockerfile: Dockerfile
     volumes:
-      # Host paths (.vscode configuration)
-      - ~/.ssh/:/opt/odoo/.ssh/:cached
+      # Host paths (odoo modules, src code & conf)
+      - ./custom:${ODOO_EXTRA_ADDONS}:delegated
     environment:
       - LOG_LEVEL=debug
       - WITHOUT_DEMO=False
       - WDB_SOCKET_SERVER=wdb
       - WDB_NO_BROWSER_AUTO_OPEN=True
       - WDB_WEB_PORT=1984
+      - DEBUGPY_ENABLE=1
     depends_on: ["db", "wdb"]
     command: ["odoo", "--dev", "wdb,reload,qweb,werkzeug,xml"]
