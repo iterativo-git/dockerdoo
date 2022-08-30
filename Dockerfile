@@ -74,6 +74,7 @@ RUN apt-get -qq update \
     && gpg --batch --armor --export "${repokey}" > /etc/apt/trusted.gpg.d/pgdg.gpg.asc \
     && gpgconf --kill all \
     && rm -rf "$GNUPGHOME" \
+    && apt-get -qq update \
     && apt-get -qq install -y --no-install-recommends postgresql-client libpq-dev \
     && rm -f /etc/apt/sources.list.d/pgdg.list \
     && rm -rf /var/lib/apt/lists/*
