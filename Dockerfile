@@ -118,6 +118,7 @@ ENV ODOO_VERSION ${ODOO_VERSION:-14.0}
 RUN pip3 install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
     'websocket-client~=0.56' \
+    'xlrd==1.2.0' \
     astor \
     black \
     pylint-odoo \
