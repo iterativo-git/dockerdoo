@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Inject slug/short variables
         uses: rlespinasse/github-slug-action@v4
@@ -97,7 +97,7 @@ jobs:
           - 5432:5432
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Inject slug/short variables
         uses: rlespinasse/github-slug-action@v4
@@ -130,7 +130,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout local
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Inject slug/short variables
         uses: rlespinasse/github-slug-action@v4
