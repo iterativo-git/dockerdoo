@@ -1,11 +1,11 @@
-# Dockerized Odoo
+# MIKEINTOSH Dockerized Odoo
 
 This is a flexible and **streamlined** version of most dockerized Odoo projects that you'll find. And one that allows you to deploy with two different methods using the same Dockerfile:
 
 * **Standalone**: As most people use their implementation. With Odoo's source code inside the container. **This is the default**
 * **Hosted**: A more practical deployment for **development**, as the HOST (where docker is installed) has the source code, and each container uses this single source.
 
-Dockerdoo is integrated with **VSCode** for fast development and debugging, just install the [Remote Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
+MIKEINTOSHOdooDockerDev is integrated with **VSCode** for fast development and debugging, just install the [Remote Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
 
 > By default this approach does not use the modules availables at the `./custom` directory, as this uses Docker's hosted volumes approach which is considerably slow on Mac and PC. If you'd like to use it this way, just uncomment `./custom:${ODOO_EXTRA_ADDONS}:delegated` from the `dev-vscode.yml`
 
@@ -16,14 +16,14 @@ To use the **hosted** approach, the Odoo code must be in the `./src` directory, 
 ### Standalone
 
 ```shell
-git clone -b 16.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+git clone -b 16.0 git@github.com:MIKEINTOSHSYSTEMS/MIKEINTOSHOdooDockerDev.git && cd MIKEINTOSHOdooDockerDev
 docker-compose up
 ```
 
 ### Hosted
 
 ```shell
-git clone -b 16.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+git clone -b 16.0 git@github.com:MIKEINTOSHSYSTEMS/MIKEINTOSHOdooDockerDev.git && cd MIKEINTOSHOdooDockerDev
 git clone --depth=1 -b 16.0 git@github.com:odoo/odoo.git src/odoo
 docker-compose -f docker-compose.yml -f hosted.yml
 ```
@@ -33,14 +33,14 @@ docker-compose -f docker-compose.yml -f hosted.yml
 #### Standalone development
 
 ```shell
-git clone -b 16.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+git clone -b 16.0 git@github.com:MIKEINTOSHSYSTEMS/MIKEINTOSHOdooDockerDev.git && cd MIKEINTOSHOdooDockerDev
 docker-compose -f docker-compose.yml -f dev-standalone.yml up
 ```
 
 #### Hosted development
 
 ```shell
-git clone -b 16.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+git clone -b 16.0 git@github.com:MIKEINTOSHSYSTEMS/MIKEINTOSHOdooDockerDev.git && cd MIKEINTOSHOdooDockerDev
 git clone --depth=1 -b 16.0 git@github.com:odoo/odoo.git src/odoo
 docker-compose -f docker-compose.yml -f dev-hosted.yml up
 ```
@@ -51,7 +51,7 @@ To use this docker compose file you should comply with this requirements:
 
 * Install [Docker Desktop](https://www.docker.com/products/docker-desktop) for Windows/Mac or [Docker Engine](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce) for Linux  
 * Install [docker-compose](https://docs.docker.com/compose/install/) (This is installed by default on Windows and Mac with Docker installation)
-* clone this repository `git@github.com:iterativo-git/dockerdoo.git`
+* clone this repository `git@github.com:MIKEINTOSHSYSTEMS/MIKEINTOSHOdooDockerDev.git`
 
 ## Running options
 
