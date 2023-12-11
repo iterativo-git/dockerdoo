@@ -1,0 +1,38 @@
+name: Deploy Workflow
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "**/workflows/**"
+      - "**/resources/**"
+      - "Dockerfile"
+
+concurrency:
+  # Ensures that only one workflow task will run at a time. Previous builds, if
+  # already in process, will get cancelled. Only the latest commit will be allowed
+  # to run, cancelling any workflows in between
+  group: ${{ github.workflow }}-${{ github.job }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      dockerfile_path: Dockerfile
+      dockerfile_target: production
+      app_name: dockerdoo
+    secrets: inherit
+  test:
+    needs: ["build"]
+    uses: ./.github/workflows/tests.yml
+    with:
+      image: ghcr.io/iterativo-git/dockerdoo@${{ needs.build.outputs.image_digest }}
+    secrets: inherit
+  push:
+    needs: ["build", "test"]
+    uses: ./.github/workflows/push.yml
+    with:
+      image: ghcr.io/iterativo-git/dockerdoo@${{ needs.build.outputs.image_digest }}
+    secrets: inherit
