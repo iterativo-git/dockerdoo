@@ -1,0 +1,79 @@
+name: Build Docker Image
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        required: true
+        type: string
+      dockerfile_path:
+        required: true
+        type: string
+      dockerfile_target:
+        required: true
+        type: string
+      registry:
+        required: true
+        type: string
+    outputs:
+      image_digest:
+        description: "The image digest to be used on a caller workflow"
+        value: ${{ jobs.build.outputs.image_digest }}
+
+env:
+  GIT_BASE: ghcr.io/iterativo-git
+
+jobs:
+  build:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Generate Slug Variables
+        uses: rlespinasse/github-slug-action@v4
+
+      - name: Prepare Docker Metadata
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.GIT_BASE }}/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          image: tonistiigi/binfmt:latest
+          platforms: all
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ${{ inputs.dockerfile_path }}
+          target: ${{ inputs.dockerfile_target }}
+          platforms: |
+            linux/amd64
+            linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: |
+            type=registry,ref=${{ inputs.registry }}/${{ inputs.app_name }}:${{ env.GITHUB_REF_SLUG_URL }}-cache
+            type=registry,ref=${{ inputs.registry }}/${{ inputs.app_name }}:main-cache
+          cache-to: |
+            type=registry,ref=${{ inputs.registry }}/${{ inputs.app_name }}:${{ env.GITHUB_REF_SLUG_URL }}-cache,mode=max
