@@ -16,16 +16,16 @@ To use the **hosted** approach, the Odoo code must be in the `./src` directory, 
 ### Standalone
 
 ```shell
-git clone -b 16.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+git clone -b 17.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
 docker-compose up
 ```
 
 ### Hosted
 
 ```shell
-git clone -b 16.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
-git clone --depth=1 -b 16.0 git@github.com:odoo/odoo.git src/odoo
-docker-compose -f docker-compose.yml -f hosted.yml
+git clone -b 17.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+git clone --depth=1 -b 17.0 git@github.com:odoo/odoo.git src/odoo
+docker-compose -f docker-compose.yml -f hosted.yml up
 ```
 
 ### Development
@@ -33,15 +33,15 @@ docker-compose -f docker-compose.yml -f hosted.yml
 #### Standalone development
 
 ```shell
-git clone -b 16.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+git clone -b 17.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
 docker-compose -f docker-compose.yml -f dev-standalone.yml up
 ```
 
 #### Hosted development
 
 ```shell
-git clone -b 16.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
-git clone --depth=1 -b 16.0 git@github.com:odoo/odoo.git src/odoo
+git clone -b 17.0 git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
+git clone --depth=1 -b 17.0 git@github.com:odoo/odoo.git src/odoo
 docker-compose -f docker-compose.yml -f dev-hosted.yml up
 ```
 
