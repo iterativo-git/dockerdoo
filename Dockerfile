@@ -131,7 +131,6 @@ RUN pip3 install --prefix=/usr/local --no-cache-dir --upgrade --requirement http
     python-json-logger \
     wdb \
     redis \
-    reportlab \
     && apt-get autopurge -yqq \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
