@@ -114,6 +114,9 @@ RUN apt-get update \
 # Install Odoo source code and install it as a package inside the container with additional tools
 ENV ODOO_VERSION ${ODOO_VERSION:-16.0}
 
+RUN pip3 install pip setuptools wheel Cython==3.0.0a10 --prefix=/usr/local --no-cache-dir \
+    && pip3 install gevent==21.8.0 --no-build-isolation --prefix=/usr/local --no-cache-dir
+
 RUN pip3 install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
     'websocket-client~=0.56' \
