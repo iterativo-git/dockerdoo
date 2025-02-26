@@ -16,7 +16,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install odoo deps
 RUN apt-get -qq update \
-    && apt-get -qq install -y --no-install-recommends \
+    && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     chromium \
