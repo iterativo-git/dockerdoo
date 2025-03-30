@@ -5,11 +5,9 @@ SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
 USER root
 
 # Library versions
+# TODO: ADD WKHTMLTOPDF_CHECKSUM for both arm64 and amd64
 ARG WKHTMLTOX_VERSION
-ENV WKHTMLTOX_VERSION ${WKHTMLTOX_VERSION:-"0.12.5"}
-
-ARG WKHTMLTOPDF_CHECKSUM
-ENV WKHTMLTOPDF_CHECKSUM ${WKHTMLTOPDF_CHECKSUM:-"ea8277df4297afc507c61122f3c349af142f31e5"}
+ENV WKHTMLTOX_VERSION ${WKHTMLTOX_VERSION:-"0.12.6"}
 
 # Use noninteractive to get rid of apt-utils message
 ENV DEBIAN_FRONTEND=noninteractive
@@ -55,8 +53,7 @@ RUN apt-get -qq update \
     if [ "$(uname -m)" = "aarch64" ]; then \
         curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_arm64.deb \
     ; else \
-        curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}-1.buster_amd64.deb \
-        && echo "${WKHTMLTOPDF_CHECKSUM} wkhtmltox.deb" | sha1sum -c - \
+        curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/packaging/releases/download/${WKHTMLTOX_VERSION}-1/wkhtmltox_${WKHTMLTOX_VERSION}-1.buster_amd64.deb \
     ; fi \
     && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
     && apt-get autopurge -yqq \
