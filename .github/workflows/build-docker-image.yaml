@@ -24,6 +24,9 @@ on:
       platform:
         required: true
         type: string
+      runner:
+        required: true
+        type: string
       no_cache:
         description: Disable the Docker cache for this build
         required: false
@@ -39,7 +42,7 @@ jobs:
   build:
     name: Build images
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     outputs:
       image_digest: ${{ steps.docker_build.outputs.digest }}
       image_name: ${{ fromJSON(steps.docker_build.outputs.metadata)['image.name'] }}

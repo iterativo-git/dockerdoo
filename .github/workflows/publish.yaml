@@ -25,11 +25,10 @@ jobs:
       matrix:
         odoo_version: ["14.0", "15.0", "16.0", "17.0", master]
         platform: [linux/amd64, linux/arm64]
+        runner: [ubuntu-latest]
         include:
-          - odoo_version: "14.0"
-            python_version: "3.10"
-            python_variant: slim-bullseye
-            wkhtmltox_version: 0.12.6.1-3
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
 
           - odoo_version: "15.0"
             python_version: "3.12"
@@ -59,6 +58,7 @@ jobs:
       platform: ${{ matrix.platform }}
       dockerfile_path: Dockerfile
       dockerfile_target: production
+      runner: ${{ matrix.runner }}
     secrets: inherit
 
   test:
