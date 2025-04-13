@@ -3,7 +3,7 @@ name: Unit Tests
 on:
     workflow_call:
       inputs:
-        image:
+        odoo_version:
           required: true
           type: string
 
@@ -46,10 +46,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Pull and Run Tests in Docker Image
-        continue-on-error: true
+        continue-on-error: false
         run: |
-          docker pull ${{ inputs.image }}
-          docker run --env-file <(env | grep -E 'RUN_TESTS|LOG_LEVEL|EXTRA_MODULES|PGHOST') --network="host" --name odoo -t ${{ inputs.image }}
+          docker pull ghcr.io/iterativo-git/dockerdoo:${{ env.GITHUB_REF_SLUG }}-${{ inputs.odoo_version }}
+          docker run --env-file <(env | grep -E 'RUN_TESTS|LOG_LEVEL|EXTRA_MODULES|PGHOST') --network="host" --name odoo -t ghcr.io/iterativo-git/dockerdoo:${{ env.GITHUB_REF_SLUG }}-${{ inputs.odoo_version }}
         env:
           RUN_TESTS: "1"
           LOG_LEVEL: test
