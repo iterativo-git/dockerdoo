@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.10
+ARG PYTHON_VERSION=3.12
 ARG PYTHON_VARIANT=slim-bullseye
 ARG ODOO_VERSION=16.0
 ARG WKHTMLTOX_VERSION=0.12.6
@@ -114,9 +114,6 @@ RUN apt-get update \
 
 # Install Odoo source code and install it as a package inside the container with additional tools
 ARG ODOO_VERSION
-
-RUN pip3 install pip setuptools wheel Cython==3.0.0a10 --prefix=/usr/local --no-cache-dir \
-    && pip3 install gevent==21.8.0 --no-build-isolation --prefix=/usr/local --no-cache-dir
 
 RUN pip3 install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
@@ -285,18 +282,18 @@ ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
 ARG EXTRA_MODULES
 ENV EXTRA_MODULES ${EXTRA_MODULES}
 
-COPY --chown=${ODOO_USER}:${ODOO_USER} --from=builder /usr/local /usr/local
-COPY --chown=${ODOO_USER}:${ODOO_USER} --from=builder /opt/odoo ${ODOO_BASEPATH}
+COPY --link --chown=${ODOO_USER}:${ODOO_USER} --from=builder /usr/local /usr/local
+COPY --link --chown=${ODOO_USER}:${ODOO_USER} --from=builder /opt/odoo ${ODOO_BASEPATH}
 
 # Copy from build env
-COPY --chown=${ODOO_USER}:${ODOO_USER} ./resources/entrypoint.sh /
-COPY --chown=${ODOO_USER}:${ODOO_USER} ./resources/getaddons.py /
+COPY --link --chown=${ODOO_USER}:${ODOO_USER} ./resources/entrypoint.sh /
+COPY --link --chown=${ODOO_USER}:${ODOO_USER} ./resources/getaddons.py /
 
 # This is needed to fully build with modules and python requirements
 # Copy custom modules from the custom folder, if any.
 ARG HOST_CUSTOM_ADDONS
 ENV HOST_CUSTOM_ADDONS ${HOST_CUSTOM_ADDONS:-./custom}
-COPY --chown=${ODOO_USER}:${ODOO_USER} ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
+COPY --link --chown=${ODOO_USER}:${ODOO_USER} ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
 
 RUN chmod u+x /entrypoint.sh
 
