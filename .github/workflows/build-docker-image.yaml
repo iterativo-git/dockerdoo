@@ -1,0 +1,146 @@
+name: Build docker image
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        required: true
+        type: string
+      odoo_version:
+        required: true
+        type: string
+      python_version:
+        required: true
+        type: string
+      python_variant:
+        required: true
+        type: string
+      wkhtmltox_version:
+        required: true
+        type: string
+      dockerfile_path:
+        required: true
+        type: string
+      dockerfile_target:
+        required: true
+        type: string
+      no_cache:
+        description: Disable the Docker cache for this build
+        required: false
+        type: boolean
+        default: false
+
+    outputs:
+      image_digest:
+        description: The image digest to be used on a caller workflow
+        value: ${{ jobs.build.outputs.image_digest }}
+
+jobs:
+  build:
+    name: Build images
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    outputs:
+      image_digest: ${{ steps.docker_build.outputs.digest }}
+      image_name: ${{ fromJSON(steps.docker_build.outputs.metadata)['image.name'] }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      DOCKER_BUILD_SUMMARY: ${{ github.event_name == 'pull_request' && false || true }}
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v5.1.0
+        with:
+          short-length: 7
+
+      # Automatic tag management and OCI Image Format Specification for labels
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5.7.0
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            ghcr.io/iterativo-git/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}
+            iterativodo/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},enable=${{ github.event_name != 'pull_request' }}
+            gcr.io/iterativo/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},enable=${{ github.event_name != 'pull_request' }}
+          # generate Docker tags based on the following events/attributes
+          # TODO: A lot of changes are needed here to support versioning based on the odoo_version input
+          tags: |
+            # This tag makes sure tests are using exactly the right image, even when multiple PRs run at the same time.
+            type=sha,event=push
+            # These CI-only tags support CI on PRs, the main branch, and scheduled full syncs.
+            # These tags do not appear on DockerHub, because DockerHub images are only published on the release event.
+            type=ref,event=pr
+            type=ref,event=branch
+            type=edge,enable={{is_default_branch}}
+            type=schedule
+
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v4.3.0
+        with:
+          daemon-config: |
+            {
+              "debug": true,
+              "features": {
+                "containerd-snapshotter": true
+              }
+            }
+
+      - name: Login to GitHub Registry
+        uses: docker/login-action@v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Google Container Registry
+        uses: docker/login-action@v3.4.0
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          registry: gcr.io
+          username: _json_key
+          password: ${{ secrets.GKE_SA_KEY }}
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3.4.0
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Setup Docker Buildx
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3.10.0
+
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v3.6.0
+
+      # Build and push image to Google Artifact Registry, and possibly DockerHub
+      - name: Build & push
+        id: docker_build
+        uses: docker/build-push-action@v6.15.0
+        with:
+          target: ${{ inputs.dockerfile_target }}
+          file: ${{ inputs.dockerfile_path }}
+          context: .
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            ODOO_VERSION=${{ inputs.odoo_version }}
+            PYTHON_VERSION=${{ inputs.python_version }}
+            PYTHON_VARIANT=${{ inputs.python_variant }}
+            WKHTMLTOX_VERSION=${{ inputs.wkhtmltox_version }}
+          platforms: |
+            linux/amd64
+            linux/arm64
+          push: true
+          # Don't read from the cache if the caller disabled it.
+          # https://docs.docker.com/engine/reference/commandline/buildx_build/#options
+          no-cache: ${{ inputs.no_cache }}

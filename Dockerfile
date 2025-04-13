@@ -1,18 +1,23 @@
-FROM python:3.10-slim-bullseye as base
+ARG PYTHON_VERSION=3.10
+ARG PYTHON_VARIANT=slim-bullseye
+ARG ODOO_VERSION=16.0
+ARG WKHTMLTOX_VERSION=0.12.6
+
+FROM python:${PYTHON_VERSION}-${PYTHON_VARIANT} AS base
 
 SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
 
 USER root
 
 # Library versions
-# TODO: ADD WKHTMLTOPDF_CHECKSUM for both arm64 and amd64
 ARG WKHTMLTOX_VERSION
-ENV WKHTMLTOX_VERSION ${WKHTMLTOX_VERSION:-"0.12.6"}
+ENV WKHTMLTOX_VERSION ${WKHTMLTOX_VERSION}
 
 # Use noninteractive to get rid of apt-utils message
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install odoo deps
+# hadolint ignore=DL3008
 RUN apt-get -qq update \
     && apt-get -qq install -y --no-install-recommends \
     ca-certificates \
@@ -43,7 +48,6 @@ RUN apt-get -qq update \
     python3-xlwt \
     nano \
     ssh \
-    # Add sudo support for the non-root user & unzip for CI
     sudo \
     unzip \
     vim \
@@ -51,7 +55,7 @@ RUN apt-get -qq update \
     xz-utils \
     && \
     if [ "$(uname -m)" = "aarch64" ]; then \
-        curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_arm64.deb \
+        curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/packaging/releases/download/${WKHTMLTOX_VERSION}-1/wkhtmltox_${WKHTMLTOX_VERSION}-1.buster_arm64.deb \
     ; else \
         curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/packaging/releases/download/${WKHTMLTOX_VERSION}-1/wkhtmltox_${WKHTMLTOX_VERSION}-1.buster_amd64.deb \
     ; fi \
@@ -79,7 +83,7 @@ RUN apt-get -qq update \
 RUN npm install -g rtlcss \
     && rm -Rf ~/.npm /tmp/*
 
-FROM base as builder
+FROM base AS builder
 
 # Install hard & soft build dependencies
 RUN apt-get update \
@@ -109,7 +113,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Install Odoo source code and install it as a package inside the container with additional tools
-ENV ODOO_VERSION ${ODOO_VERSION:-16.0}
+ARG ODOO_VERSION
 
 RUN pip3 install pip setuptools wheel Cython==3.0.0a10 --prefix=/usr/local --no-cache-dir \
     && pip3 install gevent==21.8.0 --no-build-isolation --prefix=/usr/local --no-cache-dir
@@ -138,7 +142,7 @@ RUN git clone --depth 100 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git /o
     && pip3 install --editable /opt/odoo \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
-FROM base as production
+FROM base AS production
 
 # PIP auto-install requirements.txt (change value to "1" to auto-install)
 ENV PIP_AUTO_INSTALL=${PIP_AUTO_INSTALL:-"0"}
