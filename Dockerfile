@@ -2,9 +2,9 @@
 # check=skip=UndefinedVar # We set the variables as a reference
 
 ARG PYTHON_VERSION=3.12
-ARG PYTHON_VARIANT=slim-bullseye
+ARG PYTHON_VARIANT=slim-bookworm
 ARG ODOO_VERSION=16.0
-ARG WKHTMLTOX_VERSION=0.12.6
+ARG WKHTMLTOX_VERSION=0.12.6-3
 ARG ODOO_USER=odoo
 ARG ODOO_BASEPATH=/opt/odoo
 ARG APP_UID=1000
@@ -27,20 +27,18 @@ ENV DEBIAN_FRONTEND=noninteractive
 # hadolint ignore=DL3008
 RUN apt-get -qq update \
     && apt-get -qq install -y --no-install-recommends \
+    # Odoo dependencies
     ca-certificates \
     curl \
-    chromium \
     dirmngr \
-    git-core \
-    gnupg \
-    htop \
-    ffmpeg \
-    fonts-liberation2 \
     fonts-noto-cjk \
-    locales \
+    gnupg \
+    libssl-dev \
     node-less \
     npm \
+    python3-magic \
     python3-num2words \
+    python3-odf \
     python3-pdfminer \
     python3-pip \
     python3-phonenumbers \
@@ -53,6 +51,13 @@ RUN apt-get -qq update \
     python3-watchdog \
     python3-xlrd \
     python3-xlwt \
+    # Other dependencies
+    git-core \
+    gnupg \
+    htop \
+    ffmpeg \
+    fonts-liberation2 \
+    lsb-release \
     nano \
     ssh \
     sudo \
@@ -62,9 +67,9 @@ RUN apt-get -qq update \
     xz-utils \
     && \
     if [ "$(uname -m)" = "aarch64" ]; then \
-        curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/packaging/releases/download/${WKHTMLTOX_VERSION}-1/wkhtmltox_${WKHTMLTOX_VERSION}-1.buster_arm64.deb \
+        curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/packaging/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}.$(lsb_release -cs)_arm64.deb \
     ; else \
-        curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/packaging/releases/download/${WKHTMLTOX_VERSION}-1/wkhtmltox_${WKHTMLTOX_VERSION}-1.buster_amd64.deb \
+        curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/packaging/releases/download/${WKHTMLTOX_VERSION}/wkhtmltox_${WKHTMLTOX_VERSION}.$(lsb_release -cs)_amd64.deb \
     ; fi \
     && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
     && apt-get autopurge -yqq \
@@ -131,8 +136,6 @@ RUN pip3 install --prefix=/usr/local --no-cache-dir --upgrade --requirement http
     flake8 \
     pydevd-odoo \
     psycogreen \
-    python-magic \
-    python-stdnum \
     click-odoo-contrib \
     git-aggregator \
     inotify \
