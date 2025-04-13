@@ -46,6 +46,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      packages: write
     env:
       DOCKER_BUILD_SUMMARY: ${{ github.event_name == 'pull_request' && false || true }}
     steps:
@@ -68,17 +69,15 @@ jobs:
             ghcr.io/iterativo-git/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}
             iterativodo/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},enable=${{ github.event_name != 'pull_request' }}
             gcr.io/iterativo/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},enable=${{ github.event_name != 'pull_request' }}
-          # generate Docker tags based on the following events/attributes
-          # TODO: A lot of changes are needed here to support versioning based on the odoo_version input
+          # Use predefined flavor with version customization
+          flavor: |
+            latest=false
+            suffix=-${{ inputs.odoo_version }}
+          # Generate Docker tags based on predefined rules
           tags: |
-            # This tag makes sure tests are using exactly the right image, even when multiple PRs run at the same time.
-            type=sha,event=push
-            # These CI-only tags support CI on PRs, the main branch, and scheduled full syncs.
-            # These tags do not appear on DockerHub, because DockerHub images are only published on the release event.
+            type=raw,event=push,value=${{ inputs.odoo_version }},enable={{is_default_branch}}
             type=ref,event=pr
-            type=ref,event=branch
-            type=edge,enable={{is_default_branch}}
-            type=schedule
+            type=schedule,value=${{ inputs.odoo_version }}
 
       - name: Set up Docker
         uses: docker/setup-docker-action@v4.3.0
@@ -122,7 +121,6 @@ jobs:
         id: qemu
         uses: docker/setup-qemu-action@v3.6.0
 
-      # Build and push image to Google Artifact Registry, and possibly DockerHub
       - name: Build & push
         id: docker_build
         uses: docker/build-push-action@v6.15.0

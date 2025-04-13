@@ -69,7 +69,9 @@ jobs:
     secrets: inherit
 
   publish:
-    needs: [build, test]
+    needs:
+      - build
+      - test
     strategy:
       matrix:
         odoo_version: ["14.0", "15.0", "16.0", "17.0", master]
