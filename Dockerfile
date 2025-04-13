@@ -1,7 +1,14 @@
+# syntax=docker/dockerfile:1
+# check=skip=UndefinedVar # We set the variables as a reference
+
 ARG PYTHON_VERSION=3.12
 ARG PYTHON_VARIANT=slim-bullseye
 ARG ODOO_VERSION=16.0
 ARG WKHTMLTOX_VERSION=0.12.6
+ARG ODOO_USER=odoo
+ARG ODOO_BASEPATH=/opt/odoo
+ARG APP_UID=1000
+ARG APP_GID=1000
 
 FROM python:${PYTHON_VERSION}-${PYTHON_VARIANT} AS base
 
@@ -153,14 +160,18 @@ ENV WITHOUT_TEST_TAGS=${WITHOUT_TEST_TAGS:-"0"}
 # Upgrade all databases visible to this Odoo instance
 ENV UPGRADE_ODOO=${UPGRADE_ODOO:-"0"}
 
-    # Create app user
-ENV ODOO_USER odoo
-ENV ODOO_BASEPATH ${ODOO_BASEPATH:-/opt/odoo}
+ARG ODOO_BASEPATH
+ENV ODOO_BASEPATH ${ODOO_BASEPATH}
+
+# Create app user
+ARG ODOO_USER
+ENV ODOO_USER ${ODOO_USER}
+
 ARG APP_UID
-ENV APP_UID ${APP_UID:-1000}
+ENV APP_UID ${APP_UID}
 
 ARG APP_GID
-ENV APP_GID ${APP_UID:-1000}
+ENV APP_GID ${APP_GID}
 
 RUN addgroup --system --gid ${APP_GID} ${ODOO_USER} \
     && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
@@ -272,7 +283,7 @@ ENV ODOO_CMD ${ODOO_BASEPATH}/odoo-bin
 RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} /etc/odoo/
 
 # Own folders    //-- docker-compose creates named volumes owned by root:root. Issue: https://github.com/docker/compose/issues/3270
-RUN chown -R ${ODOO_USER}:${ODOO_USER} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} ${ODOO_BASEPATH} /etc/odoo
+RUN chown -R ${APP_UID}:${APP_GID} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} ${ODOO_BASEPATH} /etc/odoo
 
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
 
@@ -282,18 +293,18 @@ ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
 ARG EXTRA_MODULES
 ENV EXTRA_MODULES ${EXTRA_MODULES}
 
-COPY --link --chown=${ODOO_USER}:${ODOO_USER} --from=builder /usr/local /usr/local
-COPY --link --chown=${ODOO_USER}:${ODOO_USER} --from=builder /opt/odoo ${ODOO_BASEPATH}
+COPY --link --chown=${APP_UID}:${APP_GID} --from=builder /usr/local /usr/local
+COPY --link --chown=${APP_UID}:${APP_GID} --from=builder /opt/odoo ${ODOO_BASEPATH}
 
 # Copy from build env
-COPY --link --chown=${ODOO_USER}:${ODOO_USER} ./resources/entrypoint.sh /
-COPY --link --chown=${ODOO_USER}:${ODOO_USER} ./resources/getaddons.py /
+COPY --link --chown=${APP_UID}:${APP_GID} ./resources/entrypoint.sh /
+COPY --link --chown=${APP_UID}:${APP_GID} ./resources/getaddons.py /
 
 # This is needed to fully build with modules and python requirements
 # Copy custom modules from the custom folder, if any.
 ARG HOST_CUSTOM_ADDONS
 ENV HOST_CUSTOM_ADDONS ${HOST_CUSTOM_ADDONS:-./custom}
-COPY --link --chown=${ODOO_USER}:${ODOO_USER} ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
+COPY --link --chown=${APP_UID}:${APP_GID} ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
 
 RUN chmod u+x /entrypoint.sh
 
