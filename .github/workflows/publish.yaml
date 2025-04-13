@@ -21,10 +21,10 @@ concurrency:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
-        platform:
-          - linux/amd64
-          - linux/arm64
+        odoo_version: [14.0, 15.0, 16.0, 17.0, master]
+        platform: [linux/amd64, linux/arm64]
         include:
           - odoo_version: 14.0
             python_version: 3.10
@@ -72,9 +72,8 @@ jobs:
     needs: [build, test]
     strategy:
       matrix:
-        platform:
-          - linux/amd64
-          - linux/arm64
+        odoo_version: [14.0, 15.0, 16.0, 17.0, master]
+        platform: [linux/amd64, linux/arm64]
         include:
           - odoo_version: 14.0
             python_version: 3.10
