@@ -14,6 +14,11 @@ on:
       - "**/resources/**"
       - Dockerfile
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.job }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
@@ -80,11 +85,10 @@ jobs:
       matrix:
         odoo_version: ["14.0", "15.0", "16.0", "17.0", master]
         platform: [linux/amd64, linux/arm64]
+        runner: [ubuntu-latest]
         include:
-          - odoo_version: "14.0"
-            python_version: "3.10"
-            python_variant: slim-buster
-            wkhtmltox_version: 0.12.5
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
 
           - odoo_version: "15.0"
             python_version: "3.10"
@@ -115,4 +119,5 @@ jobs:
       platform: ${{ matrix.platform }}
       dockerfile_path: Dockerfile
       dockerfile_target: production
+      runner: ${{ matrix.runner }}
     secrets: inherit

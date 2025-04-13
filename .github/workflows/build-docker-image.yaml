@@ -25,8 +25,9 @@ on:
         required: true
         type: string
       runner:
-        required: true
+        required: false
         type: string
+        default: ubuntu-latest
       no_cache:
         description: Disable the Docker cache for this build
         required: false
