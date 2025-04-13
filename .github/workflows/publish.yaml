@@ -1,4 +1,4 @@
-name: Publish Dockerdoo
+name: Test and Publish
 
 on:
   workflow_dispatch:
@@ -50,7 +50,7 @@ jobs:
             python_version: 3.13
             python_variant: slim-bullseye
             wkhtmltox_version: 0.12.6
-    uses: ./.github/workflows/build-docker-image.yml
+    uses: ./.github/workflows/build-docker-image.yaml
     with:
       odoo_version: ${{ matrix.odoo_version }}
       python_version: ${{ matrix.python_version }}
@@ -59,18 +59,55 @@ jobs:
       platform: ${{ matrix.platform }}
       dockerfile_path: Dockerfile
       dockerfile_target: production
-      app_name: dockerdoo
     secrets: inherit
+
   test:
     needs: [build]
-    uses: ./.github/workflows/unit-tests.yml
+    uses: ./.github/workflows/unit-tests.yaml
     with:
       image: ghcr.io/iterativo-git/dockerdoo@${{ needs.build.outputs.image_digest }}
     secrets: inherit
-  push:
+
+  publish:
     needs: [build, test]
-    uses: ./.github/workflows/build-docker-image.yml
+    strategy:
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
+        include:
+          - odoo_version: 14.0
+            python_version: 3.10
+            python_variant: slim-buster
+            wkhtmltox_version: 0.12.5
+
+          - odoo_version: 15.0
+            python_version: 3.10
+            python_variant: slim-bullseye
+            wkhtmltox_version: 0.12.6
+
+          - odoo_version: 16.0
+            python_version: 3.12
+            python_variant: slim-bullseye
+            wkhtmltox_version: 0.12.6
+
+          - odoo_version: 17.0
+            python_version: 3.13
+            python_variant: slim-bullseye
+            wkhtmltox_version: 0.12.6
+
+          - odoo_version: master
+            python_version: 3.13
+            python_variant: slim-bullseye
+            wkhtmltox_version: 0.12.6
+    uses: ./.github/workflows/build-docker-image.yaml
     if: ${{ github.event_name != 'pull_request' }}
     with:
-      image: ghcr.io/iterativo-git/dockerdoo@${{ needs.build.outputs.image_digest }}
+      odoo_version: ${{ matrix.odoo_version }}
+      python_version: ${{ matrix.python_version }}
+      python_variant: ${{ matrix.python_variant }}
+      wkhtmltox_version: ${{ matrix.wkhtmltox_version }}
+      platform: ${{ matrix.platform }}
+      dockerfile_path: Dockerfile
+      dockerfile_target: production
     secrets: inherit

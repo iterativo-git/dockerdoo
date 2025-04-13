@@ -3,9 +3,6 @@ name: Build docker image
 on:
   workflow_call:
     inputs:
-      image_name:
-        required: true
-        type: string
       odoo_version:
         required: true
         type: string
@@ -22,6 +19,9 @@ on:
         required: true
         type: string
       dockerfile_target:
+        required: true
+        type: string
+      platform:
         required: true
         type: string
       no_cache:
@@ -137,9 +137,7 @@ jobs:
             PYTHON_VERSION=${{ inputs.python_version }}
             PYTHON_VARIANT=${{ inputs.python_variant }}
             WKHTMLTOX_VERSION=${{ inputs.wkhtmltox_version }}
-          platforms: |
-            linux/amd64
-            linux/arm64
+          platforms: ${{ inputs.platform }}
           push: true
           # Don't read from the cache if the caller disabled it.
           # https://docs.docker.com/engine/reference/commandline/buildx_build/#options
