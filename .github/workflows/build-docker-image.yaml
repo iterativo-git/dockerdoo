@@ -110,7 +110,7 @@ jobs:
             PYTHON_VARIANT=${{ inputs.python_variant }}
             WKHTMLTOX_VERSION=${{ inputs.wkhtmltox_version }}
           platforms: ${{ matrix.platform }}
-          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          push: true
           # Don't read from the cache if the caller disabled it.
           # https://docs.docker.com/engine/reference/commandline/buildx_build/#options
           no-cache: ${{ inputs.no_cache }}
