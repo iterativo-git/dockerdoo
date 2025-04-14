@@ -72,7 +72,7 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-          
+
       - name: Set multi-platform build strategy
         run: |
           echo "Using multi-platform build strategy:"
