@@ -72,12 +72,24 @@ jobs:
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+          
+      - name: Set multi-platform build strategy
+        run: |
+          echo "Using multi-platform build strategy:"
+          echo "1. Build platform-specific images (${platform}) with digest-based pushing to GitHub Container Registry only"
+          echo "2. Collect digests from all platform builds in parallel"
+          echo "3. Create tagged multi-platform manifests in the merge job for all target registries"
+          echo "Note: Even for non-PR events, we still use GitHub Container Registry as the digest source"
 
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5.7.0
         with:
-          images: ghcr.io/iterativo-git/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}
+          # Use the same image list pattern as the merge job for consistency
+          images: |
+            ghcr.io/iterativo-git/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}
+            iterativodo/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},enable=${{ github.event_name != 'pull_request' }}
+            gcr.io/iterativo/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},enable=${{ github.event_name != 'pull_request' }}
 
       - name: Login to GitHub Registry
         uses: docker/login-action@v3.4.0
@@ -95,6 +107,21 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@v3.10.0
 
+      - name: Login to Google Container Registry
+        uses: docker/login-action@v3.4.0
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          registry: gcr.io
+          username: _json_key
+          password: ${{ secrets.GKE_SA_KEY }}
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3.4.0
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Build & push
         id: build
         uses: docker/build-push-action@v6.15.0
@@ -102,7 +129,10 @@ jobs:
           target: ${{ inputs.dockerfile_target }}
           file: ${{ inputs.dockerfile_path }}
           context: .
-          tags: ${{ steps.meta.outputs.tags }}
+          # IMPORTANT: When using push-by-digest for multi-platform, we cannot:
+          # 1. Use tags directly during the build (we'll apply them in the merge job)
+          # 2. Push to multiple registries at once (we'll distribute in the merge job)
+          # This is a requirement of the Docker buildx multi-platform workflow
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             ODOO_VERSION=${{ inputs.odoo_version }}
@@ -110,12 +140,14 @@ jobs:
             PYTHON_VARIANT=${{ inputs.python_variant }}
             WKHTMLTOX_VERSION=${{ inputs.wkhtmltox_version }}
           platforms: ${{ matrix.platform }}
-          push: true
+          # We must use a single registry for the digest source
+          # GitHub Container Registry is used regardless of PR/non-PR status
+          outputs: type=image,push-by-digest=true,name=ghcr.io/iterativo-git/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},push=true
           # Don't read from the cache if the caller disabled it.
           # https://docs.docker.com/engine/reference/commandline/buildx_build/#options
           no-cache: ${{ inputs.no_cache }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=odoo-${{ inputs.odoo_version }}
+          cache-to: type=gha,mode=max,scope=odoo-${{ inputs.odoo_version }}
 
       - name: Export digest
         run: |
@@ -126,7 +158,7 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: digests-${{ env.PLATFORM_PAIR }}
+          name: digests-${{ inputs.odoo_version }}-${{ env.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1
@@ -149,7 +181,7 @@ jobs:
         uses: actions/download-artifact@v4.2.1
         with:
           path: ${{ runner.temp }}/digests
-          pattern: digests-*
+          pattern: digests-${{ inputs.odoo_version }}-*
           merge-multiple: true
 
       - name: Login to GitHub Registry
@@ -197,27 +229,41 @@ jobs:
             type=raw,event=pr,value=${{ env.GITHUB_REF_SLUG }}-${{ inputs.odoo_version }}
             type=schedule,value=${{ inputs.odoo_version }}
 
-      - name: Set base image name
+      - name: Prepare registry sources and targets
+        id: registry-vars
         run: |
-          # Extract the first image from DOCKER_METADATA_OUTPUT_JSON as base reference
-          BASE_IMAGE_NAME=$(jq -r '.tags[0]' <<< "$DOCKER_METADATA_OUTPUT_JSON" | cut -d':' -f1)
-          echo "BASE_IMAGE_NAME=${BASE_IMAGE_NAME}" >> $GITHUB_ENV
+          # Base image name used as the source for digests
+          SOURCE_IMAGE="ghcr.io/iterativo-git/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}"
+          echo "SOURCE_IMAGE=${SOURCE_IMAGE}" >> $GITHUB_ENV
 
-      - name: Create manifest list and push
+          # Extract all target registries/images from metadata
+          TARGET_REFS=$(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON" | cut -d':' -f1 | sort -u | tr '\n' ' ')
+          echo "TARGET_REFS=${TARGET_REFS}" >> $GITHUB_ENV
+
+      - name: Create manifest lists and push to all registries
         working-directory: ${{ runner.temp }}/digests
         run: |
-          # For each registry/image combination, create a manifest list
-          for IMAGE_REF in $(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON" | cut -d':' -f1 | sort -u); do
-            echo "Creating manifest for ${IMAGE_REF}"
-            docker buildx imagetools create $(jq -cr '.tags | map(select(startswith("'"${IMAGE_REF}:"'")) | "-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-              $(printf '${BASE_IMAGE_NAME}@sha256:%s ' *)
+          # For each tag pattern in the metadata
+          for TAG_PATTERN in $(jq -r '.tags | map(. | split(":")[1]) | unique[]' <<< "$DOCKER_METADATA_OUTPUT_JSON"); do
+            echo "Processing tag pattern: ${TAG_PATTERN}"
+
+            # For each registry/image combination
+            for TARGET_REF in ${{ env.TARGET_REFS }}; do
+              echo "Creating manifest for ${TARGET_REF}:${TAG_PATTERN}"
+
+              # Create the manifest list with appropriate tags
+              docker buildx imagetools create -t "${TARGET_REF}:${TAG_PATTERN}" \
+                $(printf '${{ env.SOURCE_IMAGE }}@sha256:%s ' *)
+            done
           done
 
-      - name: Inspect images
+      - name: Inspect manifests
         run: |
-          # Inspect each unique image reference
-          for IMAGE_REF in $(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON" | cut -d':' -f1 | sort -u); do
-            VERSION_TAG=$(jq -r '.tags[] | select(startswith("'"${IMAGE_REF}:"'"))' <<< "$DOCKER_METADATA_OUTPUT_JSON" | head -1 | cut -d':' -f2)
-            echo "Inspecting ${IMAGE_REF}:${VERSION_TAG}"
-            docker buildx imagetools inspect "${IMAGE_REF}:${VERSION_TAG}"
+          # For each tag pattern in the metadata
+          for TAG_PATTERN in $(jq -r '.tags | map(. | split(":")[1]) | unique[]' <<< "$DOCKER_METADATA_OUTPUT_JSON"); do
+            # For each registry/image combination
+            for TARGET_REF in ${{ env.TARGET_REFS }}; do
+              echo "Inspecting ${TARGET_REF}:${TAG_PATTERN}"
+              docker buildx imagetools inspect "${TARGET_REF}:${TAG_PATTERN}"
+            done
           done
