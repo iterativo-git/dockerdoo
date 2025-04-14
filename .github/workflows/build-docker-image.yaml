@@ -146,8 +146,8 @@ jobs:
           # Don't read from the cache if the caller disabled it.
           # https://docs.docker.com/engine/reference/commandline/buildx_build/#options
           no-cache: ${{ inputs.no_cache }}
-          cache-from: type=gha,scope=odoo-${{ inputs.odoo_version }}
-          cache-to: type=gha,mode=max,scope=odoo-${{ inputs.odoo_version }}
+          cache-from: type=gha,scope=odoo-${{ inputs.odoo_version }}-${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=odoo-${{ inputs.odoo_version }}-${{ matrix.platform }}
 
       - name: Export digest
         run: |
