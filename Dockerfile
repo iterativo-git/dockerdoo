@@ -53,7 +53,6 @@ RUN apt-get -qq update \
     python3-xlwt \
     # Other dependencies
     git-core \
-    gnupg \
     htop \
     ffmpeg \
     fonts-liberation2 \
@@ -103,6 +102,7 @@ RUN apt-get update \
     apt-utils dialog \
     apt-transport-https \
     build-essential \
+    libcairo2-dev \
     libfreetype6-dev \
     libfribidi-dev \
     libghc-zlib-dev \
@@ -113,7 +113,6 @@ RUN apt-get update \
     liblcms2-dev \
     libldap2-dev \
     libopenjp2-7-dev \
-    libssl-dev \
     libsasl2-dev \
     libtiff5-dev \
     libxml2-dev \
@@ -129,6 +128,7 @@ ARG ODOO_VERSION
 
 RUN pip3 install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
+    rlpycairo \
     'websocket-client~=0.56' \
     astor \
     black \
