@@ -76,7 +76,6 @@ jobs:
           # Use predefined flavor with version customization
           flavor: |
             latest=false
-            suffix=-${{ inputs.odoo_version }}
           # Generate Docker tags based on predefined rules
           tags: |
             type=raw,event=push,value=${{ inputs.odoo_version }},enable={{is_default_branch}}
