@@ -80,7 +80,7 @@ jobs:
           # Generate Docker tags based on predefined rules
           tags: |
             type=raw,event=push,value=${{ inputs.odoo_version }},enable={{is_default_branch}}
-            type=ref,event=pr
+            type=ref,event=pr,value=${{ env.GITHUB_REF_SLUG }}
             type=schedule,value=${{ inputs.odoo_version }}
 
       - name: Set up Docker
