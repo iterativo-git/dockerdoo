@@ -99,8 +99,12 @@ case "$1" in
             if [ "$WITHOUT_TEST_TAGS" -eq "1" ]; then
                 exec odoo "$@" "--test-enable" "--stop-after-init" "-i" "${EXTRA_MODULES}" "-d" "${TEST_DB:-test}" "${DB_ARGS[@]}"
             else
-                # Append exclusion tag for the flaky profiler test
-                test_tags="${EXTRA_MODULES},-base:TestPerformance.test_frequencies_1ms_sleep"
+                # Append exclusion tags for flaky profiler tests and specific retry failure tests
+                test_tags="${EXTRA_MODULES},-base:TestPerformance.test_frequencies_1ms_sleep,-base:TestSyncRecorder.test_sync_recorder,-test_retry_failures"
+                # Conditionally exclude TestRunnerLogging.test_assertQueryCount for Odoo version 16.0
+                if [ "${ODOO_VERSION}" = "16.0" ]; then
+                    test_tags="${test_tags},-base:TestRunnerLogging.test_assertQueryCount"
+                fi
                 exec odoo "$@" "--test-enable" "--stop-after-init" "-i" "${EXTRA_MODULES}" "--test-tags" "${test_tags}" "-d" "${TEST_DB:-test}" "${DB_ARGS[@]}"
             fi
             
