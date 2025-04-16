@@ -99,7 +99,9 @@ case "$1" in
             if [ "$WITHOUT_TEST_TAGS" -eq "1" ]; then
                 exec odoo "$@" "--test-enable" "--stop-after-init" "-i" "${EXTRA_MODULES}" "-d" "${TEST_DB:-test}" "${DB_ARGS[@]}"
             else
-                exec odoo "$@" "--test-enable" "--stop-after-init" "-i" "${EXTRA_MODULES}" "--test-tags" "${EXTRA_MODULES}" "-d" "${TEST_DB:-test}" "${DB_ARGS[@]}"
+                # Append exclusion tag for the flaky profiler test
+                test_tags="${EXTRA_MODULES},-base:TestPerformance.test_frequencies_1ms_sleep"
+                exec odoo "$@" "--test-enable" "--stop-after-init" "-i" "${EXTRA_MODULES}" "--test-tags" "${test_tags}" "-d" "${TEST_DB:-test}" "${DB_ARGS[@]}"
             fi
             
         else

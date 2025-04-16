@@ -3,8 +3,8 @@
 
 ARG PYTHON_VERSION=3.12
 ARG PYTHON_VARIANT=slim-bookworm
-ARG ODOO_VERSION=16.0
-ARG WKHTMLTOX_VERSION=0.12.6-3
+ARG ODOO_VERSION
+ARG WKHTMLTOX_VERSION=0.12.6.1-3
 ARG ODOO_USER=odoo
 ARG ODOO_BASEPATH=/opt/odoo
 ARG APP_UID=1000
@@ -36,7 +36,8 @@ RUN apt-get -qq update \
     libssl-dev \
     node-less \
     npm \
-    python3-magic \
+    # This uses a buggy version of libmagic
+    # python3-magic \
     python3-num2words \
     python3-odf \
     python3-pdfminer \
@@ -117,6 +118,8 @@ RUN apt-get update \
     libtiff5-dev \
     libxml2-dev \
     libxslt1-dev \
+    # Updated mimetype package to ensure consistent MIME type detection
+    libmagic1 \
     libwebp-dev \
     tcl-dev \
     tk-dev \
