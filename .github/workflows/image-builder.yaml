@@ -7,14 +7,13 @@ on:
         required: true
         type: string
       python_version:
-        required: true
+        required: false
         type: string
-      python_variant:
-        required: true
+        default: 3.12-slim
+      os_variant:
+        required: false
         type: string
-      wkhtmltox_version:
-        required: true
-        type: string
+        default: bookworm
       dockerfile_path:
         required: true
         type: string
@@ -136,9 +135,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             ODOO_VERSION=${{ inputs.odoo_version }}
-            PYTHON_VERSION=${{ inputs.python_version }}
-            PYTHON_VARIANT=${{ inputs.python_variant }}
-            WKHTMLTOX_VERSION=${{ inputs.wkhtmltox_version }}
+            OS_VARIANT=${{ inputs.os_variant }}
           platforms: ${{ matrix.platform }}
           # We must use a single registry for the digest source
           # GitHub Container Registry is used regardless of PR/non-PR status
