@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 # check=skip=UndefinedVar # We set the variables as a reference
 
-ARG PYTHON_VERSION=3.12
-ARG PYTHON_VARIANT=slim-bookworm
+ARG PYTHON_VERSION=3.12-slim
+ARG OS_VARIANT=bookworm
 ARG ODOO_VERSION
 ARG WKHTMLTOX_VERSION=0.12.6.1-3
 ARG ODOO_USER=odoo
@@ -10,7 +10,7 @@ ARG ODOO_BASEPATH=/opt/odoo
 ARG APP_UID=1000
 ARG APP_GID=1000
 
-FROM python:${PYTHON_VERSION}-${PYTHON_VARIANT} AS base
+FROM python:${PYTHON_VERSION}-${OS_VARIANT} AS base
 
 SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
 
