@@ -1,0 +1,70 @@
+name: Test and Publish
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 1"
+  push:
+    branches: [main]
+    paths:
+      - "**/resources/**"
+      - Dockerfile
+  pull_request:
+    paths:
+      - "**/workflows/**"
+      - "**/resources/**"
+      - Dockerfile
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.job }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Odoo ${{ matrix.odoo_version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        odoo_version: ["15.0", "16.0", "17.0", "18.0", master]
+    uses: ./.github/workflows/image-builder.yaml
+    with:
+      odoo_version: ${{ matrix.odoo_version }}
+      dockerfile_path: Dockerfile
+      dockerfile_target: production
+    secrets: inherit
+
+  test:
+    name: Test Odoo ${{ matrix.odoo_version }}
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        odoo_version: ["15.0", "16.0", "17.0", "18.0", master]
+        exclude:
+          # TODO: Tests are failing on master. Remove this when fixed
+          # See: https://github.com/odoo/odoo/pull/44001#issuecomment-2808975399
+          - odoo_version: master
+    uses: ./.github/workflows/unit-tests.yaml
+    with:
+      odoo_version: ${{ matrix.odoo_version }}
+    secrets: inherit
+
+  publish:
+    name: Publish Odoo ${{ matrix.odoo_version }}
+    needs: [build, test]
+    strategy:
+      fail-fast: false
+      matrix:
+        odoo_version: ["15.0", "16.0", "17.0", "18.0", master]
+    if: ${{ github.event_name != 'pull_request' }}
+    uses: ./.github/workflows/image-builder.yaml
+    with:
+      odoo_version: ${{ matrix.odoo_version }}
+      dockerfile_path: Dockerfile
+      dockerfile_target: production
+    secrets: inherit

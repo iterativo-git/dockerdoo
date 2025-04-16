@@ -1,0 +1,256 @@
+name: Build and Push Images
+
+on:
+  workflow_call:
+    inputs:
+      odoo_version:
+        required: true
+        type: string
+      python_version:
+        required: false
+        type: string
+        default: 3.12-slim
+      os_variant:
+        required: false
+        type: string
+        default: bookworm
+      dockerfile_path:
+        required: true
+        type: string
+      dockerfile_target:
+        required: true
+        type: string
+      no_cache:
+        description: Disable the Docker cache for this build
+        required: false
+        type: boolean
+        default: false
+
+    outputs:
+      image_digest:
+        description: The image digest to be used on a caller workflow
+        value: ${{ jobs.build.outputs.image_digest }}
+
+jobs:
+  build:
+    name: Build for ${{ matrix.platform }}
+    timeout-minutes: 30
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
+        include:
+          # Platform-specific runner overrides
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    outputs:
+      image_digest: ${{ steps.build.outputs.digest }}
+      image_name: ${{ fromJSON(steps.build.outputs.metadata)['image.name'] }}
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
+    env:
+      DOCKER_BUILD_SUMMARY: ${{ github.event_name == 'pull_request' && false || true }}
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v5.1.0
+        with:
+          short-length: 7
+
+      - name: Login to GitHub Registry
+        uses: docker/login-action@v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Google Container Registry
+        uses: docker/login-action@v3.4.0
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          registry: gcr.io
+          username: _json_key
+          password: ${{ secrets.GKE_SA_KEY }}
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3.4.0
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Prepare manifest
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5.7.0
+        with:
+          # Use the same image list pattern as the merge job for consistency
+          images: |
+            ghcr.io/iterativo-git/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}
+            iterativodo/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},enable=${{ github.event_name != 'pull_request' }}
+            gcr.io/iterativo/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},enable=${{ github.event_name != 'pull_request' }}
+
+      # Setup Docker Buildx
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3.10.0
+
+      - name: Build & push
+        id: build
+        uses: docker/build-push-action@v6.15.0
+        with:
+          target: ${{ inputs.dockerfile_target }}
+          file: ${{ inputs.dockerfile_path }}
+          context: .
+          # IMPORTANT: When using push-by-digest for multi-platform, we cannot:
+          # 1. Use tags directly during the build (we'll apply them in the merge job)
+          # 2. Push to multiple registries at once (we'll distribute in the merge job)
+          # This is a requirement of the Docker buildx multi-platform workflow
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            ODOO_VERSION=${{ inputs.odoo_version }}
+            OS_VARIANT=${{ inputs.os_variant }}
+            PYTHON_VERSION=${{ inputs.python_version }}
+          platforms: ${{ matrix.platform }}
+          # We must use a single registry for the digest source
+          # GitHub Container Registry is used regardless of PR/non-PR status
+          outputs: type=image,push-by-digest=true,name=ghcr.io/iterativo-git/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},push=true
+          # Don't read from the cache if the caller disabled it.
+          # https://docs.docker.com/engine/reference/commandline/buildx_build/#options
+          no-cache: ${{ inputs.no_cache }}
+          cache-from: type=gha,scope=odoo-${{ inputs.odoo_version }}-${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=odoo-${{ inputs.odoo_version }}-${{ matrix.platform }}
+
+      - name: Export digest
+        run: |
+          mkdir -p ${{ runner.temp }}/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: digests-${{ inputs.odoo_version }}-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    name: Merge platform manifests
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v5.1.0
+        with:
+          short-length: 7
+
+      - name: Download digests
+        uses: actions/download-artifact@v4.2.1
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-${{ inputs.odoo_version }}-*
+          merge-multiple: true
+
+      - name: Login to GitHub Registry
+        uses: docker/login-action@v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Google Container Registry
+        uses: docker/login-action@v3.4.0
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          registry: gcr.io
+          username: _json_key
+          password: ${{ secrets.GKE_SA_KEY }}
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3.4.0
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3.10.0
+
+      # Automatic tag management and OCI Image Format Specification for labels
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5.7.0
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            ghcr.io/iterativo-git/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}
+            iterativodo/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},enable=${{ github.event_name != 'pull_request' }}
+            gcr.io/iterativo/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},enable=${{ github.event_name != 'pull_request' }}
+          # Use predefined flavor with version customization
+          flavor: |
+            latest=false
+          # Generate Docker tags based on predefined rules
+          tags: |
+            type=raw,event=push,value=${{ inputs.odoo_version }},enable={{is_default_branch}}
+            type=raw,event=pr,value=${{ env.GITHUB_REF_SLUG }}-${{ inputs.odoo_version }}
+            type=schedule,value=${{ inputs.odoo_version }}
+
+      - name: Prepare registry sources and targets
+        id: registry-vars
+        run: |
+          # Base image name used as the source for digests
+          SOURCE_IMAGE="ghcr.io/iterativo-git/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}"
+          echo "SOURCE_IMAGE=${SOURCE_IMAGE}" >> $GITHUB_ENV
+
+          # Extract all target registries/images from metadata
+          TARGET_REFS=$(jq -r '.tags[]' <<< "$DOCKER_METADATA_OUTPUT_JSON" | cut -d':' -f1 | sort -u | tr '\n' ' ')
+          echo "TARGET_REFS=${TARGET_REFS}" >> $GITHUB_ENV
+
+      - name: Create manifest lists and push to all registries
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          # For each tag pattern in the metadata
+          for TAG_PATTERN in $(jq -r '.tags | map(. | split(":")[1]) | unique[]' <<< "$DOCKER_METADATA_OUTPUT_JSON"); do
+            echo "Processing tag pattern: ${TAG_PATTERN}"
+
+            # For each registry/image combination
+            for TARGET_REF in ${{ env.TARGET_REFS }}; do
+              echo "Creating manifest for ${TARGET_REF}:${TAG_PATTERN}"
+
+              # Create the manifest list with appropriate tags
+              docker buildx imagetools create -t "${TARGET_REF}:${TAG_PATTERN}" \
+                $(printf '${{ env.SOURCE_IMAGE }}@sha256:%s ' *)
+            done
+          done
+
+      - name: Inspect manifests
+        run: |
+          # For each tag pattern in the metadata
+          for TAG_PATTERN in $(jq -r '.tags | map(. | split(":")[1]) | unique[]' <<< "$DOCKER_METADATA_OUTPUT_JSON"); do
+            # For each registry/image combination
+            for TARGET_REF in ${{ env.TARGET_REFS }}; do
+              echo "Inspecting ${TARGET_REF}:${TAG_PATTERN}"
+              docker buildx imagetools inspect "${TARGET_REF}:${TAG_PATTERN}"
+            done
+          done
