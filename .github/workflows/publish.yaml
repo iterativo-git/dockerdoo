@@ -68,6 +68,7 @@ jobs:
   test:
     needs: [build]
     strategy:
+      fail-fast: false
       matrix:
         odoo_version: ["15.0", "16.0", "17.0", "18.0", master]
     uses: ./.github/workflows/unit-tests.yaml
