@@ -74,14 +74,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Login to Google Container Registry
-        uses: docker/login-action@v3.4.0
-        if: ${{ github.event_name != 'pull_request' }}
-        with:
-          registry: gcr.io
-          username: _json_key
-          password: ${{ secrets.GKE_SA_KEY }}
-
       - name: Login to DockerHub
         uses: docker/login-action@v3.4.0
         if: ${{ github.event_name != 'pull_request' }}
@@ -102,7 +94,6 @@ jobs:
           images: |
             ghcr.io/iterativo-git/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}
             iterativodo/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},enable=${{ github.event_name != 'pull_request' }}
-            gcr.io/iterativo/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},enable=${{ github.event_name != 'pull_request' }}
 
       # Setup Docker Buildx
       - name: Set up Docker Buildx
@@ -178,14 +169,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Login to Google Container Registry
-        uses: docker/login-action@v3.4.0
-        if: ${{ github.event_name != 'pull_request' }}
-        with:
-          registry: gcr.io
-          username: _json_key
-          password: ${{ secrets.GKE_SA_KEY }}
-
       - name: Login to DockerHub
         uses: docker/login-action@v3.4.0
         if: ${{ github.event_name != 'pull_request' }}
@@ -206,13 +189,12 @@ jobs:
           images: |
             ghcr.io/iterativo-git/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }}
             iterativodo/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},enable=${{ github.event_name != 'pull_request' }}
-            gcr.io/iterativo/${{ env.GITHUB_REPOSITORY_NAME_PART_SLUG }},enable=${{ github.event_name != 'pull_request' }}
           # Use predefined flavor with version customization
           flavor: |
             latest=false
-          # Generate Docker tags based on predefined rules
+          # Generate Docker tags based on predefined rules, avoiding branch prefix
           tags: |
-            type=raw,event=push,value=${{ inputs.odoo_version }},enable={{is_default_branch}}
+            type=raw,value=${{ inputs.odoo_version }},enable={{is_default_branch}}
             type=raw,event=pr,value=${{ env.GITHUB_REF_SLUG }}-${{ inputs.odoo_version }}
             type=schedule,value=${{ inputs.odoo_version }}
 
