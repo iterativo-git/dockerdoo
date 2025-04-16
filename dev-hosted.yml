@@ -4,8 +4,6 @@ services:
     ports:
       - 1984:1984
     restart: unless-stopped
-    networks:
-      - odoonet
     depends_on:
       db:
         condition: service_healthy
@@ -29,4 +27,5 @@ services:
       db:
         condition: service_healthy
       wdb:
+        condition: service_started
     command: ['${ODOO_CMD}', '--dev', 'wdb,reload,qweb,werkzeug,xml']

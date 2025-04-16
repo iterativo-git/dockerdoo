@@ -180,7 +180,7 @@ ARG APP_GID
 ENV APP_GID=${APP_GID}
 
 RUN addgroup --system --gid ${APP_GID} ${ODOO_USER} \
-    && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
+    && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /bin/bash ${ODOO_USER} \
     && echo ${ODOO_USER} ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/${ODOO_USER}\
     && chmod 0440 /etc/sudoers.d/${ODOO_USER}
 

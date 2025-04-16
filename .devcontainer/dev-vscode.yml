@@ -1,5 +1,3 @@
-version: "3.7"
-
 services:
   odoo:
     volumes:
@@ -11,7 +9,7 @@ services:
       # because of Docker's hosted volumes performance
       #
       # - ./custom:${ODOO_EXTRA_ADDONS}:delegated
-    depends_on: ["db"]
+    depends_on: [db]
     environment:
       - PIP_AUTO_INSTALL=1
       - DEBUGPY_ENABLE=1
