@@ -37,6 +37,7 @@ jobs:
     secrets: inherit
 
   test:
+    name: Test Odoo ${{ matrix.odoo_version }}
     needs: build
     strategy:
       fail-fast: false
@@ -52,6 +53,7 @@ jobs:
     secrets: inherit
 
   publish:
+    name: Publish Odoo ${{ matrix.odoo_version }}
     needs: [build, test]
     strategy:
       fail-fast: false
