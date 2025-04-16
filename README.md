@@ -105,6 +105,67 @@ docker-compose -f docker-compose.yml -f hosted.yml -f dev-hosted.yml up
 docker-compose -f docker-compose.yml -f test-env.yml up
 ```
 
+### Extra Addons (`./custom`)
+
+Place your custom Odoo modules inside subdirectories within the `./custom/` folder (e.g., `./custom/my_cool_module/`, `./custom/oca_addons/web/`).
+
+The `entrypoint.sh` script runs `getaddons.py`, which scans the `${ODOO_EXTRA_ADDONS}` path (which defaults to `/mnt/extra-addons`, where `./custom` is mounted in `docker-compose.yml`) for valid module directories (those containing `__manifest__.py` or `__openerp__.py`) and adds them to Odoo's `addons_path` configuration.
+
+### Development: Mounted vs. Built-in Custom Addons
+
+There are two primary ways to handle your custom addons:
+
+1. **Mounted Addons (Recommended for Local Development):**
+    - Place your custom addons in the `./custom` directory (or subdirectories within it).
+    - Use a development override file like `dev-hosted.yml` or `dev-standalone.yml` which mounts the `./custom` directory to `/mnt/extra-addons` inside the container.
+    - Odoo will use the code directly from your host machine.
+    - Changes you make locally are immediately reflected in the running container (Odoo might need a restart/update `-u` depending on the change).
+    - Since the code resides on your host, the `./custom` directory (or specific modules within it) is typically added to your `.gitignore` file to avoid committing them if they are managed in separate repositories.
+
+2. **Built-in Addons (Recommended for Production Images or Sharing):**
+    - If you want to create a self-contained image that includes your custom addons, you need to build a custom Docker image based on the Dockerdoo base image.
+    - Create a new `Dockerfile` in your project (or a dedicated build directory).
+    - Use the following example as a template, assuming your addons are in a local directory named `./my_addons`:
+
+    ```dockerfile
+    # Example Dockerfile to add your custom modules
+    ARG ODOO_VERSION=18.0 # Or your desired version
+    FROM iterativodo/dockerdoo:${ODOO_VERSION}
+
+    # Set standard environment variable (can be overridden)
+    ENV ODOO_EXTRA_ADDONS=/mnt/extra-addons
+
+    # Switch to root for installations
+    USER root
+
+    # Copy your custom addons from a local directory (e.g., ./my_addons)
+    # Adjust the source path './my_addons' as needed. Odoo automatically discovers
+    # modules in subdirectories of paths listed in the addons_path.
+    COPY --chown=${ODOO_USER}:${ODOO_USER} ./my_addons ${ODOO_EXTRA_ADDONS}/my_addons
+
+    # Install Python dependencies from requirements.txt files within your copied addons
+    # This installs build tools, finds requirements, installs them, then cleans up
+    RUN apt-get update && apt-get install -y --no-install-recommends build-essential \
+        && find ${ODOO_EXTRA_ADDONS}/my_addons -name 'requirements.txt' -exec pip3 --no-cache-dir install -r {} \; \
+        && apt-get purge -y --auto-remove build-essential \
+        && rm -rf /var/lib/apt/lists/*
+
+    # Switch back to the default odoo user
+    USER ${ODOO_USER}
+    ```
+
+    - Build this new Dockerfile: `docker build -t my-custom-odoo:latest .`
+    - Update your `docker-compose.yml` (or a production override) to use `image: my-custom-odoo:latest` instead of the standard Dockerdoo image.
+
+### SSH Key Access
+
+The base `docker-compose.yml` mounts your host's `~/.ssh/` directory into `/opt/odoo/.ssh/` inside the container. This allows processes within the container (like pip installing from a private git repository) to use your local SSH keys for authentication.
+
+## Exposed Ports
+
+- `8069`: Odoo HTTP interface
+- `8072`: Odoo Longpolling port
+
 ## Project Structure
 
 ```bash
@@ -126,21 +187,6 @@ your-project/
 ├── test-env.yml                   # Override for running tests
 └── ...                            # Other files (.gitignore, README.md, etc.)
 ```
-
-### Extra Addons (`./custom`)
-
-Place your custom Odoo modules inside subdirectories within the `./custom/` folder (e.g., `./custom/my_cool_module/`, `./custom/oca_addons/web/`).
-
-The `entrypoint.sh` script runs `getaddons.py`, which scans the `${ODOO_EXTRA_ADDONS}` path (which defaults to `/mnt/extra-addons`, where `./custom` is mounted in `docker-compose.yml`) for valid module directories (those containing `__manifest__.py` or `__openerp__.py`) and adds them to Odoo's `addons_path` configuration.
-
-### SSH Key Access
-
-The base `docker-compose.yml` mounts your host's `~/.ssh/` directory into `/opt/odoo/.ssh/` inside the container. This allows processes within the container (like pip installing from a private git repository) to use your local SSH keys for authentication.
-
-## Exposed Ports
-
-- `8069`: Odoo HTTP interface
-- `8072`: Odoo Longpolling port
 
 ## Credits
 
