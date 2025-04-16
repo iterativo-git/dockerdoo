@@ -37,8 +37,8 @@ jobs:
     uses: ./.github/workflows/image-builder.yaml
     with:
       odoo_version: ${{ matrix.odoo_version }}
-      python_version: ${{ matrix.python_version != null && matrix.python_version || '' }}
-      os_variant: ${{ matrix.os_variant != null && matrix.os_variant || '' }}
+      python_version: ${{ matrix.python_version != null && matrix.python_version || null }}
+      os_variant: ${{ matrix.os_variant != null && matrix.os_variant || null }}
       dockerfile_path: Dockerfile
       dockerfile_target: production
     secrets: inherit
@@ -72,8 +72,8 @@ jobs:
     uses: ./.github/workflows/image-builder.yaml
     with:
       odoo_version: ${{ matrix.odoo_version }}
-      python_version: ${{ matrix.python_version != null && matrix.python_version || '' }}
-      os_variant: ${{ matrix.os_variant != null && matrix.os_variant || '' }}
+      python_version: ${{ matrix.python_version != null && matrix.python_version || null }}
+      os_variant: ${{ matrix.os_variant != null && matrix.os_variant || null }}
       dockerfile_path: Dockerfile
       dockerfile_target: production
     secrets: inherit
