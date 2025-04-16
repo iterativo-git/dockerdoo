@@ -28,17 +28,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        odoo_version: [15.0, 16.0, 17.0, 18.0, master]
+        odoo_version: ["15.0", "16.0", "17.0", "18.0", master]
         include:
           # Keep compatibility with the oldest supported Odoo version
-          - odoo_version: 15.0
-            os_variant: bullseye
+          - odoo_version: "15.0"
             python_version: 3.10-slim
+            os_variant: bullseye
     uses: ./.github/workflows/image-builder.yaml
     with:
       odoo_version: ${{ matrix.odoo_version }}
-      os_variant: ${{ matrix.os_variant }}
-      python_version: ${{ matrix.python_version }}
+      python_version: ${{ matrix.python_version != null && matrix.python_version || '' }}
+      os_variant: ${{ matrix.os_variant != null && matrix.os_variant || '' }}
       dockerfile_path: Dockerfile
       dockerfile_target: production
     secrets: inherit
@@ -48,7 +48,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        odoo_version: [15.0, 16.0, 17.0, 18.0, master]
+        odoo_version: ["15.0", "16.0", "17.0", "18.0", master]
         exclude:
           # TODO: Tests are failing on master. Remove this when fixed
           # See: https://github.com/odoo/odoo/pull/44001#issuecomment-2808975399
@@ -63,17 +63,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        odoo_version: [15.0, 16.0, 17.0, 18.0, master]
+        odoo_version: ["15.0", "16.0", "17.0", "18.0", master]
         include:
-          - odoo_version: 15.0
+          - odoo_version: "15.0"
+            python_version: 3.10-slim
             os_variant: bullseye
-            python_version: 3.12-slim
-    uses: ./.github/workflows/image-builder.yaml
     if: ${{ github.event_name != 'pull_request' }}
+    uses: ./.github/workflows/image-builder.yaml
     with:
       odoo_version: ${{ matrix.odoo_version }}
-      os_variant: ${{ matrix.os_variant }}
-      python_version: ${{ matrix.python_version }}
+      python_version: ${{ matrix.python_version != null && matrix.python_version || '' }}
+      os_variant: ${{ matrix.os_variant != null && matrix.os_variant || '' }}
       dockerfile_path: Dockerfile
       dockerfile_target: production
     secrets: inherit

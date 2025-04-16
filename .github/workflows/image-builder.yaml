@@ -136,6 +136,7 @@ jobs:
           build-args: |
             ODOO_VERSION=${{ inputs.odoo_version }}
             OS_VARIANT=${{ inputs.os_variant }}
+            PYTHON_VERSION=${{ inputs.python_version }}
           platforms: ${{ matrix.platform }}
           # We must use a single registry for the digest source
           # GitHub Container Registry is used regardless of PR/non-PR status
