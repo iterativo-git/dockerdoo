@@ -13,7 +13,6 @@ Pre-built images for various Odoo versions (`15.0`, `16.0`, `17.0`, `18.0`, `mas
 
 - **GitHub Container Registry**: `ghcr.io/iterativo-git/dockerdoo:<odoo_version>` (e.g., `ghcr.io/iterativo-git/dockerdoo:17.0`)
 - **Docker Hub**: `iterativodo/dockerdoo:<odoo_version>`
-- **Google Container Registry**: `gcr.io/iterativo/dockerdoo:<odoo_version>`
 
 You can often pull a pre-built image directly (by ensuring `image: iterativodo/dockerdoo:\${ODOO_VERSION}` is set in your compose file and `ODOO_VERSION` is defined in `.env`) instead of building it locally, saving time.
 
