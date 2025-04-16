@@ -18,7 +18,7 @@ USER root
 
 # Library versions
 ARG WKHTMLTOX_VERSION
-ENV WKHTMLTOX_VERSION ${WKHTMLTOX_VERSION}
+ENV WKHTMLTOX_VERSION=${WKHTMLTOX_VERSION}
 
 # Use noninteractive to get rid of apt-utils message
 ENV DEBIAN_FRONTEND=noninteractive
@@ -167,17 +167,17 @@ ENV WITHOUT_TEST_TAGS=${WITHOUT_TEST_TAGS:-"0"}
 ENV UPGRADE_ODOO=${UPGRADE_ODOO:-"0"}
 
 ARG ODOO_BASEPATH
-ENV ODOO_BASEPATH ${ODOO_BASEPATH}
+ENV ODOO_BASEPATH=${ODOO_BASEPATH}
 
 # Create app user
 ARG ODOO_USER
-ENV ODOO_USER ${ODOO_USER}
+ENV ODOO_USER=${ODOO_USER}
 
 ARG APP_UID
-ENV APP_UID ${APP_UID}
+ENV APP_UID=${APP_UID}
 
 ARG APP_GID
-ENV APP_GID ${APP_GID}
+ENV APP_GID=${APP_GID}
 
 RUN addgroup --system --gid ${APP_GID} ${ODOO_USER} \
     && adduser --system --uid ${APP_UID} --ingroup ${ODOO_USER} --home ${ODOO_BASEPATH} --disabled-login --shell /sbin/nologin ${ODOO_USER} \
@@ -279,12 +279,12 @@ ENV \
     RUNNING_ENV=${RUNNING_ENV}
 
 # Define all needed directories
-ENV ODOO_RC ${ODOO_RC:-/etc/odoo/odoo.conf}
-ENV ODOO_DATA_DIR ${ODOO_DATA_DIR:-/var/lib/odoo/data}
-ENV ODOO_LOGS_DIR ${ODOO_LOGS_DIR:-/var/lib/odoo/logs}
-ENV ODOO_EXTRA_ADDONS ${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
-ENV ODOO_ADDONS_BASEPATH ${ODOO_BASEPATH}/addons
-ENV ODOO_CMD ${ODOO_BASEPATH}/odoo-bin
+ENV ODOO_RC=${ODOO_RC:-/etc/odoo/odoo.conf}
+ENV ODOO_DATA_DIR=${ODOO_DATA_DIR:-/var/lib/odoo/data}
+ENV ODOO_LOGS_DIR=${ODOO_LOGS_DIR:-/var/lib/odoo/logs}
+ENV ODOO_EXTRA_ADDONS=${ODOO_EXTRA_ADDONS:-/mnt/extra-addons}
+ENV ODOO_ADDONS_BASEPATH=${ODOO_BASEPATH}/addons
+ENV ODOO_CMD=${ODOO_BASEPATH}/odoo-bin
 
 RUN mkdir -p ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTRA_ADDONS} /etc/odoo/
 
@@ -294,10 +294,10 @@ RUN chown -R ${APP_UID}:${APP_GID} ${ODOO_DATA_DIR} ${ODOO_LOGS_DIR} ${ODOO_EXTR
 VOLUME ["${ODOO_DATA_DIR}", "${ODOO_LOGS_DIR}", "${ODOO_EXTRA_ADDONS}"]
 
 ARG EXTRA_ADDONS_PATHS
-ENV EXTRA_ADDONS_PATHS ${EXTRA_ADDONS_PATHS}
+ENV EXTRA_ADDONS_PATHS=${EXTRA_ADDONS_PATHS}
 
 ARG EXTRA_MODULES
-ENV EXTRA_MODULES ${EXTRA_MODULES}
+ENV EXTRA_MODULES=${EXTRA_MODULES}
 
 COPY --link --chown=${APP_UID}:${APP_GID} --from=builder /usr/local /usr/local
 COPY --link --chown=${APP_UID}:${APP_GID} --from=builder /opt/odoo ${ODOO_BASEPATH}
@@ -309,7 +309,7 @@ COPY --link --chown=${APP_UID}:${APP_GID} ./resources/getaddons.py /
 # This is needed to fully build with modules and python requirements
 # Copy custom modules from the custom folder, if any.
 ARG HOST_CUSTOM_ADDONS
-ENV HOST_CUSTOM_ADDONS ${HOST_CUSTOM_ADDONS:-./custom}
+ENV HOST_CUSTOM_ADDONS=${HOST_CUSTOM_ADDONS:-./custom}
 COPY --link --chown=${APP_UID}:${APP_GID} ${HOST_CUSTOM_ADDONS} ${ODOO_EXTRA_ADDONS}
 
 RUN chmod u+x /entrypoint.sh
