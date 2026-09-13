@@ -8,6 +8,8 @@ _testlogs/
 !/src/**/.gitkeep
 .gitmodules
 *.sh
+!resources/postgres-init/
+!resources/postgres-init/**
 
 # Created by https://www.gitignore.io/api/test,macos,linux,python,windows,pycharm,virtualenv,sublimetext,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=test,macos,linux,python,windows,pycharm,virtualenv,sublimetext,visualstudiocode

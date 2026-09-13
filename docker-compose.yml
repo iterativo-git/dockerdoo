@@ -1,3 +1,12 @@
+networks:
+  default:
+    name: cloudbuild
+    external: true
+  odoonet:
+    ipam:
+      config:
+        - subnet: ${DOCKER_ODONET_SUBNET:-172.28.0.0/16}
+
 services:
   odoo:
     image: iterativodo/dockerdoo:${ODOO_VERSION}
@@ -10,7 +19,7 @@ services:
         - OS_VARIANT=${OS_VARIANT}
         - WKHTMLTOX_VERSION=${WKHTMLTOX_VERSION}
     env_file: .env
-    
+
     restart: unless-stopped
 
     ports:
@@ -18,21 +27,22 @@ services:
       - 8072:8072
 
     volumes:
-      # Host paths (.ssh configuration)
-      - ~/.ssh/:/opt/odoo/.ssh/:cached
-      # Named volumes
       - odoo-data:${ODOO_DATA_DIR}
       - odoo-testlogs:${ODOO_LOGS_DIR}
       - odoo-modules:${ODOO_EXTRA_ADDONS}
     depends_on:
       db:
         condition: service_healthy
+
+    networks:
+      odoonet:
   # ------------------------
   db:
     image: postgres:${PSQL_VERSION}
     restart: always
     volumes:
       - psql:/var/lib/postgresql/data/pgdata
+      - ./resources/postgres-init:/docker-entrypoint-initdb.d:ro
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -40,11 +50,15 @@ services:
       - PGDATA=/var/lib/postgresql/data/pgdata
       # Odoo expects the database to be created with the C collate
       - POSTGRES_INITDB_ARGS=--lc-collate=C
+      - DOCKER_ODONET_SUBNET=${DOCKER_ODONET_SUBNET:-172.28.0.0/16}
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 30s
       timeout: 10s
       retries: 5
+
+    networks:
+      odoonet:
 
 volumes:
   odoo-data:
