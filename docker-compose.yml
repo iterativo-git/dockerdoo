@@ -5,6 +5,9 @@ networks:
     external:
       name: cloudbuild
   odoonet:
+    ipam:
+      config:
+        - subnet: ${DOCKER_ODONET_SUBNET:-172.28.0.0/16}
 
 volumes:
   odoo-data:
@@ -16,15 +19,12 @@ services:
   odoo:
     image: iterativodo/dockerdoo:${ODOO_VERSION}
     env_file: .env
-    
+
     restart: unless-stopped
 
     ports: ["8069:8069", "8072:8072"]
 
     volumes:
-      # Host paths (.ssh configuration)
-      - ~/.ssh/:/opt/odoo/.ssh/:cached
-      # Named volumes
       - odoo-data:${ODOO_DATA_DIR}
       - odoo-testlogs:${ODOO_LOGS_DIR}
       - odoo-modules:${ODOO_EXTRA_ADDONS}
@@ -39,11 +39,13 @@ services:
     restart: unless-stopped
     volumes:
       - psql:/var/lib/postgresql/data/pgdata
+      - ./resources/postgres-init:/docker-entrypoint-initdb.d:ro
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_USER=${POSTGRES_USER}
       - PGDATA=/var/lib/postgresql/data/pgdata
+      - DOCKER_ODONET_SUBNET=${DOCKER_ODONET_SUBNET:-172.28.0.0/16}
 
     networks:
       odoonet:
