@@ -3,10 +3,10 @@
     "configurations": [
         {
             "name": "Run",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "redirectOutput": false,
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceFolder}",
             "program": "/opt/odoo/odoo-bin",
             "args": [
                 "--config=/etc/odoo/odoo.conf",
@@ -15,24 +15,24 @@
         },
         {
             "name": "Debug",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "redirectOutput": false,
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceFolder}",
             "justMyCode": false,
             "program": "/opt/odoo/odoo-bin",
             "args": [
                 "--config=/etc/odoo/odoo.conf",
-                "--dev=qweb,werkzeug,xml",
+                "--dev=reload,qweb,xml",
                 "--log-level=info",
             ],
         },
         {
             "name": "Upgrade",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "redirectOutput": false,
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceFolder}",
             "program": "/opt/odoo/odoo-bin",
             "args": [
                 "--config=/etc/odoo/odoo.conf",
@@ -43,10 +43,10 @@
         },
         {
             "name": "Test",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "redirectOutput": false,
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceFolder}",
             "program": "/opt/odoo/odoo-bin",
             "args": [
                 "--config=/etc/odoo/odoo.conf",

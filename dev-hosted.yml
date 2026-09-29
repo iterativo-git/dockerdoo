@@ -1,31 +1,13 @@
 services:
-  wdb:
-    image: kozea/wdb:3.3.0
-    ports:
-      - 1984:1984
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-
-  # ------------------------
-
   odoo:
     volumes:
       # Host paths (odoo modules, src code & conf)
       - ./custom:${ODOO_EXTRA_ADDONS}:delegated
       - ./src/odoo:/${ODOO_BASEPATH}:cached
-      - ./config/odoo.conf:/etc/odoo/odoo.conf:cached
     environment:
       - LOG_LEVEL=debug
       - WITHOUT_DEMO=False
-      - WDB_SOCKET_SERVER=wdb
-      - WDB_NO_BROWSER_AUTO_OPEN=True
-      - WDB_WEB_PORT=1984
-      - DEBUGPY_ENABLE=1
     depends_on:
       db:
         condition: service_healthy
-      wdb:
-        condition: service_started
-    command: ['${ODOO_CMD}', '--dev', 'wdb,reload,qweb,werkzeug,xml']
+    command: ['${ODOO_CMD}', '--dev', 'reload,qweb,xml']

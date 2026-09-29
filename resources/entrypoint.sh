@@ -13,7 +13,7 @@
 
 function getAddons() {
 
-    EXTRA_ADDONS_PATHS=$(python3 getaddons.py ${ODOO_EXTRA_ADDONS} 2>&1)
+    EXTRA_ADDONS_PATHS=$(python3 /getaddons.py "${ODOO_EXTRA_ADDONS}" 2>&1)
 }
 
 getAddons
@@ -68,7 +68,35 @@ else
     if [ "$PIP_AUTO_INSTALL" -eq "1" ]; then
         find $ODOO_EXTRA_ADDONS -name 'requirements.txt' -exec pip3 install --progress-bar off --user -r {} \;
     fi
-    sed -i "s|addons_path = *|addons_path = ${EXTRA_ADDONS_PATHS},|" $ODOO_RC
+    python3 - "$ODOO_RC" "$EXTRA_ADDONS_PATHS" "$ODOO_ADDONS_BASEPATH" <<'PY'
+import re
+import sys
+
+config_path, custom_paths, base_paths = sys.argv[1:]
+
+def split_paths(value):
+    return [path.strip() for path in value.split(",") if path.strip()]
+
+with open(config_path, encoding="utf-8", newline="") as config:
+    lines = config.readlines()
+
+addons_setting = re.compile(r"^([ \t]*addons_path[ \t]*=[ \t]*)(.*?)([ \t]+(?:#|;).*)?(\r?\n)?$")
+for index in range(len(lines) - 1, -1, -1):
+    match = addons_setting.match(lines[index])
+    if match:
+        configured_paths = split_paths(match.group(2)) or split_paths(base_paths)
+        paths = list(dict.fromkeys(split_paths(custom_paths) + configured_paths))
+        lines[index] = match.group(1) + ",".join(paths) + (match.group(3) or "") + (match.group(4) or "")
+        break
+else:
+    paths = list(dict.fromkeys(split_paths(custom_paths) + split_paths(base_paths)))
+    if lines and not lines[-1].endswith(("\n", "\r")):
+        lines[-1] += "\n"
+    lines.append("addons_path = " + ",".join(paths) + "\n")
+
+with open(config_path, "w", encoding="utf-8", newline="") as config:
+    config.writelines(lines)
+PY
 fi
 
 
@@ -94,7 +122,7 @@ case "$1" in
             exec odoo "$@"
         elif [[ "$RUN_TESTS" -eq "1" ]] ; then
             if [ -z "$EXTRA_MODULES" ]; then
-                EXTRA_MODULES=$(python3 -c "from getaddons import get_modules; print(','.join(get_modules('${ODOO_EXTRA_ADDONS}', depth=3)))")
+                EXTRA_MODULES=$(PYTHONPATH=/ python3 -c "from getaddons import get_modules; print(','.join(get_modules('${ODOO_EXTRA_ADDONS}', depth=3)))")
             fi
             if [ "$WITHOUT_TEST_TAGS" -eq "1" ]; then
                 exec odoo "$@" "--test-enable" "--stop-after-init" "-i" "${EXTRA_MODULES}" "-d" "${TEST_DB:-test}" "${DB_ARGS[@]}"
