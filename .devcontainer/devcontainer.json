@@ -12,7 +12,7 @@
     "vscode": {
       "settings": {
         "terminal.integrated.shell.linux": "/bin/bash",
-        "python.pythonPath": "/usr/local/bin/python",
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
         "python.autoComplete.addBrackets": true,
         "python.autoComplete.extraPaths": [
           "/opt/odoo/addons",
@@ -74,6 +74,7 @@
         "eamodio.gitlens",
         "magicstack.magicpython",
         "ms-python.python",
+        "ms-python.debugpy",
         "ms-azuretools.vscode-docker",
         "mstuttgart.odoo-snippets",
         "vscode-icons-team.vscode-icons",

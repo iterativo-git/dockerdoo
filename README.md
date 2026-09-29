@@ -5,7 +5,7 @@ This is a flexible and **streamlined** version of most dockerized Odoo projects 
 - **Standalone**: Odoo's source code and dependencies are fully contained within the Docker image. **This is the default and recommended for production.**
 - **Hosted**: Odoo's source code resides on the host machine (in `./src/odoo`) and is mounted into the container. Useful for **development** where you directly modify the core Odoo code.
 
-Dockerdoo is integrated with **VSCode** for fast development and debugging, just install the [Remote Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
+Dockerdoo includes a VS Code Dev Containers setup with the Python and Debugpy extensions and launch configurations for running, debugging, upgrading, and testing Odoo.
 
 ## Pre-built Images
 
@@ -97,8 +97,8 @@ Multiple compose files allow different configurations:
 
 - `docker-compose.yml`: Base configuration (Standalone mode).
 - `hosted.yml`: Overrides for Hosted mode (mounts `./src/odoo`).
-- `dev-standalone.yml`: Standalone mode with development tools (e.g., `--dev=all`, potentially WDB).
-- `dev-hosted.yml`: Hosted mode with development tools.
+- `dev-standalone.yml`: Standalone mode with Odoo asset reload, QWeb, and XML development features.
+- `dev-hosted.yml`: Hosted mode with the same development features and mounted Odoo source.
 - `test-env.yml`: Configured for running Odoo tests (`--test-enable --stop-after-init`).
 
 Combine them using the `-f` flag:
@@ -107,15 +107,22 @@ Combine them using the `-f` flag:
 # Hosted Development
 docker compose --env-file /path/to/private.env -f docker-compose.yml -f hosted.yml -f dev-hosted.yml up
 
+# Standalone Development
+docker compose --env-file /path/to/private.env -f docker-compose.yml -f dev-standalone.yml up
+
 # Run Tests (Standalone)
 docker compose --env-file /path/to/private.env -f docker-compose.yml -f test-env.yml up
 ```
+
+For custom add-on development, use the standalone development override with a pre-built image: edits in `./custom` are available immediately without rebuilding Odoo. Use hosted mode when you need to edit Odoo itself, and keep the mounted source version aligned with the image.
+
+The development overrides do not start WDB or enable Werkzeug's interactive debugger. The Dev Containers launch configurations use VS Code's Debugpy extension when you explicitly start a debug session.
 
 ### Extra Addons (`./custom`)
 
 Place your custom Odoo modules inside subdirectories within the `./custom/` folder (e.g., `./custom/my_cool_module/`, `./custom/oca_addons/web/`).
 
-The `entrypoint.sh` script runs `getaddons.py`, which scans the `${ODOO_EXTRA_ADDONS}` path (which defaults to `/mnt/extra-addons`, where `./custom` is mounted in `docker-compose.yml`) for valid module directories (those containing `__manifest__.py` or `__openerp__.py`) and adds them to Odoo's `addons_path` configuration.
+The `entrypoint.sh` script runs `/getaddons.py`, which scans `${ODOO_EXTRA_ADDONS}` (default `/mnt/extra-addons`) for valid addon directories and adds them to Odoo's `addons_path` configuration. It creates or updates that setting without duplicating discovered paths on container restart.
 
 ### Development: Mounted vs. Built-in Custom Addons
 
@@ -165,7 +172,7 @@ There are two primary ways to handle your custom addons:
 
 ### SSH Key Access
 
-The base `docker-compose.yml` mounts your host's `~/.ssh/` directory into `/opt/odoo/.ssh/` inside the container. This allows processes within the container (like pip installing from a private git repository) to use your local SSH keys for authentication.
+The base Compose file does not mount host SSH keys. If a local development workflow needs SSH access to a private repository, add an explicit SSH mount in a private Compose override and remove it when it is no longer needed.
 
 ## Exposed Ports
 
