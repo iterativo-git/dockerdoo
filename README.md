@@ -24,16 +24,15 @@ First, clone the repository:
 git clone git@github.com:iterativo-git/dockerdoo.git && cd dockerdoo
 ```
 
-Next, configure your environment by copying the example `.env.example` to `.env` and adjusting the variables, especially `ODOO_VERSION` and `PSQL_VERSION`.
+Copy `.env.example` to a private file outside the repository and fill in separate `POSTGRES_PASSWORD`, `POSTGRES_ADMIN_PASSWORD`, and `ADMIN_PASSWORD` values. Pass the complete file to Compose with `--env-file /path/to/private.env`. The tracked `.env` supplies additional runtime defaults; do not commit credentials to it.
 
 ### Standalone (Default)
 
 This uses the pre-built image or builds one with Odoo source included.
 
 ```shell
-# Ensure ODOO_VERSION is set in .env
-docker-compose build # Optional: only needed if not using pre-built or modifying Dockerfile
-docker-compose up -d
+docker compose --env-file /path/to/private.env build # Optional if using a pre-built image
+docker compose --env-file /path/to/private.env up -d
 ```
 
 ### Hosted (Development)
@@ -41,12 +40,11 @@ docker-compose up -d
 This requires cloning the Odoo source code into `./src/odoo`.
 
 ```shell
-# Clone the desired Odoo version source code
-git clone --depth=1 -b 17.0 git@github.com:odoo/odoo.git src/odoo # Example for 17.0
+# Clone the Odoo version selected in the private environment file
+git clone --depth=1 -b 18.0 https://github.com/odoo/odoo.git src/odoo
 
-# Ensure ODOO_VERSION is set in .env to match the cloned source
-docker-compose -f docker-compose.yml -f hosted.yml build # Build is usually required here
-docker-compose -f docker-compose.yml -f hosted.yml up -d
+docker compose --env-file /path/to/private.env -f docker-compose.yml -f hosted.yml build
+docker compose --env-file /path/to/private.env -f docker-compose.yml -f hosted.yml up -d
 ```
 
 ## Requirements
@@ -61,12 +59,15 @@ Configuration is primarily managed through environment variables and compose fil
 
 ### Environment Variables (`.env`)
 
-The `.env` file (copied from `.env.example`) is crucial. Key variables include:
+The tracked `.env` file supplies Odoo runtime options; `.env.example` lists the minimum Compose settings. The three password fields are intentionally blank. Supply separate private values for `POSTGRES_PASSWORD`, `POSTGRES_ADMIN_PASSWORD`, and `ADMIN_PASSWORD` through your process environment or a private file passed with `docker compose --env-file /path/to/private.env`. A private environment file must include the other settings from `.env.example` as well; it replaces the default interpolation file. Do not commit populated credentials. Key variables include:
 
-- `ODOO_VERSION`: Specifies the Odoo version (e.g., `17.0`). Must match the desired pre-built image tag or the source code version for hosted setups.
+- `ODOO_VERSION`: Specifies the Odoo version (e.g., `18.0`). Must match the desired pre-built image tag or the source code version for hosted setups.
 - `PSQL_VERSION`: PostgreSQL version (e.g., `16`).
-- `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`: Database credentials.
-- `ADMIN_PASSWORD`: The master admin password for new Odoo databases.
+- `POSTGRES_DB`: Initial database created by PostgreSQL.
+- `POSTGRES_USER`, `POSTGRES_PASSWORD`: Odoo's database login. It can create databases but is not a PostgreSQL superuser.
+- `POSTGRES_ADMIN_USER`, `POSTGRES_ADMIN_PASSWORD`: PostgreSQL bootstrap superuser used only when initializing an empty data volume. Compose leaves its password empty in the Odoo container.
+- `ADMIN_PASSWORD`: The Odoo master password for creating or restoring databases.
+- `LIST_DB`: Defaults to `False`; set it to `True` when local development needs the database selector.
 - `PIP_AUTO_INSTALL=1`: Set to `1` to automatically install Python requirements from custom addons on startup.
 - `UPGRADE_ODOO=1`: Set to `1` to attempt `odoo -u all` on startup.
 - `RUN_TESTS=1`: Set to `1` to run Odoo tests on startup (use `WITHOUT_TEST_TAGS` to exclude specific test tags).
@@ -74,12 +75,18 @@ The `.env` file (copied from `.env.example`) is crucial. Key variables include:
 
 Many other environment variables are available to control Odoo's behavior (timeouts, workers, logging, email, etc.) - see the `Dockerfile` and `resources/entrypoint.sh` for details.
 
+#### Existing PostgreSQL volumes
+
+PostgreSQL runs the role-creation script only when its data directory is empty. An existing volume is not changed automatically; Dockerdoo's database health check stays unhealthy if the configured Odoo login is missing, has the wrong password, or still has elevated privileges.
+
+To move an existing installation, stop its Odoo service and make consistent backups of its databases and matching filestore directories. Start only the new database service under a new Compose project name during restore, for example `docker compose -p dockerdoo-new up -d db`. Restore each database with `POSTGRES_USER` as its owner, then restore the matching filestore. Start the new Odoo service after the old one is stopped because both projects use ports 8069 and 8072. Verify database and attachment access before retiring the old project or volume. Keep the old data until verification is complete; Dockerdoo does not migrate or delete it automatically.
+
 ### Build Arguments
 
 You can customize the Docker image build using `--build-arg`:
 
 ```shell
-docker-compose build --build-arg PYTHON_VERSION=3.11-slim --build-arg ODOO_VERSION=17.0
+docker compose --env-file /path/to/private.env build --build-arg PYTHON_VERSION=3.12-slim --build-arg OS_VARIANT=bookworm
 ```
 
 Available arguments (see `Dockerfile`): `PYTHON_VERSION`, `OS_VARIANT`, `ODOO_VERSION`, `WKHTMLTOX_VERSION`, `APP_UID`, `APP_GID`.
@@ -98,10 +105,10 @@ Combine them using the `-f` flag:
 
 ```shell
 # Hosted Development
-docker-compose -f docker-compose.yml -f hosted.yml -f dev-hosted.yml up
+docker compose --env-file /path/to/private.env -f docker-compose.yml -f hosted.yml -f dev-hosted.yml up
 
 # Run Tests (Standalone)
-docker-compose -f docker-compose.yml -f test-env.yml up
+docker compose --env-file /path/to/private.env -f docker-compose.yml -f test-env.yml up
 ```
 
 ### Extra Addons (`./custom`)
@@ -176,8 +183,8 @@ your-project/
 │   ├── my_module_1/
 │   └── my_module_2/
 ├── .github/           # GitHub Actions workflows (CI/CD)
-├── .env.example       # Example environment variables (copy to .env)
-├── .env               # Your local environment variables (ignored by git)
+├── .env.example       # Minimum Compose variables; password fields are blank
+├── .env               # Tracked Odoo runtime settings; keep private values separate
 ├── Dockerfile         # Defines the Odoo image build process
 ├── docker-compose.yml             # Base compose configuration
 ├── hosted.yml                     # Override for hosted mode
