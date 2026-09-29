@@ -1,0 +1,181 @@
+name: Verify and publish Odoo images
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 1"
+  push:
+    branches: [main]
+    paths:
+      - .dockerignore
+      - .devcontainer/**
+      - .env
+      - .env.example
+      - .github/workflows/**
+      - Dockerfile
+      - config/**
+      - custom/**
+      - dev-hosted.yml
+      - dev-standalone.yml
+      - docker-compose.yml
+      - hosted.yml
+      - resources/**
+      - test-env.yml
+      - tests/**
+  pull_request:
+    paths:
+      - .dockerignore
+      - .devcontainer/**
+      - .env
+      - .env.example
+      - .github/workflows/**
+      - Dockerfile
+      - config/**
+      - custom/**
+      - dev-hosted.yml
+      - dev-standalone.yml
+      - docker-compose.yml
+      - hosted.yml
+      - resources/**
+      - test-env.yml
+      - tests/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  resolve_odoo_refs:
+    name: Resolve current Odoo branches
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.refs.outputs.matrix }}
+    steps:
+      - name: Resolve each branch once for this run
+        id: refs
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          resolve_ref() {
+            local version="$1"
+            local ref
+            ref="$(git ls-remote https://github.com/odoo/odoo.git "refs/heads/${version}" | cut -f1)"
+            if [[ ! "$ref" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "Could not resolve Odoo branch ${version}" >&2
+              return 1
+            fi
+            echo "Resolved Odoo ${version} to ${ref}" >&2
+            printf '%s' "$ref"
+          }
+
+          ref18="$(resolve_ref 18.0)"
+          ref19="$(resolve_ref 19.0)"
+          ref20="$(resolve_ref 20.0)"
+          matrix="$(jq -cn \
+            --arg ref18 "$ref18" \
+            --arg ref19 "$ref19" \
+            --arg ref20 "$ref20" \
+            '{include:[
+              {odoo_version:"18.0",odoo_ref:$ref18,platform:"linux/amd64",runner:"ubuntu-latest",arch:"amd64"},
+              {odoo_version:"18.0",odoo_ref:$ref18,platform:"linux/arm64",runner:"ubuntu-24.04-arm",arch:"arm64"},
+              {odoo_version:"19.0",odoo_ref:$ref19,platform:"linux/amd64",runner:"ubuntu-latest",arch:"amd64"},
+              {odoo_version:"19.0",odoo_ref:$ref19,platform:"linux/arm64",runner:"ubuntu-24.04-arm",arch:"arm64"},
+              {odoo_version:"20.0",odoo_ref:$ref20,platform:"linux/amd64",runner:"ubuntu-latest",arch:"amd64"},
+              {odoo_version:"20.0",odoo_ref:$ref20,platform:"linux/arm64",runner:"ubuntu-24.04-arm",arch:"arm64"}
+            ]}')"
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
+
+  build_test_pull_request:
+    name: Build and test without registry access
+    if: ${{ github.event_name == 'pull_request' || github.ref != 'refs/heads/main' }}
+    needs: resolve_odoo_refs
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.resolve_odoo_refs.outputs.matrix) }}
+    uses: ./.github/workflows/image-builder.yaml
+    with:
+      odoo_version: ${{ matrix.odoo_version }}
+      odoo_ref: ${{ matrix.odoo_ref }}
+      platform: ${{ matrix.platform }}
+      runner: ${{ matrix.runner }}
+      stage_tag: ci-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.odoo_version }}-${{ matrix.arch }}
+      publish_stage: false
+
+  build_test_main:
+    name: Build, test and stage trusted images
+    if: ${{ github.repository == 'iterativo-git/dockerdoo' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    needs: resolve_odoo_refs
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.resolve_odoo_refs.outputs.matrix) }}
+    uses: ./.github/workflows/image-builder.yaml
+    with:
+      odoo_version: ${{ matrix.odoo_version }}
+      odoo_ref: ${{ matrix.odoo_ref }}
+      platform: ${{ matrix.platform }}
+      runner: ${{ matrix.runner }}
+      stage_tag: ci-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.odoo_version }}-${{ matrix.arch }}
+      publish_stage: true
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  publish_tested_manifests:
+    name: Publish tested Odoo ${{ matrix.odoo_version }} manifest
+    if: ${{ github.repository == 'iterativo-git/dockerdoo' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    needs:
+      - build_test_main
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        odoo_version: ["18.0", "19.0", "20.0"]
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3.4.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.10.0
+
+      - name: Create version manifests from tested platform images
+        env:
+          ODOO_VERSION: ${{ matrix.odoo_version }}
+          IMAGE: ghcr.io/iterativo-git/dockerdoo
+          DOCKER_HUB_IMAGE: iterativodo/dockerdoo
+          STAGE_PREFIX: ci-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.odoo_version }}
+        run: |
+          set -euo pipefail
+          amd64="${IMAGE}:${STAGE_PREFIX}-amd64"
+          arm64="${IMAGE}:${STAGE_PREFIX}-arm64"
+          docker_hub_amd64="${DOCKER_HUB_IMAGE}:${STAGE_PREFIX}-amd64"
+          docker_hub_arm64="${DOCKER_HUB_IMAGE}:${STAGE_PREFIX}-arm64"
+          docker buildx imagetools create \
+            --tag "${IMAGE}:${ODOO_VERSION}" \
+            "$amd64" "$arm64"
+          docker buildx imagetools create \
+            --tag "${DOCKER_HUB_IMAGE}:${ODOO_VERSION}" \
+            "$docker_hub_amd64" "$docker_hub_arm64"
+          docker buildx imagetools inspect "${IMAGE}:${ODOO_VERSION}"
+          docker buildx imagetools inspect "${DOCKER_HUB_IMAGE}:${ODOO_VERSION}"

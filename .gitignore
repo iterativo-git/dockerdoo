@@ -417,3 +417,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.gitignore.io/api/test,macos,linux,python,windows,pycharm,virtualenv,sublimetext,visualstudiocode
+# Dockerdoo runtime regression checks
+!/tests/
+!/tests/test_runtime.py
