@@ -9,9 +9,9 @@ Dockerdoo includes a VS Code Dev Containers setup with the Python and Debugpy ex
 
 ## Pre-built Images
 
-Pre-built images for various Odoo versions (`15.0`, `16.0`, `17.0`, `18.0`, `master`) and architectures (`linux/amd64`, `linux/arm64`) are automatically built, tested, and published via GitHub Actions to:
+The maintained versions are **Odoo 18, 19, and 20**, following the stable releases on the [official nightly site](https://nightly.odoo.com/). GitHub Actions builds and tests each version on native `linux/amd64` and `linux/arm64` runners before publishing to:
 
-- **GitHub Container Registry**: `ghcr.io/iterativo-git/dockerdoo:<odoo_version>` (e.g., `ghcr.io/iterativo-git/dockerdoo:17.0`)
+- **GitHub Container Registry**: `ghcr.io/iterativo-git/dockerdoo:<odoo_version>` (e.g., `ghcr.io/iterativo-git/dockerdoo:18.0`)
 - **Docker Hub**: `iterativodo/dockerdoo:<odoo_version>`
 
 You can often pull a pre-built image directly (by ensuring `image: iterativodo/dockerdoo:\${ODOO_VERSION}` is set in your compose file and `ODOO_VERSION` is defined in `.env`) instead of building it locally, saving time.
@@ -200,6 +200,21 @@ your-project/
 ├── test-env.yml                   # Override for running tests
 └── ...                            # Other files (.gitignore, README.md, etc.)
 ```
+
+## Image checks
+
+CI resolves each maintained Odoo branch once per run, installs dependencies from that same checkout, and tests the loaded image before registry login or publication. Version tags are updated only after all six version/architecture jobs pass. Pull requests run the checks without registry credentials. Older branches and previously published tags are retained outside this matrix.
+
+To run the same check against a local image:
+
+```shell
+docker build --build-arg ODOO_VERSION=20.0 -t dockerdoo-local:20.0 .
+python3 tests/test_runtime.py --image dockerdoo-local:20.0 --odoo-version 20.0 --native-tests
+```
+
+The check uses disposable Compose services and generated credentials. It verifies database permissions, runs Odoo's base suite with the existing entrypoint exclusions, then checks HTTP health, image health, and database restart behavior. It removes its containers and volumes and prints the location of its logs. Browser tests require Chrome and are not covered by this image check.
+
+`ODOO_REF` is an optional Docker build argument for a specific upstream revision; it defaults to `ODOO_VERSION`. Both architectures use the same resolved revision in CI. `HTTP_PORT` and `ODOO_HEALTHCHECK_PATH` control the image health probe, whose default path is `/web/health`.
 
 ## Credits
 

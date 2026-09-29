@@ -33,6 +33,7 @@ RUN apt-get -qq update \
     dirmngr \
     fonts-noto-cjk \
     gnupg \
+    libmagic1 \
     libssl-dev \
     node-less \
     npm \
@@ -118,8 +119,6 @@ RUN apt-get update \
     libtiff5-dev \
     libxml2-dev \
     libxslt1-dev \
-    # Updated mimetype package to ensure consistent MIME type detection
-    libmagic1 \
     libwebp-dev \
     tcl-dev \
     tk-dev \
@@ -128,8 +127,13 @@ RUN apt-get update \
 
 # Install Odoo source code and install it as a package inside the container with additional tools
 ARG ODOO_VERSION
+ARG ODOO_REF=${ODOO_VERSION}
 
-RUN pip3 install --prefix=/usr/local --no-cache-dir --upgrade --requirement https://raw.githubusercontent.com/odoo/odoo/${ODOO_VERSION}/requirements.txt \
+RUN git init /opt/odoo \
+    && git -C /opt/odoo remote add origin https://github.com/odoo/odoo.git \
+    && git -C /opt/odoo fetch --depth=1 origin ${ODOO_REF} \
+    && git -C /opt/odoo checkout --detach FETCH_HEAD \
+    && pip3 install --prefix=/usr/local --no-cache-dir --upgrade --requirement /opt/odoo/requirements.txt \
     && pip3 -qq install --prefix=/usr/local --no-cache-dir --upgrade \
     rlpycairo \
     'websocket-client~=0.56' \
@@ -149,8 +153,7 @@ RUN pip3 install --prefix=/usr/local --no-cache-dir --upgrade --requirement http
     && apt-get autopurge -yqq \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
-RUN git clone --depth 100 -b ${ODOO_VERSION} https://github.com/odoo/odoo.git /opt/odoo \
-    && pip3 install --editable /opt/odoo \
+RUN pip3 install --editable /opt/odoo --config-settings editable_mode=compat \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
 FROM base AS production
@@ -194,6 +197,7 @@ ARG PGPASSWORD
 ARG DB_TEMPLATE
 ARG HTTP_INTERFACE
 ARG HTTP_PORT
+ARG ODOO_HEALTHCHECK_PATH
 ARG DBFILTER
 ARG DBNAME
 ARG SERVER_WIDE_MODULES
@@ -212,6 +216,7 @@ ENV \
     DBNAME=${DBNAME} \
     HTTP_INTERFACE=${HTTP_INTERFACE:-0.0.0.0} \
     HTTP_PORT=${HTTP_PORT:-8069} \
+    ODOO_HEALTHCHECK_PATH=${ODOO_HEALTHCHECK_PATH:-/web/health} \
     LIMIT_REQUEST=${LIMIT_REQUEST:-8196} \
     LIMIT_MEMORY_HARD=${LIMIT_MEMORY_HARD:-2684354560} \
     LIMIT_MEMORY_SOFT=${LIMIT_MEMORY_SOFT:-2147483648} \
@@ -318,7 +323,7 @@ RUN chmod u+x /entrypoint.sh
 EXPOSE 8069 8071 8072
 
 # Docker healthcheck command
-HEALTHCHECK CMD curl --fail http://127.0.0.1:8069/web_editor/static/src/xml/ace.xml || exit 1
+HEALTHCHECK CMD curl --fail --silent --show-error "http://127.0.0.1:${HTTP_PORT}${ODOO_HEALTHCHECK_PATH}" || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
 
